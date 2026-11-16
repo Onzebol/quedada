@@ -3,6 +3,7 @@ import type { CambiosProducto } from '../dominio/operaciones'
 import { formatearCantidad, formatearEuros, parsearCantidad, parsearEuros } from '../dominio/numeros'
 import { totalLinea } from '../dominio/totales'
 import type { Id, Participante, Producto } from '../dominio/tipos'
+import { BotonBorrar } from '../ui/BotonBorrar'
 
 interface Props {
   producto: Producto
@@ -59,9 +60,13 @@ export function FilaProducto({ producto, participantes, onCambiar, onBorrar }: P
         <button type="button" onClick={() => setEditando(true)} aria-label={`Editar ${producto.nombre}`}>
           Editar
         </button>
-        <button type="button" onClick={() => onBorrar(producto.id)} aria-label={`Borrar ${producto.nombre}`}>
-          Borrar
-        </button>
+        <BotonBorrar
+          texto="Borrar"
+          etiqueta={`Borrar ${producto.nombre}`}
+          titulo={`¿Borrar «${producto.nombre}»?`}
+          mensaje="Se quitará de la lista de la compra. No se puede deshacer."
+          onConfirmar={() => onBorrar(producto.id)}
+        />
       </span>
       {producto.observaciones !== '' && <p className="fila__observaciones">{producto.observaciones}</p>}
     </li>
