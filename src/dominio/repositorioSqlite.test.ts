@@ -61,6 +61,32 @@ describe('RepositorioSqlite', () => {
     expect(await repo.obtener('q1')).toEqual(q)
   })
 
+  it('guarda asistentes y básicos con su orden y asignación', async () => {
+    const q = quedada({
+      id: 'q1',
+      asistentes: [
+        { id: 'a2', familia: 'Gil', personas: 3, llegada: null },
+        { id: 'a1', familia: 'Pérez', personas: 4, llegada: '18:30' },
+      ],
+      basicos: [
+        { id: 'b2', nombre: 'Lavavajillas', asistenteId: null },
+        { id: 'b1', nombre: 'Leche', asistenteId: 'a1' },
+      ],
+    })
+    const repo = await abrir()
+    await repo.guardar(q)
+    expect(await repo.obtener('q1')).toEqual(q)
+  })
+
+  it('abre una base creada antes de los asistentes sin perder datos', async () => {
+    const antigua = new sql.Database()
+    antigua.run('CREATE TABLE quedadas (id TEXT PRIMARY KEY, nombre TEXT NOT NULL, inicio TEXT, fin TEXT)')
+    antigua.run("INSERT INTO quedadas VALUES ('q1','Vieja',NULL,NULL)")
+    await persistencia.guardar(antigua.export())
+    const q = await (await abrir()).obtener('q1')
+    expect(q).toMatchObject({ nombre: 'Vieja', asistentes: [], basicos: [] })
+  })
+
   it('persiste: otra instancia sobre la misma persistencia ve los datos', async () => {
     await (await abrir()).guardar(quedada({ id: 'q1' }))
     expect(await (await abrir()).listar()).toHaveLength(1)

@@ -42,6 +42,22 @@ async function subir(usuario: ReturnType<typeof userEvent.setup>) {
 const importacion = () => screen.getByRole('region', { name: 'Importar Excel' })
 
 describe('Importar Excel', () => {
+  it('al reimportar conserva los asistentes y básicos de la quedada', async () => {
+    const [{ quedada: importada }] = informe().importadas
+    const previa = {
+      ...importada,
+      asistentes: [{ id: 'a1', familia: 'Pérez', personas: 4, llegada: '18:00' }],
+      basicos: [{ id: 'b1', nombre: 'Leche', asistenteId: 'a1' }],
+    }
+    const { usuario, repositorio } = preparar(async () => informe(), new RepositorioMemoria([previa]))
+    await screen.findByRole('heading', { level: 2, name: 'Lista de la compra' })
+    await subir(usuario)
+    await within(importacion()).findByRole('status')
+    const guardada = await repositorio.obtener(importada.id)
+    expect(guardada?.asistentes).toEqual(previa.asistentes)
+    expect(guardada?.basicos).toEqual(previa.basicos)
+  })
+
   it('importa las hojas de compras y cuenta lo importado', async () => {
     const { usuario } = preparar(async () => informe())
     await esperarCarga()

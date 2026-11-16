@@ -20,6 +20,8 @@ export function quedadaInicial(crearId: () => Id, nombre = 'Quedada'): Quedada {
     participantes: [],
     grupos: COMIDAS_HABITUALES.map((n, orden) => ({ id: crearId(), nombre: n, orden })),
     productos: [],
+    asistentes: [],
+    basicos: [],
   }
 }
 

@@ -16,7 +16,8 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 4 | Gastos y liquidación (hecho): precio y descuento por producto, reparto (casa a partes iguales, comida por porcentaje) y quién paga a quién |
 | 5 | Despliegue continuo en GitHub Pages |
 | 6 | Importar el Excel (hecho): hojas «Compras 2023 a 2026» a quedadas, con selector de quedada |
-| 7 a 9 | Asistentes, memoria entre años y tickets |
+| 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes y básicos (leche, lavavajillas) asignados o sin asignar |
+| 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Asistentes } from './asistentes/Asistentes'
 import { ListaCompra } from './compra/ListaCompra'
 import { useQuedada } from './compra/useQuedada'
 import { Cuentas } from './cuentas/Cuentas'
@@ -62,6 +63,9 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
         <ListaCompra key={estado.quedada?.id ?? 'cargando'} estado={estado} crearId={crearId} />
         {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}
       </div>
+      {estado.quedada !== null && (
+        <Asistentes key={estado.quedada.id} quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />
+      )}
       <ImportarExcel
         leer={leerExcel}
         repositorio={almacen}

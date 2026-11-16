@@ -26,7 +26,15 @@ export function ImportarExcel({ leer, repositorio, onImportado }: Props) {
     setEstado({ tipo: 'leyendo' })
     try {
       const informe = await leer(archivo)
-      for (const { quedada } of informe.importadas) await repositorio.guardar(quedada)
+      for (const { quedada } of informe.importadas) {
+        // El Excel no trae asistentes: al reimportar se conservan los que ya había.
+        const previa = await repositorio.obtener(quedada.id)
+        await repositorio.guardar({
+          ...quedada,
+          asistentes: previa?.asistentes ?? [],
+          basicos: previa?.basicos ?? [],
+        })
+      }
       if (informe.importadas.length === 0) {
         setEstado({ tipo: 'error', mensaje: 'No se encontró ninguna hoja «Compras AAAA» en ese archivo.' })
         return
