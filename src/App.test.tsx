@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
 import { producto, quedada } from './dominio/fabrica'
 import { quedadaInicial } from './dominio/operaciones'
+import { AutenticacionMemoria } from './test/autenticacionMemoria'
 import { RepositorioMemoria } from './test/repositorioMemoria'
 
 function contador() {
@@ -354,6 +355,25 @@ describe('Gastos y liquidación', () => {
 
     preparar(repositorio)
     expect(await screen.findByRole('spinbutton', { name: 'Porcentaje de comida de Beto' })).toHaveValue(50)
+  })
+})
+
+describe('Importar el Excel con sesión', () => {
+  it('guarda la quedada con el id de la cuenta para no chocar con otras cuentas', async () => {
+    const repositorio = new RepositorioMemoria()
+    const ana = { id: 'cuenta-ana', nombre: 'Ana', foto: null }
+    const leerExcel = async () => ({
+      importadas: [{ hoja: 'Compras 2026', quedada: quedada({ id: 'import-compras-2026', nombre: 'Quedada 2026' }), avisos: [] }],
+      ignoradas: [],
+    })
+    render(<App repositorio={repositorio} crearId={contador()} leerExcel={leerExcel} autenticacion={new AutenticacionMemoria(ana, ana)} />)
+    await esperarCarga()
+
+    await userEvent.upload(screen.getByLabelText('Archivo de Excel (.xlsx)'), new File(['x'], 'compras.xlsx'))
+
+    await screen.findByText(/importada/i)
+    expect(repositorio.quedadas.map((q) => q.id)).toContain('cuenta-ana-import-compras-2026')
+    expect(repositorio.quedadas.map((q) => q.id)).not.toContain('import-compras-2026')
   })
 })
 
