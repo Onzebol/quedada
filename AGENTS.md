@@ -80,6 +80,18 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   iguales entre todos los participantes aunque al final no vengan, salvo los que tengan
   `pagaCasa: false` (niños). El resto (comida) se reparte según `porcentajeComida` de cada
   participante (100 por defecto; menos o 0 para niños). Los productos sin comprador no cuentan.
+- Importación del Excel (`src/importacion/`): `importarHoja.ts` (puro: filas de celdas a
+  `Quedada`; detecta los formatos de 2023 a 2026, usa ids estables derivados del nombre de la
+  hoja para que reimportar sustituya y no duplique, y avisa de lo que descarta),
+  `leerExcel.ts` (lee el `.xlsx` con `read-excel-file`, cargada solo al importar; devuelve los
+  valores ya calculados de las fórmulas) y `ImportarExcel.tsx` (botón e informe). Solo se
+  importan las hojas «Compras AAAA». El bloque de **tickets** del final de cada hoja (filas con
+  «SUMA ARTICULOS | TICKETS») y la lista de asistentes no se importan. En las hojas de 2023 y
+  2024 la columna del precio es el total de la línea, no el precio por unidad. Ojo: sumar la
+  columna «total» de toda la hoja cuenta dos veces lo comprado (líneas más tickets).
+- `App` muestra un selector de quedada cuando hay más de una; `ListaCompra` recibe `quedadaId`.
+- Datos reales: el Excel original de los usuarios no se sube al repo (es público). Los tests
+  usan fragmentos con nombres inventados y `src/importacion/fixtures/ejemplo.xlsx`.
 - Dinero: siempre en **céntimos enteros** (`Centimos`) dentro del dominio; solo se convierte a
   euros al mostrarlo. Las entradas de precio y descuento del producto están en euros.
 - Los datos se guardan siempre a través de la interfaz `Repositorio`, nunca con

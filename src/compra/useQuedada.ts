@@ -8,11 +8,11 @@ export type ErrorAlmacen = 'carga' | 'guardado'
 export type EstadoQuedada = ReturnType<typeof useQuedada>
 
 /**
- * Carga la primera quedada guardada (o crea una con las comidas habituales) y
+ * Carga la quedada indicada, o la primera guardada (o crea una con las comidas habituales), y
  * guarda en el repositorio cada cambio que se aplique. Si el almacenamiento falla
  * (bloqueado por el navegador, lleno…) lo comunica en `error` en vez de quedarse esperando.
  */
-export function useQuedada(repositorio: Repositorio, crearId: () => Id) {
+export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaId: Id | null = null) {
   const [quedada, setQuedada] = useState<Quedada | null>(null)
   const [error, setError] = useState<ErrorAlmacen | null>(null)
   const actual = useRef<Quedada | null>(null)
@@ -22,7 +22,8 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id) {
     let cancelado = false
     async function cargar() {
       const guardadas = await repositorio.listar()
-      const q = guardadas[0] ?? quedadaInicial(idsRef.current)
+      const elegida = quedadaId === null ? undefined : guardadas.find((g) => g.id === quedadaId)
+      const q = elegida ?? guardadas[0] ?? quedadaInicial(idsRef.current)
       if (guardadas.length === 0) await repositorio.guardar(q)
       if (cancelado) return
       actual.current = q
@@ -34,7 +35,7 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id) {
     return () => {
       cancelado = true
     }
-  }, [repositorio])
+  }, [repositorio, quedadaId])
 
   const aplicar = useCallback(
     (cambio: (q: Quedada) => Quedada) => {
