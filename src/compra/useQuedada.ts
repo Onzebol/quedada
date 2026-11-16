@@ -5,6 +5,8 @@ import type { Id, Quedada } from '../dominio/tipos'
 
 export type ErrorAlmacen = 'carga' | 'guardado'
 
+export type EstadoQuedada = ReturnType<typeof useQuedada>
+
 /**
  * Carga la primera quedada guardada (o crea una con las comidas habituales) y
  * guarda en el repositorio cada cambio que se aplique. Si el almacenamiento falla

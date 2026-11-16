@@ -55,7 +55,8 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
 - Estructura: `src/` con `App.tsx` y `main.tsx`; los tests van junto al código como
   `*.test.ts(x)`; la configuración común de tests está en `src/test/setup.ts`.
 - Dominio (`src/dominio/`, sin React): `tipos.ts` (Quedada, Grupo, Producto, Participante),
-  `totales.ts` (funciones puras de totales), `repositorio.ts` (interfaz asíncrona),
+  `totales.ts` (funciones puras de totales), `liquidacion.ts` (reparto y «quién debe a quién»),
+  `repositorio.ts` (interfaz asíncrona),
   `repositorioSqlite.ts` (implementación actual: SQLite en el navegador con `sql.js`, esquema
   relacional; cada escritura serializa la base y la guarda con la interfaz `Persistencia`,
   implementada en IndexedDB por `persistenciaIndexedDb.ts`), `abrirRepositorio.ts` (arranque
@@ -63,13 +64,22 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   `repositorioLocalStorage.ts` queda solo como origen de esa migración. `fabrica.ts` crea datos de prueba.
   `operaciones.ts` (altas, ediciones y borrados de participantes, comidas y productos, siempre
   devolviendo una quedada nueva), `filtros.ts` (filtros de la lista) y `numeros.ts` (leer y
-  mostrar cantidades con coma decimal).
+  mostrar cantidades y euros con coma decimal).
 - Interfaz de la compra (`src/compra/`): `ListaCompra` (filtro, participantes, comidas),
   `GrupoCompra`, `FilaProducto` y el hook `useQuedada`, que carga la primera quedada del
   repositorio (o crea una con las comidas habituales) y guarda cada cambio. `App` recibe el
   repositorio y el generador de ids por props para poder probarlo con un repositorio en memoria
   (`src/test/repositorioMemoria.ts`). Los estilos de `compra.css` son mínimos a propósito: la
   dirección visual definitiva es la issue #11.
+- Interfaz de cuentas (`src/cuentas/`): `Cuentas` muestra el total, lo pagado por persona, los
+  ajustes de reparto (porcentaje de comida y «paga la casa» por participante; el interruptor
+  «Gasto de la casa» está en cada comida de la lista) y las transferencias. `App` llama a
+  `useQuedada` y reparte el estado entre `ListaCompra` y `Cuentas`. Los interruptores usan
+  `role="switch"` para no mezclarse con las casillas «comprado» de los productos.
+- Reparto de gastos (decidido en #4): los grupos con `reparto: 'casa'` se dividen a partes
+  iguales entre todos los participantes aunque al final no vengan, salvo los que tengan
+  `pagaCasa: false` (niños). El resto (comida) se reparte según `porcentajeComida` de cada
+  participante (100 por defecto; menos o 0 para niños). Los productos sin comprador no cuentan.
 - Dinero: siempre en **céntimos enteros** (`Centimos`) dentro del dominio; solo se convierte a
   euros al mostrarlo. Las entradas de precio y descuento del producto están en euros.
 - Los datos se guardan siempre a través de la interfaz `Repositorio`, nunca con

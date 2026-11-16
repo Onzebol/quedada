@@ -11,3 +11,20 @@ export function formatearCantidad(cantidad: number | null, unidad: string): stri
   if (cantidad === null) return ''
   return [FORMATO.format(cantidad), unidad.trim()].filter((t) => t !== '').join(' ')
 }
+
+/** Lee un importe en euros con punto o coma decimal y signo opcional. Devuelve null si no es válido. */
+export function parsearEuros(texto: string): number | null {
+  const limpio = texto.trim().replace(',', '.')
+  return /^-?\d+(\.\d+)?$/.test(limpio) ? Number(limpio) : null
+}
+
+const EUROS = new Intl.NumberFormat('es-ES', {
+  style: 'currency',
+  currency: 'EUR',
+  useGrouping: 'always',
+})
+
+/** «1.667,41 €» a partir de céntimos enteros. */
+export function formatearEuros(centimos: number): string {
+  return EUROS.format(centimos / 100)
+}

@@ -15,6 +15,7 @@ interface Props {
   onBorrarProducto: (id: Id) => void
   onRenombrar: (grupoId: Id, nombre: string) => void
   onBorrar: (grupoId: Id) => void
+  onCambiarReparto: (grupoId: Id, reparto: 'casa' | 'comida') => void
 }
 
 export function GrupoCompra({
@@ -27,6 +28,7 @@ export function GrupoCompra({
   onBorrarProducto,
   onRenombrar,
   onBorrar,
+  onCambiarReparto,
 }: Props) {
   const [nuevo, setNuevo] = useState('')
   const [renombrando, setRenombrando] = useState(false)
@@ -68,6 +70,16 @@ export function GrupoCompra({
           >
             Renombrar
           </button>
+          <label className="grupo__casa">
+            <input
+              type="checkbox"
+              role="switch"
+              aria-label={`Gasto de la casa: ${grupo.nombre}`}
+              checked={grupo.reparto === 'casa'}
+              onChange={(e) => onCambiarReparto(grupo.id, e.target.checked ? 'casa' : 'comida')}
+            />
+            Gasto de la casa
+          </label>
           <button type="button" aria-label={`Borrar comida ${grupo.nombre}`} onClick={() => setConfirmando(true)}>
             Borrar
           </button>
