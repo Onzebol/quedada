@@ -36,7 +36,7 @@ export function Inicio({ quedadas, alElegir, alCrear, alEliminar, children }: Pr
               <button type="button" className="inicio__abrir" onClick={() => alElegir(q.id)}>
                 {q.nombre}
               </button>
-              <EliminarQuedada quedadaId={q.id} nombre={q.nombre} onEliminar={() => alEliminar(q.id)} />
+              <EliminarQuedada nombre={q.nombre} onEliminar={() => alEliminar(q.id)} />
             </li>
           ))}
         </ul>

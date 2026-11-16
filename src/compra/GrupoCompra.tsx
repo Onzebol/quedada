@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { CambiosProducto } from '../dominio/operaciones'
 import type { Grupo, Id, Participante, Producto } from '../dominio/tipos'
+import { BotonBorrar } from '../ui/BotonBorrar'
 import { FilaProducto } from './FilaProducto'
 
 interface Props {
@@ -33,7 +34,6 @@ export function GrupoCompra({
   const [nuevo, setNuevo] = useState('')
   const [renombrando, setRenombrando] = useState(false)
   const [nombre, setNombre] = useState(grupo.nombre)
-  const [confirmando, setConfirmando] = useState(false)
 
   return (
     <section className="grupo" aria-labelledby={`grupo-${grupo.id}`}>
@@ -80,29 +80,13 @@ export function GrupoCompra({
             />
             Gasto de la casa
           </label>
-          <button type="button" aria-label={`Borrar comida ${grupo.nombre}`} onClick={() => setConfirmando(true)}>
-            Borrar
-          </button>
-        </div>
-      )}
-
-      {confirmando && (
-        <div className="grupo__confirmar" role="alertdialog" aria-label={`Confirmar borrado de ${grupo.nombre}`}>
-          <p>
-            ¿Borrar {grupo.nombre} y su {total} {total === 1 ? 'producto' : 'productos'}?
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              onBorrar(grupo.id)
-              setConfirmando(false)
-            }}
-          >
-            Confirmar borrado
-          </button>
-          <button type="button" onClick={() => setConfirmando(false)}>
-            Cancelar borrado
-          </button>
+          <BotonBorrar
+            texto="Borrar"
+            etiqueta={`Borrar comida ${grupo.nombre}`}
+            titulo={`¿Borrar «${grupo.nombre}»?`}
+            mensaje={`Se borrará la comida y su ${total} ${total === 1 ? 'producto' : 'productos'}. No se puede deshacer.`}
+            onConfirmar={() => onBorrar(grupo.id)}
+          />
         </div>
       )}
 

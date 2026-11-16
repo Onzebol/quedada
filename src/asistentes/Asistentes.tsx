@@ -11,6 +11,7 @@ import {
   totalAsistentes,
 } from '../dominio/asistentes'
 import type { Id, Quedada } from '../dominio/tipos'
+import { BotonBorrar } from '../ui/BotonBorrar'
 import './asistentes.css'
 import { CampoEntero } from './CampoEntero'
 
@@ -84,9 +85,12 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
               value={a.llegada ?? ''}
               onChange={(e) => aplicar((q) => editarAsistente(q, a.id, { llegada: e.target.value === '' ? null : e.target.value }))}
             />
-            <button type="button" onClick={() => aplicar((q) => borrarAsistente(q, a.id))}>
-              Borrar {a.familia}
-            </button>
+            <BotonBorrar
+              texto={`Borrar ${a.familia}`}
+              titulo={`¿Borrar la familia «${a.familia}»?`}
+              mensaje="Dejará de contar entre quienes vienen y los básicos que traía quedarán sin asignar. No se puede deshacer."
+              onConfirmar={() => aplicar((q) => borrarAsistente(q, a.id))}
+            />
           </li>
         ))}
       </ul>
@@ -129,9 +133,12 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
                 </option>
               ))}
             </select>
-            <button type="button" onClick={() => aplicar((q) => borrarBasico(q, b.id))}>
-              Borrar básico {b.nombre}
-            </button>
+            <BotonBorrar
+              texto={`Borrar básico ${b.nombre}`}
+              titulo={`¿Borrar el básico «${b.nombre}»?`}
+              mensaje="Se quitará de la lista de básicos. No se puede deshacer."
+              onConfirmar={() => aplicar((q) => borrarBasico(q, b.id))}
+            />
           </li>
         ))}
       </ul>

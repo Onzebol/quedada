@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { vincularCuenta, participanteDe } from '../dominio/vinculos'
 import type { Quedada } from '../dominio/tipos'
 import './sesion.css'
@@ -7,6 +8,43 @@ interface Props {
   sesion: ReturnType<typeof useSesion>
   quedada: Quedada | null
   aplicar: (cambio: (q: Quedada) => Quedada) => void
+}
+
+function MenuUsuario({ nombre, foto, salir }: { nombre: string; foto: string | null; salir: () => void }) {
+  const [abierto, setAbierto] = useState(false)
+  const raiz = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!abierto) return
+    const alPulsar = (e: MouseEvent) => {
+      if (!raiz.current?.contains(e.target as Node)) setAbierto(false)
+    }
+    const alTecla = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAbierto(false)
+    }
+    document.addEventListener('mousedown', alPulsar)
+    document.addEventListener('keydown', alTecla)
+    return () => {
+      document.removeEventListener('mousedown', alPulsar)
+      document.removeEventListener('keydown', alTecla)
+    }
+  }, [abierto])
+
+  return (
+    <div className="sesion__persona" ref={raiz}>
+      <button type="button" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
+        <span>{nombre.trim().split(/\s+/)[0]}</span>
+        {foto !== null && <img src={foto} alt="" width={32} height={32} referrerPolicy="no-referrer" />}
+      </button>
+      {abierto && (
+        <div className="sesion__menu" role="menu">
+          <button type="button" role="menuitem" onClick={salir}>
+            Cerrar sesión
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function Sesion({ sesion, quedada, aplicar }: Props) {
@@ -23,15 +61,7 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
         </button>
       ) : (
         <>
-          <div className="sesion__persona">
-            {usuario.foto !== null && (
-              <img src={usuario.foto} alt={`Foto de ${usuario.nombre}`} width={32} height={32} referrerPolicy="no-referrer" />
-            )}
-            <span>{usuario.nombre}</span>
-            <button type="button" onClick={() => void salir()}>
-              Cerrar sesión
-            </button>
-          </div>
+          <MenuUsuario nombre={usuario.nombre} foto={usuario.foto} salir={() => void salir()} />
           {quedada !== null && quedada.participantes.length > 0 && (
             <label>
               Este soy yo

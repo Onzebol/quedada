@@ -9,10 +9,45 @@
 }
 
 .sesion__persona {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-weight: 700;
+}
+
+.sesion .sesion__persona > button {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  font-weight: 700;
+  padding: 0 0.25rem 0 1rem;
+  font: inherit;
+}
+
+.sesion__menu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 100%;
+  padding: 0.25rem;
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.12);
+}
+
+.sesion .sesion__menu button {
+  border: 0;
+  border-radius: 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.sesion .sesion__menu button:hover,
+.sesion .sesion__menu button:focus-visible {
+  background: var(--linea);
 }
 
 .sesion__persona img {

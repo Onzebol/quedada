@@ -14,7 +14,14 @@ async function iniciar() {
   const autenticacion = await AutenticacionSupabase.abrir(cliente, location.origin + location.pathname)
   // Sin sesión solo se ve la pantalla de entrada; con ella, las quedadas son las de la cuenta.
   if (!cliente || !autenticacion.actual()) return <PantallaEntrada autenticacion={autenticacion} />
-  return <App repositorio={new RepositorioSupabase(cliente)} autenticacion={autenticacion} />
+  // Al cerrar sesión se recarga: sin sesión la página vuelve a la pantalla de entrada.
+  return (
+    <App
+      repositorio={new RepositorioSupabase(cliente)}
+      autenticacion={autenticacion}
+      alSalir={() => location.reload()}
+    />
+  )
 }
 
 iniciar().then(

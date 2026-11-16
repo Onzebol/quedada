@@ -96,7 +96,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   usa Google Identity Services (ventana OAuth con `initTokenClient`, scopes `openid profile email`) y
   consulta `userinfo`; guarda solo id, nombre y foto (nunca el correo) en `localStorage` 30 días.
   **Es una sesión del navegador, sin servidor que valide la identidad: sirve para saber quién es
-  quién, no para proteger datos.** `Sesion` muestra entrar/salir, nombre, foto y «Este soy yo»
+  quién, no para proteger datos.** `Sesion` muestra entrar y, con sesión, un botón arriba a la derecha con el nombre de pila y la foto que abre un menú (#43, `role="menu"`; hoy solo «Cerrar sesión», ahí irán más acciones; se cierra con Escape o al pulsar fuera; al cerrar sesión `main.tsx` recarga la página, que sin sesión muestra `PantallaEntrada` vía la prop `alSalir` de `App`), y «Este soy yo»
   (`Participante.cuentaId`, columna `cuenta_id` en SQLite añadida con `ALTER` en bases antiguas;
   lógica en `dominio/vinculos.ts`). `ruta.ts` + `useHashQuedada` mantienen `#/<id>` (#40; antes `#/quedada/<id>`, que se sigue entendiendo para no romper enlaces ya compartidos: un id nuevo nunca lleva `/` sin codificar) y
   `CopiarEnlace` copia ese enlace. Hoy los datos siguen siendo locales: un enlace abierto en otro
@@ -168,8 +168,12 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   usan los tests del hook). `useQuedada` con un id que no existe o al que no se tiene acceso devuelve
   `error: 'noEncontrada'` y `App` lo avisa en vez de mostrar otra distinta. En los tests de `App`,
   `src/test/abrirPrimera.ts` apunta la URL a la primera quedada del repositorio para saltarse la página inicial.
-- **Eliminar quedada** (#36, `src/compra/EliminarQuedada.tsx`, ahora en la página inicial, uno por quedada): botón con
-  confirmación en la propia página (nombre y «no se puede deshacer»; sin `window.confirm`). `PaginaInicial.eliminar`
+- **Todos los borrados piden confirmación en una ventana modal** (#42, `src/ui/`): `Modal` (propia, no el `<dialog>` nativo, para
+  controlar el estilo «Sierra» en `modal.css` y poder probarla: rol `dialog` + `aria-modal`, Esc, clic fuera, foco contenido y
+  devuelto al botón, bloqueo del scroll, foco inicial en el elemento con `data-autofocus`) y `BotonBorrar` (botón + modal; si el
+  borrado rechaza deja la ventana abierta con el aviso, y no se confirma dos veces). Se usa en los cinco borrados: quedada, comida, producto, asistente y básico.
+- **Eliminar quedada** (#36, `src/compra/EliminarQuedada.tsx`, ahora en la página inicial, uno por quedada): `BotonBorrar` con la
+  ventana modal de confirmación. `PaginaInicial.eliminar`
   llama a `Repositorio.borrar` y refresca la lista. Si falla, avisa y no cambia nada. En Supabase el borrado es en
   cascada y solo puede el propietario (RLS `borrar las propias`); al compartir (paso 3 de #29) el botón solo se
   ofrecerá a él.

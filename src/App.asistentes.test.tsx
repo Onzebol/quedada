@@ -93,6 +93,10 @@ describe('Asistentes', () => {
       quedada({ id: 'q1', asistentes: [{ id: 'a1', familia: 'Pérez', personas: 2, llegada: null }] }),
     )
     await usuario.click(within(seccion()).getByRole('button', { name: 'Borrar Pérez' }))
+    expect(screen.getByRole('dialog', { name: '¿Borrar la familia «Pérez»?' })).toBeInTheDocument()
+    expect((await repositorio.obtener('q1'))?.asistentes).toHaveLength(1)
+
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect((await repositorio.obtener('q1'))?.asistentes).toEqual([])
     expect(within(seccion()).getByText(/^\d+ asistentes?$/)).toHaveTextContent('0 asistentes')
   })
@@ -136,6 +140,10 @@ describe('Básicos', () => {
   it('borra un básico', async () => {
     const { usuario, repositorio } = await preparar(base())
     await usuario.click(within(seccion()).getByRole('button', { name: 'Borrar básico Leche' }))
+    expect(screen.getByRole('dialog', { name: '¿Borrar el básico «Leche»?' })).toBeInTheDocument()
+    expect((await repositorio.obtener('q1'))?.basicos).toHaveLength(2)
+
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect((await repositorio.obtener('q1'))?.basicos.map((b) => b.nombre)).toEqual(['Lavavajillas'])
   })
 })

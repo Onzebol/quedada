@@ -142,11 +142,21 @@ describe('Lista de la compra', () => {
     expect(screen.queryByText('borrador')).not.toBeInTheDocument()
   })
 
-  it('borra un producto', async () => {
+  it('borra un producto solo tras confirmar en una ventana modal', async () => {
     const { usuario } = preparar()
     await esperarCarga()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
+
     await usuario.click(screen.getByRole('button', { name: 'Borrar Sidra' }))
+    expect(screen.getByRole('dialog', { name: '¿Borrar «Sidra»?' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
+
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Borrar Sidra' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
   })
 
@@ -171,16 +181,17 @@ describe('Lista de la compra', () => {
     expect(screen.queryByRole('heading', { level: 3, name: 'Bebida' })).not.toBeInTheDocument()
   })
 
-  it('borra una comida y sus productos solo tras confirmar', async () => {
+  it('borra una comida y sus productos solo tras confirmar en una ventana modal', async () => {
     const { usuario } = preparar()
     await esperarCarga()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
     await usuario.click(screen.getByRole('button', { name: 'Borrar comida Bebida' }))
-    expect(screen.getByText('¿Borrar Bebida y su 1 producto?')).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Cancelar borrado' }))
+    const aviso = screen.getByRole('dialog', { name: '¿Borrar «Bebida»?' })
+    expect(aviso).toHaveTextContent('su 1 producto')
+    await usuario.click(within(aviso).getByRole('button', { name: 'Cancelar' }))
     expect(screen.getByRole('heading', { level: 3, name: 'Bebida' })).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Borrar comida Bebida' }))
-    await usuario.click(screen.getByRole('button', { name: 'Confirmar borrado' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect(screen.queryByRole('heading', { level: 3, name: 'Bebida' })).not.toBeInTheDocument()
     expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
   })
@@ -446,13 +457,13 @@ describe('Página inicial', () => {
     await screen.findByRole('button', { name: 'Almunia 2026' })
 
     await usuario.click(screen.getAllByRole('button', { name: 'Eliminar quedada' })[0])
-    const aviso = screen.getByRole('group', { name: 'Confirmar eliminación' })
+    const aviso = screen.getByRole('dialog')
     expect(aviso).toHaveTextContent('no se puede deshacer')
     await usuario.click(within(aviso).getByRole('button', { name: 'Cancelar' }))
     expect(repositorio.quedadas).toHaveLength(2)
 
     await usuario.click(screen.getAllByRole('button', { name: 'Eliminar quedada' })[0])
-    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, eliminar' }))
     await waitFor(() => expect(repositorio.quedadas).toHaveLength(1))
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
   })
@@ -467,8 +478,8 @@ describe('Página inicial', () => {
     const usuario = abrirInicio(repositorio)
     await screen.findByRole('button', { name: 'Almunia 2026' })
     await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
-    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo eliminar la quedada')
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, eliminar' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo borrar')
     expect(screen.getByRole('button', { name: 'Almunia 2026' })).toBeInTheDocument()
   })
 

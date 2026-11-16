@@ -52,7 +52,7 @@ describe('Inicio', () => {
   it('elimina con confirmación y solo la quedada elegida', async () => {
     const { usuario, alEliminar } = preparar()
     await usuario.click(screen.getAllByRole('button', { name: 'Eliminar quedada' })[1])
-    const aviso = screen.getByRole('group', { name: 'Confirmar eliminación' })
+    const aviso = screen.getByRole('dialog')
     expect(aviso).toHaveTextContent('«Almunia 2025»')
     expect(alEliminar).not.toHaveBeenCalled()
     await usuario.click(within(aviso).getByRole('button', { name: 'Sí, eliminar' }))
