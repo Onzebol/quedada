@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { producto, quedada } from '../dominio/fabrica'
 import type { Quedada } from '../dominio/tipos'
 import { BackendSupabaseFalso } from '../test/backendSupabaseFalso'
@@ -197,6 +197,70 @@ describe('RepositorioSupabase', () => {
       const { repo, backend } = nuevo()
       backend.fallarEscrituraNumero(1)
       await expect(repo().guardar(quedada({ id: 'q1' }))).rejects.toThrow('fallo de red simulado')
+    })
+  })
+  describe('suscribir (tiempo real)', () => {
+    const esperar = () => new Promise((r) => setTimeout(r, 0))
+
+    it('abre el canal privado de la quedada, autenticando antes de suscribir', async () => {
+      const { repo, backend } = nuevo()
+      repo().suscribir('q1', () => {})
+      await vi.waitFor(() => expect(backend.canales).toHaveLength(1))
+      expect(backend.canales[0]).toMatchObject({ nombre: 'quedada:q1', privado: true })
+      await vi.waitFor(() => expect(backend.bitacora).toEqual(['setAuth', 'subscribe']))
+    })
+
+    it('avisa cada vez que cambia algo en la quedada', async () => {
+      const { repo, backend } = nuevo()
+      const alCambiar = vi.fn()
+      repo().suscribir('q1', alCambiar)
+      await vi.waitFor(() => expect(backend.bitacora).toContain('subscribe'))
+      await esperar()
+      alCambiar.mockClear()
+      backend.emitir('q1', 'INSERT')
+      backend.emitir('q1', 'DELETE')
+      expect(alCambiar).toHaveBeenCalledTimes(2)
+    })
+
+    it('avisa al quedar suscrito, para recoger lo ocurrido antes y tras una reconexión', async () => {
+      const { repo, backend } = nuevo()
+      const alCambiar = vi.fn()
+      repo().suscribir('q1', alCambiar)
+      await vi.waitFor(() => expect(alCambiar).toHaveBeenCalledTimes(1))
+      backend.canales[0].alEstado?.('SUBSCRIBED')
+      expect(alCambiar).toHaveBeenCalledTimes(2)
+    })
+
+    it('no avisa por otros estados del canal', async () => {
+      const { repo, backend } = nuevo()
+      const alCambiar = vi.fn()
+      repo().suscribir('q1', alCambiar)
+      await vi.waitFor(() => expect(alCambiar).toHaveBeenCalledTimes(1))
+      backend.canales[0].alEstado?.('CHANNEL_ERROR')
+      backend.canales[0].alEstado?.('CLOSED')
+      expect(alCambiar).toHaveBeenCalledTimes(1)
+    })
+
+    it('al cancelar quita el canal y deja de avisar', async () => {
+      const { repo, backend } = nuevo()
+      const alCambiar = vi.fn()
+      const cancelar = repo().suscribir('q1', alCambiar)
+      await vi.waitFor(() => expect(backend.bitacora).toContain('subscribe'))
+      await esperar()
+      cancelar()
+      await vi.waitFor(() => expect(backend.canales[0].quitado).toBe(true))
+      alCambiar.mockClear()
+      backend.canales[0].alMensaje?.({ event: 'UPDATE' })
+      expect(alCambiar).not.toHaveBeenCalled()
+    })
+
+    it('si se cancela antes de terminar de abrirse, no deja el canal abierto', async () => {
+      const { repo, backend } = nuevo()
+      const cancelar = repo().suscribir('q1', () => {})
+      cancelar()
+      await esperar()
+      await esperar()
+      expect(backend.canales.every((c) => c.quitado || !c.suscrito)).toBe(true)
     })
   })
 })

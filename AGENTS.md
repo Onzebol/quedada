@@ -129,6 +129,19 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   WebAssembly, solo en tests): prueba la conversión de `datos` y que una cuenta no ve ni toca las
   filas de otra. **Orden al desplegar una migración** (se aplica a mano en el editor SQL): ejecutarla,
   fusionar la PR y volver a ejecutar `select public.convertir_quedadas_desde_datos();` una vez.
+  **Tiempo real** (#32, paso 2 de #29): `0003_tiempo_real.sql` crea triggers por fila en `quedadas` y sus
+  cinco tablas hijas que llaman a `realtime.broadcast_changes` hacia el canal privado
+  `quedada:<id>`, y una política en `realtime.messages` basada en `puede_acceder` (así el paso 3 la
+  amplía a los miembros sin tocarla). Se usa Broadcast y no Postgres Changes porque los DELETE de este
+  último no se filtran ni pasan por RLS. `Repositorio.suscribir?(id, alCambiar)` es opcional (solo
+  Supabase); `RepositorioSupabase` autentica (`realtime.setAuth`) y abre el canal privado. El aviso
+  solo dice «algo cambió»: `useQuedada` espera `ESPERA_AVISOS_MS`, vuelve a leer la quedada y la
+  sustituye si es distinta, **sin pisar lo local**: no lee mientras haya guardados en curso o
+  pendientes y descarta una lectura anterior a un cambio local. Avisa también al quedar suscrito
+  (primera vez y reconexiones) para recoger lo ocurrido en el hueco. En Supabase: Realtime activado y
+  sin «Allow public access» en los canales. Los tests de la migración usan un `realtime` falso en
+  PGlite; lo que no se prueba en CI es la entrega real por websocket (se comprueba a mano con dos
+  navegadores).
   **Configuración**: `VITE_SUPABASE_URL` y `VITE_SUPABASE_CLAVE_PUBLICA` (ver `.env.example`; en CI,
   variables de repositorio `SUPABASE_URL` y `SUPABASE_CLAVE_PUBLICA`), públicas. Nunca la
   `service_role`. Pendiente (issues propias): conocidos, compartir/invitar por email, vincular un
