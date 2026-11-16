@@ -44,6 +44,23 @@ describe('RepositorioSqlite', () => {
     expect(await repo.obtener('q1')).toEqual(q)
   })
 
+  it('guarda los campos de reparto de participantes y comidas', async () => {
+    const q = quedada({
+      id: 'q1',
+      participantes: [
+        { id: 'u1', nombre: 'Ana', porcentajeComida: 50, pagaCasa: false },
+        { id: 'u2', nombre: 'Luis' },
+      ],
+      grupos: [
+        { id: 'g1', nombre: 'Alquiler', orden: 0, reparto: 'casa' },
+        { id: 'g2', nombre: 'Cena', orden: 1 },
+      ],
+    })
+    const repo = await abrir()
+    await repo.guardar(q)
+    expect(await repo.obtener('q1')).toEqual(q)
+  })
+
   it('persiste: otra instancia sobre la misma persistencia ve los datos', async () => {
     await (await abrir()).guardar(quedada({ id: 'q1' }))
     expect(await (await abrir()).listar()).toHaveLength(1)
