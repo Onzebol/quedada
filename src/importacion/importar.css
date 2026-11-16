@@ -1,4 +1,4 @@
-/* Estilos mínimos y neutros; la dirección visual definitiva es la issue #11. */
+/* Sierra (#11): el selector y la importación usan los tokens de index.css. */
 .selector-quedada {
   display: flex;
   flex-direction: column;
@@ -18,9 +18,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+  margin-top: 1.5rem;
+  padding: 1.5rem 1.625rem;
+  background: var(--surf);
+  border-radius: var(--radio);
 }
 
 .importar label {
