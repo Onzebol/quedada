@@ -161,6 +161,11 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   2024 la columna del precio es el total de la línea, no el precio por unidad. Ojo: sumar la
   columna «total» de toda la hoja cuenta dos veces lo comprado (líneas más tickets).
 - `App` muestra un selector de quedada cuando hay más de una; `ListaCompra` recibe `quedadaId`.
+  **Eliminar quedada** (#36, `src/compra/EliminarQuedada.tsx`): botón con confirmación en la propia página
+  (nombre y «no se puede deshacer»; sin `window.confirm`). `App.eliminar` llama a `Repositorio.borrar`, refresca
+  la lista, activa la primera que quede y pide `useQuedada.recargar()`; si era la única, el hook crea una nueva
+  con las comidas habituales. Si falla, avisa y no cambia nada. En Supabase el borrado es en cascada y solo
+  puede el propietario (RLS `borrar las propias`); al compartir (paso 3 de #29) el botón solo se ofrecerá a él.
 - Datos reales: el Excel original de los usuarios no se sube al repo (es público). Los tests
   usan fragmentos con nombres inventados y `src/importacion/fixtures/ejemplo.xlsx`.
 - Dinero: siempre en **céntimos enteros** (`Centimos`) dentro del dominio; solo se convierte a

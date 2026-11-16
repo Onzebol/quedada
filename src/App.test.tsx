@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
 import { producto, quedada } from './dominio/fabrica'
 import { quedadaInicial } from './dominio/operaciones'
@@ -374,5 +374,96 @@ describe('Importar el Excel con sesión', () => {
     await screen.findByText(/importada/i)
     expect(repositorio.quedadas.map((q) => q.id)).toContain('cuenta-ana-import-compras-2026')
     expect(repositorio.quedadas.map((q) => q.id)).not.toContain('import-compras-2026')
+  })
+})
+
+describe('Eliminar una quedada', () => {
+  const conLeche = () =>
+    quedada({
+      id: 'q1',
+      nombre: 'Almunia 2026',
+      grupos: [{ id: 'g1', nombre: 'Cena del viernes', orden: 0 }],
+      productos: [producto({ id: 'p1', grupoId: 'g1', nombre: 'Leche' })],
+    })
+  const conPan = () =>
+    quedada({
+      id: 'q2',
+      nombre: 'Almunia 2025',
+      grupos: [{ id: 'g1', nombre: 'Cena del viernes', orden: 0 }],
+      productos: [producto({ id: 'p2', grupoId: 'g1', nombre: 'Pan' })],
+    })
+
+  afterEach(() => {
+    window.location.hash = ''
+  })
+
+  it('pide confirmación con el nombre y Cancelar no borra nada', async () => {
+    const { usuario, repositorio } = preparar(new RepositorioMemoria([conLeche(), conPan()]))
+    await screen.findByText('Leche')
+
+    await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
+    const aviso = screen.getByRole('group', { name: 'Confirmar eliminación' })
+    expect(aviso).toHaveTextContent('¿Eliminar «Almunia 2026»?')
+    expect(aviso).toHaveTextContent('no se puede deshacer')
+
+    await usuario.click(within(aviso).getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('group', { name: 'Confirmar eliminación' })).not.toBeInTheDocument()
+    expect(repositorio.quedadas.map((q) => q.id).sort()).toEqual(['q1', 'q2'])
+    expect(screen.getByText('Leche')).toBeInTheDocument()
+  })
+
+  it('al confirmar la borra del repositorio y muestra otra quedada', async () => {
+    const { usuario, repositorio } = preparar(new RepositorioMemoria([conLeche(), conPan()]))
+    await screen.findByText('Leche')
+
+    await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
+    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+
+    expect(await screen.findByText('Pan')).toBeInTheDocument()
+    expect(screen.queryByText('Leche')).not.toBeInTheDocument()
+    expect(repositorio.quedadas.map((q) => q.id)).toEqual(['q2'])
+    expect(screen.queryByRole('combobox', { name: 'Quedada' })).not.toBeInTheDocument()
+  })
+
+  it('si era la única, crea una nueva con las comidas habituales', async () => {
+    const { usuario, repositorio } = preparar(new RepositorioMemoria([conLeche()]))
+    await screen.findByText('Leche')
+
+    await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
+    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+
+    await waitFor(() => expect(screen.queryByText('Leche')).not.toBeInTheDocument())
+    await esperarCarga()
+    await waitFor(() => expect(repositorio.quedadas).toHaveLength(1))
+    expect(repositorio.quedadas[0].id).not.toBe('q1')
+  })
+
+  it('si falla el borrado avisa y la quedada sigue ahí', async () => {
+    class NoBorra extends RepositorioMemoria {
+      override async borrar(): Promise<void> {
+        throw new Error('sin permiso')
+      }
+    }
+    const { usuario, repositorio } = preparar(new NoBorra([conLeche(), conPan()]))
+    await screen.findByText('Leche')
+
+    await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
+    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo eliminar la quedada')
+    expect(repositorio.quedadas).toHaveLength(2)
+    expect(screen.getByText('Leche')).toBeInTheDocument()
+  })
+
+  it('el enlace de la página no queda apuntando a la quedada borrada', async () => {
+    window.location.hash = '#/quedada/q2'
+    const { usuario } = preparar(new RepositorioMemoria([conLeche(), conPan()]))
+    await screen.findByText('Pan')
+
+    await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
+    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+
+    await screen.findByText('Leche')
+    expect(window.location.hash).not.toContain('q2')
   })
 })

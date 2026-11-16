@@ -12,6 +12,7 @@ import { Cuentas } from './cuentas/Cuentas'
 import type { Repositorio } from './dominio/repositorio'
 import { RepositorioLocalStorage } from './dominio/repositorioLocalStorage'
 import type { Id, Quedada } from './dominio/tipos'
+import { EliminarQuedada } from './compra/EliminarQuedada'
 import { ImportarExcel } from './importacion/ImportarExcel'
 import type { InformeImportacion } from './importacion/importarHoja'
 import { leerExcel as leerExcelReal } from './importacion/leerExcel'
@@ -42,6 +43,20 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
     }
   }, [almacen])
 
+  const eliminar = useCallback(
+    async (id: string) => {
+      await almacen.borrar(id)
+      const quedan = await almacen.listar()
+      setQuedadas(quedan)
+      setActiva(quedan[0]?.id ?? null)
+      estado.recargar()
+    },
+    [almacen, setActiva, estado],
+  )
+
+  // La lista del selector sigue a la quedada que se muestra (p. ej. la que se crea al borrar la única).
+  const idMostrada = estado.quedada?.id
+
   useEffect(() => {
     let activo = true
     almacen
@@ -53,7 +68,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
     return () => {
       activo = false
     }
-  }, [almacen])
+  }, [almacen, idMostrada])
 
   return (
     <main className="pagina">
@@ -78,6 +93,13 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
         </label>
       )}
       {estado.quedada !== null && <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />}
+      {estado.quedada !== null && (
+        <EliminarQuedada
+          key={estado.quedada.id}
+          nombre={estado.quedada.nombre}
+          onEliminar={() => eliminar(estado.quedada!.id)}
+        />
+      )}
       <div className="pagina__columnas">
         <ListaCompra key={estado.quedada?.id ?? 'cargando'} estado={estado} crearId={crearId} />
         {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}

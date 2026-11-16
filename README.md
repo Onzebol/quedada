@@ -21,6 +21,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 25 | Supabase: login con Google y quedadas por usuario (primer trozo; compartir, conocidos e invitaciones, después). Configuración: ver abajo |
 | 30 | Supabase: una fila por cosa (participantes, comidas, productos…) y guardado por diferencias, para que varias personas editen sin pisarse (paso 1 de #29) |
 | 32 | Tiempo real: los cambios de otra persona aparecen sin recargar (Broadcast desde la base de datos, canal privado por quedada; paso 2 de #29) |
+| 36 | Eliminar quedadas, con confirmación |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
