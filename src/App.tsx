@@ -44,7 +44,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
   }, [almacen])
 
   return (
-    <main>
+    <main className="pagina">
       <h1>Quedada</h1>
       {quedadas.length > 1 && (
         <label className="selector-quedada">
@@ -58,8 +58,10 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
           </select>
         </label>
       )}
-      <ListaCompra key={estado.quedada?.id ?? 'cargando'} estado={estado} crearId={crearId} />
-      {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}
+      <div className="pagina__columnas">
+        <ListaCompra key={estado.quedada?.id ?? 'cargando'} estado={estado} crearId={crearId} />
+        {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}
+      </div>
       <ImportarExcel
         leer={leerExcel}
         repositorio={almacen}

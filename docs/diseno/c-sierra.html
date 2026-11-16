@@ -1,0 +1,51 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><title>C Sierra</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8ecea;--surf:#f7f9f8;--ink:#17231f;--mut:#63726c;--moss:#2f6b4f;--sky:#3b7dd8;--sun:#f0a030;--rose:#d9577a;--lil:#7b5cc9}
+*{box-sizing:border-box;margin:0}
+body{width:1280px;height:820px;background:var(--bg);color:var(--ink);font:16px/1.4 'Bricolage Grotesque',sans-serif;padding:30px 44px;overflow:hidden}
+header{display:flex;justify-content:space-between;align-items:flex-end}
+h1{font:800 76px/.9 'Bricolage Grotesque';letter-spacing:-3px}
+h1 span{color:var(--moss)}
+.when{color:var(--mut);margin-top:10px;font-size:18px}
+.faces{display:flex}.faces i{width:46px;height:46px;border-radius:50%;border:3px solid var(--bg);margin-left:-10px;display:grid;place-items:center;font:600 18px 'Bricolage Grotesque';color:#fff;font-style:normal}
+nav{display:inline-flex;background:var(--surf);border-radius:40px;padding:5px;margin:22px 0;gap:4px}
+nav a{padding:8px 22px;border-radius:30px;font-weight:600;color:var(--mut)}nav a.on{background:var(--ink);color:#fff}
+.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:24px}
+.panel{background:var(--surf);border-radius:28px;padding:24px 26px}
+.panel h2{font:800 26px 'Bricolage Grotesque';letter-spacing:-.5px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.panel h2 em{font:400 15px 'Bricolage Grotesque';color:var(--mut);font-style:normal}
+.row{display:grid;grid-template-columns:28px 1fr 38px;gap:14px;align-items:center;padding:10px 0;border-top:1px solid #d5dcd9}
+.c{width:26px;height:26px;border-radius:9px;border:2px solid #9bb0a7}.d .c{background:var(--moss);border-color:var(--moss);position:relative}.d .c:after{content:"";position:absolute;left:7px;top:2px;width:7px;height:13px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+.d b{color:#8a9892;text-decoration:line-through;font-weight:400}
+.row b{font-weight:600;font-size:18px}.row small{display:block;color:var(--mut);font-size:14px}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:600}
+.l{background:var(--sky)}.m{background:var(--rose)}.p{background:var(--lil)}.a{background:var(--sun)}.dn{background:var(--moss)}
+.big{background:var(--moss);color:#fff}
+.big .n{font:800 84px/1 'Bricolage Grotesque';letter-spacing:-4px;margin:8px 0 2px}
+.big p{opacity:.8}
+.split{display:flex;height:16px;border-radius:10px;overflow:hidden;margin:18px 0 8px;gap:3px}
+.split i{display:block}
+.leg{display:flex;gap:16px;font-size:14px;opacity:.9;flex-wrap:wrap}
+.pay{margin-top:16px}
+.pay div{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #d5dcd9}
+.pay .arrow{color:var(--mut);font-size:22px}.pay .amt{margin-left:auto;font:800 24px 'Bricolage Grotesque'}
+.fab{position:absolute;right:44px;top:222px;background:var(--moss);color:#fff;border-radius:40px;padding:11px 24px;font-weight:600;font-size:17px}
+</style>
+<header><div><h1>Almunia<br><span>de marzo</span></h1><div class="when">Viernes 14 a domingo 16 · casa rural La Solana</div></div>
+<div class="faces"><i class="l">L</i><i class="m">M</i><i class="p">P</i><i class="a">A</i><i class="dn" style="background:#999">D</i></div></header>
+<nav><a class="on">Compra</a><a>Gastos</a><a>Menú</a><a>Casa</a></nav>
+<div class="grid"><div class="panel"><h2>Cena del viernes <em>1 de 3</em></h2>
+<div class="row d"><span class="c"></span><b>Arroz bomba</b><span class="av a">A</span></div>
+<div class="row"><span class="c"></span><b>Conejo y verdura<small>Pedir al carnicero con tiempo</small></b><span class="av l">L</span></div>
+<div class="row"><span class="c"></span><b>Vino tinto, 6 botellas<small>El año pasado sobró una caja</small></b><span class="av p">P</span></div>
+<h2 style="margin-top:20px">Almuerzo del sábado <em>2 de 4</em></h2>
+<div class="row d"><span class="c"></span><b>Chorizo y morcilla</b><span class="av l">L</span></div>
+<div class="row d"><span class="c"></span><b>Pan de leña</b><span class="av m">M</span></div>
+<div class="row"><span class="c"></span><b>Cervezas, 3 cajas</b><span class="av p">P</span></div></div>
+<div style="display:flex;flex-direction:column;gap:24px"><div class="panel big"><p>Gastado entre todos</p><div class="n">186 €</div><p>37,28 € por cabeza</p>
+<div class="split"><i style="flex:84;background:#8cc3ff"></i><i style="flex:62;background:#ffc46b"></i><i style="flex:40;background:#ff9ab6"></i></div><div class="leg"><span>Luis 84,50</span><span>Ana 61,90</span><span>Marta 40,00</span></div></div>
+<div class="panel"><h2>Para quedar en paz</h2><div class="pay">
+<div><span class="av p">P</span><span class="arrow">→</span><span class="av l">L</span><span class="amt">22,40 €</span></div>
+<div><span class="av m">M</span><span class="arrow">→</span><span class="av a">A</span><span class="amt">9,10 €</span></div></div></div></div></div>
+<div class="fab">+ Añadir producto</div></html>
