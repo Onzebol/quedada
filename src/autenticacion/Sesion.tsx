@@ -33,8 +33,8 @@ function MenuUsuario({ nombre, foto, salir }: { nombre: string; foto: string | n
   return (
     <div className="sesion__persona" ref={raiz}>
       <button type="button" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
-        {foto !== null && <img src={foto} alt={`Foto de ${nombre}`} width={32} height={32} referrerPolicy="no-referrer" />}
-        <span>{nombre}</span>
+        <span>{nombre.trim().split(/\s+/)[0]}</span>
+        {foto !== null && <img src={foto} alt="" width={32} height={32} referrerPolicy="no-referrer" />}
       </button>
       {abierto && (
         <div className="sesion__menu" role="menu">

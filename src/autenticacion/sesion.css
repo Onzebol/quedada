@@ -9,7 +9,9 @@
 }
 
 .sesion__persona {
-  position: relative;
+  position: absolute;
+  top: 0;
+  right: 0;
   font-weight: 700;
 }
 
@@ -17,14 +19,14 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  padding: 0 1rem 0 0.25rem;
+  padding: 0 0.25rem 0 1rem;
   font: inherit;
 }
 
 .sesion__menu {
   position: absolute;
   top: calc(100% + 0.25rem);
-  left: 0;
+  right: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;

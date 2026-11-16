@@ -20,10 +20,15 @@ const q1 = () =>
     grupos: [{ id: 'g1', nombre: 'Cena', orden: 0 }],
   })
 
-async function preparar(auth: AutenticacionMemoria, quedadas = [q1()], urlPagina = 'https://onzebol.github.io/quedada/') {
+async function preparar(
+  auth: AutenticacionMemoria,
+  quedadas = [q1()],
+  urlPagina = 'https://onzebol.github.io/quedada/',
+  alSalir?: () => void,
+) {
   const usuario = userEvent.setup()
   const repositorio = new RepositorioMemoria(quedadas)
-  render(<App repositorio={repositorio} autenticacion={auth} urlPagina={urlPagina} crearId={() => 'x'} />)
+  render(<App repositorio={repositorio} autenticacion={auth} urlPagina={urlPagina} crearId={() => 'x'} alSalir={alSalir} />)
   await screen.findByRole('heading', { level: 2, name: 'Lista de la compra' })
   return { usuario, repositorio }
 }
@@ -37,10 +42,12 @@ describe('Sesión con Google', () => {
     const { usuario } = await preparar(new AutenticacionMemoria(ana))
     expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Entrar con Google' }))
-    expect(await screen.findByText('Ana Pérez')).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Foto de Ana Pérez' })).toHaveAttribute('src', 'https://fotos/ana.png')
+    const boton = await screen.findByRole('button', { name: 'Ana' })
+    expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument()
+    expect(boton.textContent).toBe('Ana')
+    expect(boton.lastElementChild).toHaveAttribute('src', 'https://fotos/ana.png')
     expect(screen.queryByRole('menuitem', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: /Ana Pérez/ }))
+    await usuario.click(screen.getByRole('button', { name: 'Ana' }))
     await usuario.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
     expect(screen.getByRole('button', { name: 'Entrar con Google' })).toBeInTheDocument()
     expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument()
@@ -48,7 +55,7 @@ describe('Sesión con Google', () => {
 
   it('el menú del usuario se abre al pulsar y se cierra con Escape o al pulsar fuera', async () => {
     const { usuario } = await preparar(new AutenticacionMemoria(ana, ana))
-    const boton = screen.getByRole('button', { name: /Ana Pérez/ })
+    const boton = screen.getByRole('button', { name: 'Ana' })
     expect(boton).toHaveAttribute('aria-expanded', 'false')
     await usuario.click(boton)
     expect(boton).toHaveAttribute('aria-expanded', 'true')
@@ -60,9 +67,19 @@ describe('Sesión con Google', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
+  it('al cerrar sesión avisa para volver a la pantalla de entrada', async () => {
+    let avisos = 0
+    const { usuario } = await preparar(new AutenticacionMemoria(ana, ana), [q1()], undefined, () => {
+      avisos++
+    })
+    await usuario.click(screen.getByRole('button', { name: 'Ana' }))
+    await usuario.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
+    await waitFor(() => expect(avisos).toBe(1))
+  })
+
   it('mantiene la sesión que ya existía al cargar la página', async () => {
     await preparar(new AutenticacionMemoria(ana, ana))
-    expect(screen.getByText('Ana Pérez')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ana' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Entrar con Google' })).not.toBeInTheDocument()
   })
 
