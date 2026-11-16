@@ -39,9 +39,25 @@ describe('Sesión con Google', () => {
     await usuario.click(screen.getByRole('button', { name: 'Entrar con Google' }))
     expect(await screen.findByText('Ana Pérez')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Foto de Ana Pérez' })).toHaveAttribute('src', 'https://fotos/ana.png')
-    await usuario.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
+    expect(screen.queryByRole('menuitem', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: /Ana Pérez/ }))
+    await usuario.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
     expect(screen.getByRole('button', { name: 'Entrar con Google' })).toBeInTheDocument()
     expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument()
+  })
+
+  it('el menú del usuario se abre al pulsar y se cierra con Escape o al pulsar fuera', async () => {
+    const { usuario } = await preparar(new AutenticacionMemoria(ana, ana))
+    const boton = screen.getByRole('button', { name: /Ana Pérez/ })
+    expect(boton).toHaveAttribute('aria-expanded', 'false')
+    await usuario.click(boton)
+    expect(boton).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    await usuario.keyboard('{Escape}')
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    await usuario.click(boton)
+    await usuario.click(document.body)
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('mantiene la sesión que ya existía al cargar la página', async () => {

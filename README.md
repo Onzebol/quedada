@@ -24,6 +24,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 36 | Eliminar quedadas, con confirmación |
 | 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
 | 42 | Todos los borrados (quedada, comida, producto, asistente y básico) piden confirmación en una ventana modal con el estilo de la web |
+| 43 | Menú de usuario: arriba a la izquierda solo foto y nombre; al pulsar se abre un menú con «Cerrar sesión» |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
