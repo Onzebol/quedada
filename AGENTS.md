@@ -45,7 +45,7 @@ Comandos:
 
 La CI (`.github/workflows/ci.yml`) ejecuta lint, tipos, tests y build en cada PR y push a `main`.
 
-_Pendiente: almacenamiento compartido entre varias personas (hoy solo `localStorage`, por navegador)._
+_Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el navegador, por navegador)._
 
 ## Convenciones
 
@@ -56,8 +56,12 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy solo `localStor
   `*.test.ts(x)`; la configuración común de tests está en `src/test/setup.ts`.
 - Dominio (`src/dominio/`, sin React): `tipos.ts` (Quedada, Grupo, Producto, Participante),
   `totales.ts` (funciones puras de totales), `liquidacion.ts` (reparto y «quién debe a quién»),
-  `repositorio.ts` (interfaz asíncrona) y
-  `repositorioLocalStorage.ts` (implementación actual). `fabrica.ts` crea datos de prueba.
+  `repositorio.ts` (interfaz asíncrona),
+  `repositorioSqlite.ts` (implementación actual: SQLite en el navegador con `sql.js`, esquema
+  relacional; cada escritura serializa la base y la guarda con la interfaz `Persistencia`,
+  implementada en IndexedDB por `persistenciaIndexedDb.ts`), `abrirRepositorio.ts` (arranque
+  desde `main.tsx`) y `migracion.ts` (importa una sola vez lo antiguo de `localStorage`);
+  `repositorioLocalStorage.ts` queda solo como origen de esa migración. `fabrica.ts` crea datos de prueba.
   `operaciones.ts` (altas, ediciones y borrados de participantes, comidas y productos, siempre
   devolviendo una quedada nueva), `filtros.ts` (filtros de la lista) y `numeros.ts` (leer y
   mostrar cantidades y euros con coma decimal).
