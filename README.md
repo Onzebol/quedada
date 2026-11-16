@@ -12,7 +12,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 |---|---|
 | 1 | Andamiaje con Vite, React, TypeScript, Vitest y CI (hecho) |
 | 2 | Modelo de datos y almacenamiento (hecho): tipos, totales en céntimos y repositorio `localStorage` |
-| 3 | Lista de la compra |
+| 3 | Lista de la compra (hecho): comidas, productos, comprador, comprado, observaciones y filtros |
 | 4 | Gastos y liquidación |
 | 5 | Despliegue continuo en GitHub Pages |
 | 6 a 9 | Importar el Excel, asistentes, memoria entre años y tickets |
@@ -44,7 +44,8 @@ npm run dev
 ## Estructura
 
 - `src/dominio/`: modelo y lógica sin React (tipos, totales, repositorio). Dinero en céntimos.
-- `src/`: la interfaz React.
+- `src/compra/`: la lista de la compra (React).
+- `src/`: `App` y arranque de la interfaz.
 - `.github/workflows/`: CI y despliegue.
 
 ## Cómo se trabaja

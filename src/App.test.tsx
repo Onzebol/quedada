@@ -1,16 +1,266 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from './App'
+import { quedadaInicial } from './dominio/operaciones'
+import { RepositorioMemoria } from './test/repositorioMemoria'
 
-describe('App', () => {
-  it('muestra el nombre de la aplicación como título principal', () => {
-    render(<App />)
+function contador() {
+  let n = 0
+  return () => `id${++n}`
+}
+
+function preparar(repositorio = new RepositorioMemoria()) {
+  const usuario = userEvent.setup()
+  const crearId = contador()
+  const vista = render(<App repositorio={repositorio} crearId={crearId} />)
+  return { usuario, repositorio, vista, crearId }
+}
+
+async function esperarCarga() {
+  await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
+}
+
+async function anadirProducto(
+  usuario: ReturnType<typeof userEvent.setup>,
+  grupo: string,
+  nombre: string,
+) {
+  const formulario = screen.getByRole('form', { name: `Añadir producto a ${grupo}` })
+  await usuario.type(within(formulario).getByRole('textbox', { name: 'Producto' }), nombre)
+  await usuario.click(within(formulario).getByRole('button', { name: 'Añadir' }))
+}
+
+async function anadirParticipante(usuario: ReturnType<typeof userEvent.setup>, nombre: string) {
+  await usuario.type(screen.getByRole('textbox', { name: 'Nombre del participante' }), nombre)
+  await usuario.click(screen.getByRole('button', { name: 'Añadir participante' }))
+}
+
+describe('Lista de la compra', () => {
+  it('muestra el título y las comidas habituales agrupadas', async () => {
+    preparar()
     expect(screen.getByRole('heading', { level: 1, name: 'Quedada' })).toBeInTheDocument()
+    await esperarCarga()
+    const grupos = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(grupos).toEqual([
+      'Cena del viernes',
+      'Comida del sábado (asado)',
+      'Cena del sábado (sopa)',
+      'Comida del domingo (pasta)',
+      'Desayunos',
+      'Picoteos y varios',
+      'Bebida',
+    ])
   })
 
-  it('anuncia las dos secciones del mínimo: compra y gastos', () => {
-    render(<App />)
-    expect(screen.getByText('Lista de la compra')).toBeInTheDocument()
-    expect(screen.getByText('Gastos')).toBeInTheDocument()
+  it('añade un producto a una comida', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Cena del viernes', 'Pizza BBQ')
+    expect(screen.getByRole('checkbox', { name: 'Pizza BBQ' })).not.toBeChecked()
+  })
+
+  it('vacía el campo tras añadir y no añade productos sin nombre', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    const formulario = screen.getByRole('form', { name: 'Añadir producto a Bebida' })
+    expect(within(formulario).getByRole('textbox', { name: 'Producto' })).toHaveValue('')
+    await usuario.click(within(formulario).getByRole('button', { name: 'Añadir' }))
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+  })
+
+  it('marca un producto como comprado', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeChecked()
+  })
+
+  it('asigna un comprador a un producto', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirParticipante(usuario, 'Josu')
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Josu')
+    expect(screen.getByRole('option', { name: 'Josu', selected: true })).toBeInTheDocument()
+  })
+
+  it('avisa de cuántos productos no tienen comprador', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    expect(screen.getByRole('status')).toHaveTextContent('No hay productos todavía')
+    await anadirParticipante(usuario, 'Josu')
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    expect(screen.getByRole('status')).toHaveTextContent('1 producto sin comprador')
+    await anadirProducto(usuario, 'Bebida', 'Vino')
+    expect(screen.getByRole('status')).toHaveTextContent('2 productos sin comprador')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Josu')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Vino' }), 'Josu')
+    expect(screen.getByRole('status')).toHaveTextContent('Todos los productos tienen comprador')
+  })
+
+  it('edita cantidad, unidad y observaciones y las muestra en la fila', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Cena del viernes', 'Alitas de pollo')
+    await usuario.click(screen.getByRole('button', { name: 'Editar Alitas de pollo' }))
+    await usuario.type(screen.getByRole('textbox', { name: 'Cantidad' }), '2,3')
+    await usuario.type(screen.getByRole('textbox', { name: 'Unidad' }), 'kg')
+    await usuario.type(screen.getByRole('textbox', { name: 'Observaciones' }), 'Se comió una bandeja')
+    await usuario.click(screen.getByRole('button', { name: 'Guardar' }))
+    expect(screen.getByText('2,3 kg')).toBeInTheDocument()
+    expect(screen.getByText('Se comió una bandeja')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Guardar' })).not.toBeInTheDocument()
+  })
+
+  it('cambia el nombre de un producto al editarlo', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidr')
+    await usuario.click(screen.getByRole('button', { name: 'Editar Sidr' }))
+    const nombre = screen.getByRole('textbox', { name: 'Nombre' })
+    await usuario.clear(nombre)
+    await usuario.type(nombre, 'Sidra')
+    await usuario.click(screen.getByRole('button', { name: 'Guardar' }))
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
+  })
+
+  it('cancela la edición sin guardar cambios', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.click(screen.getByRole('button', { name: 'Editar Sidra' }))
+    await usuario.type(screen.getByRole('textbox', { name: 'Observaciones' }), 'borrador')
+    await usuario.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByText('borrador')).not.toBeInTheDocument()
+  })
+
+  it('borra un producto', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.click(screen.getByRole('button', { name: 'Borrar Sidra' }))
+    expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
+  })
+
+  it('añade una comida nueva', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await usuario.type(screen.getByRole('textbox', { name: 'Nombre de la comida' }), 'Merienda')
+    await usuario.click(screen.getByRole('button', { name: 'Añadir comida' }))
+    const grupos = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(grupos.at(-1)).toBe('Merienda')
+  })
+
+  it('renombra una comida', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await usuario.click(screen.getByRole('button', { name: 'Renombrar Bebida' }))
+    const campo = screen.getByRole('textbox', { name: 'Nuevo nombre de Bebida' })
+    await usuario.clear(campo)
+    await usuario.type(campo, 'Bebidas')
+    await usuario.click(screen.getByRole('button', { name: 'Guardar nombre' }))
+    expect(screen.getByRole('heading', { level: 3, name: 'Bebidas' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 3, name: 'Bebida' })).not.toBeInTheDocument()
+  })
+
+  it('borra una comida y sus productos solo tras confirmar', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.click(screen.getByRole('button', { name: 'Borrar comida Bebida' }))
+    expect(screen.getByText('¿Borrar Bebida y su 1 producto?')).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Cancelar borrado' }))
+    expect(screen.getByRole('heading', { level: 3, name: 'Bebida' })).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Borrar comida Bebida' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar borrado' }))
+    expect(screen.queryByRole('heading', { level: 3, name: 'Bebida' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
+  })
+
+  it('filtra por sin asignar, pendientes y comprador', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirParticipante(usuario, 'Josu')
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await anadirProducto(usuario, 'Bebida', 'Vino')
+    await anadirProducto(usuario, 'Desayunos', 'Café')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Josu')
+    await usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+
+    const filtro = screen.getByRole('combobox', { name: 'Mostrar' })
+
+    await usuario.selectOptions(filtro, 'Sin asignar')
+    expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Vino' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Café' })).toBeInTheDocument()
+
+    await usuario.selectOptions(filtro, 'Pendientes')
+    expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2)
+
+    await usuario.selectOptions(filtro, 'Compra Josu')
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
+
+    await usuario.selectOptions(filtro, 'Todos')
+    expect(screen.getAllByRole('checkbox')).toHaveLength(3)
+  })
+
+  it('oculta las comidas vacías cuando hay un filtro activo', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Pendientes')
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 3, name: 'Bebida' })).toBeInTheDocument()
+  })
+
+  it('conserva los datos al recargar (nueva instancia con el mismo repositorio)', async () => {
+    const primera = preparar()
+    await esperarCarga()
+    await anadirParticipante(primera.usuario, 'Josu')
+    await anadirProducto(primera.usuario, 'Bebida', 'Sidra')
+    await primera.usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+    await primera.usuario.selectOptions(
+      screen.getByRole('combobox', { name: 'Comprador de Sidra' }),
+      'Josu',
+    )
+    primera.vista.unmount()
+
+    preparar(primera.repositorio)
+    await screen.findByRole('checkbox', { name: 'Sidra' })
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeChecked()
+    expect(screen.getByRole('option', { name: 'Josu', selected: true })).toBeInTheDocument()
+    expect(primera.repositorio.quedadas).toHaveLength(1)
+  })
+
+  it('avisa si no se pueden cargar los datos en vez de quedarse cargando', async () => {
+    const repositorio = new RepositorioMemoria()
+    repositorio.listar = () => Promise.reject(new Error('almacenamiento bloqueado'))
+    preparar(repositorio)
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudieron cargar los datos')
+    expect(screen.queryByText('Cargando…')).not.toBeInTheDocument()
+  })
+
+  it('avisa si no se puede guardar un cambio, sin perder lo que se ve', async () => {
+    const repositorio = new RepositorioMemoria()
+    const { usuario } = preparar(repositorio)
+    await esperarCarga()
+    repositorio.guardar = () => Promise.reject(new Error('cuota llena'))
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo guardar el último cambio')
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
+  })
+
+  it('carga la quedada ya guardada en vez de crear otra', async () => {
+    const guardada = quedadaInicial(contador(), 'Almunia 2026')
+    const repositorio = new RepositorioMemoria([guardada])
+    preparar(repositorio)
+    await esperarCarga()
+    expect(repositorio.quedadas).toHaveLength(1)
+    expect(repositorio.quedadas[0].nombre).toBe('Almunia 2026')
   })
 })
