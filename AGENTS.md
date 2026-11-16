@@ -96,7 +96,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   usa Google Identity Services (ventana OAuth con `initTokenClient`, scopes `openid profile email`) y
   consulta `userinfo`; guarda solo id, nombre y foto (nunca el correo) en `localStorage` 30 días.
   **Es una sesión del navegador, sin servidor que valide la identidad: sirve para saber quién es
-  quién, no para proteger datos.** `Sesion` muestra entrar y, con sesión, un botón con foto y nombre que abre un menú (#43, `role="menu"`; hoy solo «Cerrar sesión», ahí irán más acciones; se cierra con Escape o al pulsar fuera), y «Este soy yo»
+  quién, no para proteger datos.** `Sesion` muestra entrar y, con sesión, un botón arriba a la derecha con el nombre de pila y la foto que abre un menú (#43, `role="menu"`; hoy solo «Cerrar sesión», ahí irán más acciones; se cierra con Escape o al pulsar fuera), y «Este soy yo»
   (`Participante.cuentaId`, columna `cuenta_id` en SQLite añadida con `ALTER` en bases antiguas;
   lógica en `dominio/vinculos.ts`). `ruta.ts` + `useHashQuedada` mantienen `#/<id>` (#40; antes `#/quedada/<id>`, que se sigue entendiendo para no romper enlaces ya compartidos: un id nuevo nunca lleva `/` sin codificar) y
   `CopiarEnlace` copia ese enlace. Hoy los datos siguen siendo locales: un enlace abierto en otro
