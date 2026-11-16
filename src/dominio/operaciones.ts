@@ -95,3 +95,20 @@ export function editarProducto(q: Quedada, id: Id, cambios: CambiosProducto): Qu
 export function borrarProducto(q: Quedada, id: Id): Quedada {
   return { ...q, productos: q.productos.filter((p) => p.id !== id) }
 }
+
+export type CambiosParticipante = Partial<Pick<Participante, 'porcentajeComida' | 'pagaCasa'>>
+
+/** Ajusta cómo reparte un participante: porcentaje de comida (0–100) y si paga la casa. */
+export function editarParticipante(q: Quedada, id: Id, cambios: CambiosParticipante): Quedada {
+  const seguros = { ...cambios }
+  if (seguros.porcentajeComida !== undefined) {
+    if (Number.isNaN(seguros.porcentajeComida)) return q
+    seguros.porcentajeComida = Math.min(100, Math.max(0, seguros.porcentajeComida))
+  }
+  return { ...q, participantes: q.participantes.map((p) => (p.id === id ? { ...p, ...seguros } : p)) }
+}
+
+/** `casa`: gasto a partes iguales entre quienes pagan la casa. `comida`: por porcentaje de comida. */
+export function cambiarReparto(q: Quedada, id: Id, reparto: 'casa' | 'comida'): Quedada {
+  return { ...q, grupos: q.grupos.map((g) => (g.id === id ? { ...g, reparto } : g)) }
+}

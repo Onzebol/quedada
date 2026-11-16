@@ -6,6 +6,8 @@ import {
   anadirProducto,
   borrarGrupo,
   borrarProducto,
+  cambiarReparto,
+  editarParticipante,
   editarProducto,
   quedadaInicial,
   renombrarGrupo,
@@ -157,5 +159,33 @@ describe('productos', () => {
   it('borra un producto', () => {
     const q = quedada({ productos: [producto({ id: 'a' }), producto({ id: 'b' })] })
     expect(borrarProducto(q, 'a').productos.map((p) => p.id)).toEqual(['b'])
+  })
+})
+
+describe('editarParticipante', () => {
+  const q = quedada({ participantes: [{ id: 'a', nombre: 'Ana' }, { id: 'b', nombre: 'Beto' }] })
+
+  it('cambia el porcentaje de comida y si paga la casa solo de ese participante', () => {
+    const r = editarParticipante(q, 'a', { porcentajeComida: 50, pagaCasa: false })
+    expect(r.participantes[0]).toEqual({ id: 'a', nombre: 'Ana', porcentajeComida: 50, pagaCasa: false })
+    expect(r.participantes[1]).toEqual({ id: 'b', nombre: 'Beto' })
+  })
+
+  it('limita el porcentaje entre 0 y 100', () => {
+    expect(editarParticipante(q, 'a', { porcentajeComida: 150 }).participantes[0].porcentajeComida).toBe(100)
+    expect(editarParticipante(q, 'a', { porcentajeComida: -5 }).participantes[0].porcentajeComida).toBe(0)
+  })
+
+  it('ignora un porcentaje que no es un número', () => {
+    expect(editarParticipante(q, 'a', { porcentajeComida: NaN })).toBe(q)
+  })
+})
+
+describe('cambiarReparto', () => {
+  it('marca un grupo como casa o como comida', () => {
+    const q = quedada({ grupos: [{ id: 'g1', nombre: 'Alquiler', orden: 0 }] })
+    const casa = cambiarReparto(q, 'g1', 'casa')
+    expect(casa.grupos[0].reparto).toBe('casa')
+    expect(cambiarReparto(casa, 'g1', 'comida').grupos[0].reparto).toBe('comida')
   })
 })

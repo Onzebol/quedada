@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { CambiosProducto } from '../dominio/operaciones'
-import { formatearCantidad, parsearCantidad } from '../dominio/numeros'
+import { formatearCantidad, formatearEuros, parsearCantidad, parsearEuros } from '../dominio/numeros'
+import { totalLinea } from '../dominio/totales'
 import type { Id, Participante, Producto } from '../dominio/tipos'
 
 interface Props {
@@ -40,6 +41,7 @@ export function FilaProducto({ producto, participantes, onCambiar, onBorrar }: P
         <span>{producto.nombre}</span>
       </label>
       {cantidad !== '' && <span className="fila__cantidad">{cantidad}</span>}
+      {producto.precioUnidad !== null && <span className="fila__total">{formatearEuros(totalLinea(producto))}</span>}
       <select
         aria-label={`Comprador de ${producto.nombre}`}
         className={producto.compradorId === null ? 'fila__comprador fila__comprador--vacio' : 'fila__comprador'}
@@ -78,6 +80,8 @@ function FormularioEdicion({
   const [nombre, setNombre] = useState(producto.nombre)
   const [cantidad, setCantidad] = useState(producto.cantidad === null ? '' : String(producto.cantidad).replace('.', ','))
   const [unidad, setUnidad] = useState(producto.unidad)
+  const [precio, setPrecio] = useState(producto.precioUnidad === null ? '' : String(producto.precioUnidad).replace('.', ','))
+  const [descuento, setDescuento] = useState(producto.descuento === 0 ? '' : String(producto.descuento).replace('.', ','))
   const [observaciones, setObservaciones] = useState(producto.observaciones)
 
   return (
@@ -86,7 +90,14 @@ function FormularioEdicion({
       aria-label={`Editar ${producto.nombre}`}
       onSubmit={(e) => {
         e.preventDefault()
-        onGuardar({ nombre, cantidad: parsearCantidad(cantidad), unidad: unidad.trim(), observaciones: observaciones.trim() })
+        onGuardar({
+          nombre,
+          cantidad: parsearCantidad(cantidad),
+          unidad: unidad.trim(),
+          precioUnidad: parsearEuros(precio),
+          descuento: parsearEuros(descuento) ?? 0,
+          observaciones: observaciones.trim(),
+        })
       }}
     >
       <label>
@@ -100,6 +111,14 @@ function FormularioEdicion({
       <label>
         Unidad
         <input type="text" value={unidad} onChange={(e) => setUnidad(e.target.value)} />
+      </label>
+      <label>
+        Precio por unidad (€)
+        <input type="text" inputMode="decimal" value={precio} onChange={(e) => setPrecio(e.target.value)} />
+      </label>
+      <label>
+        Descuento (€)
+        <input type="text" inputMode="decimal" value={descuento} onChange={(e) => setDescuento(e.target.value)} />
       </label>
       <label>
         Observaciones
