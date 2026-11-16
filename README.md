@@ -17,11 +17,12 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 5 | Despliegue continuo en GitHub Pages |
 | 6 | Importar el Excel (hecho): hojas «Compras 2023 a 2026» a quedadas, con selector de quedada |
 | 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes y básicos (leche, lavavajillas) asignados o sin asignar |
-| 19 | Sesión con Google y enlace de la quedada (`#/quedada/<id>`): entrar/salir, nombre y foto, «Este soy yo» |
+| 19 | Sesión con Google y enlace de la quedada (`#/<id>`): entrar/salir, nombre y foto, «Este soy yo» |
 | 25 | Supabase: login con Google y quedadas por usuario (primer trozo; compartir, conocidos e invitaciones, después). Configuración: ver abajo |
 | 30 | Supabase: una fila por cosa (participantes, comidas, productos…) y guardado por diferencias, para que varias personas editen sin pisarse (paso 1 de #29) |
 | 32 | Tiempo real: los cambios de otra persona aparecen sin recargar (Broadcast desde la base de datos, canal privado por quedada; paso 2 de #29) |
 | 36 | Eliminar quedadas, con confirmación |
+| 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
