@@ -39,6 +39,9 @@ Comandos:
 - Tests: `npm test` (una pasada) o `npm run test:watch`; cobertura con `npm run coverage`
 - Lint: `npm run lint`; tipos: `npm run typecheck`
 - Build: `npm run build`
+- Captura a 400 px de ancho (móvil) con Edge sin interfaz, que no baja de 500 px de ventana:
+  `msedge --headless --force-device-scale-factor=1.25 --window-size=500,1900 --virtual-time-budget=5000 --screenshot=<fichero.png> <url>`
+  (un iframe de 400 px no sirve: el almacenamiento queda bloqueado y la app no carga).
 
 La CI (`.github/workflows/ci.yml`) ejecuta lint, tipos, tests y build en cada PR y push a `main`.
 
@@ -54,6 +57,15 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy solo `localStor
 - Dominio (`src/dominio/`, sin React): `tipos.ts` (Quedada, Grupo, Producto, Participante),
   `totales.ts` (funciones puras de totales), `repositorio.ts` (interfaz asíncrona) y
   `repositorioLocalStorage.ts` (implementación actual). `fabrica.ts` crea datos de prueba.
+  `operaciones.ts` (altas, ediciones y borrados de participantes, comidas y productos, siempre
+  devolviendo una quedada nueva), `filtros.ts` (filtros de la lista) y `numeros.ts` (leer y
+  mostrar cantidades con coma decimal).
+- Interfaz de la compra (`src/compra/`): `ListaCompra` (filtro, participantes, comidas),
+  `GrupoCompra`, `FilaProducto` y el hook `useQuedada`, que carga la primera quedada del
+  repositorio (o crea una con las comidas habituales) y guarda cada cambio. `App` recibe el
+  repositorio y el generador de ids por props para poder probarlo con un repositorio en memoria
+  (`src/test/repositorioMemoria.ts`). Los estilos de `compra.css` son mínimos a propósito: la
+  dirección visual definitiva es la issue #11.
 - Dinero: siempre en **céntimos enteros** (`Centimos`) dentro del dominio; solo se convierte a
   euros al mostrarlo. Las entradas de precio y descuento del producto están en euros.
 - Los datos se guardan siempre a través de la interfaz `Repositorio`, nunca con

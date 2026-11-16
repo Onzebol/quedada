@@ -1,0 +1,185 @@
+/* Estilos mínimos y neutros de la lista de la compra. La dirección visual definitiva es la issue #11. */
+main {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.compra {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.compra__resumen {
+  margin: 0;
+  font-weight: 600;
+}
+
+.compra__herramientas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+}
+
+.compra label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.compra form[aria-label='Participantes'],
+.compra__nueva-comida {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.compra input[type='text'],
+.compra select {
+  min-height: 2.5rem;
+  min-width: 0;
+  padding: 0 0.5rem;
+  font: inherit;
+}
+
+.compra button {
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.compra :focus-visible {
+  outline: 3px solid Highlight;
+  outline-offset: 2px;
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+}
+
+.grupo__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.grupo__cabecera h3 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.grupo__confirmar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid CanvasText;
+}
+
+.grupo__confirmar p {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+.grupo__lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed color-mix(in srgb, CanvasText 25%, transparent);
+}
+
+.fila .fila__nombre {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.fila input[type='checkbox'] {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+}
+
+.fila--comprada .fila__nombre span {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.fila__cantidad {
+  font-variant-numeric: tabular-nums;
+}
+
+.fila__comprador--vacio {
+  border-style: dashed;
+}
+
+.fila__acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.fila__observaciones {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
+.edicion {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+}
+
+.edicion .fila__acciones {
+  align-self: end;
+}
+
+.grupo__anadir {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.grupo__anadir input {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 30rem) {
+  .fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fila__cantidad {
+    padding-left: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fila--comprada .fila__nombre span {
+    transition: opacity 0.15s;
+  }
+}
