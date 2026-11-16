@@ -8,6 +8,8 @@ export interface Participante {
   porcentajeComida?: number
   /** Si paga su parte de los gastos de la casa (`true` por defecto; `false` para niños). */
   pagaCasa?: boolean
+  /** Cuenta de Google vinculada («este soy yo»), si la hay. */
+  cuentaId?: string
 }
 
 /** Una comida o bloque de la compra: cena del viernes, desayunos, bebida… */

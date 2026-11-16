@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS quedadas (
 CREATE TABLE IF NOT EXISTS participantes (
   quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
   id TEXT NOT NULL, posicion INTEGER NOT NULL, nombre TEXT NOT NULL,
-  porcentaje_comida REAL, paga_casa INTEGER,
+  porcentaje_comida REAL, paga_casa INTEGER, cuenta_id TEXT,
   PRIMARY KEY (quedada_id, id)
 );
 CREATE TABLE IF NOT EXISTS grupos (
@@ -52,6 +52,9 @@ export class RepositorioSqlite implements Repositorio {
     const bd = bytes ? new sql.Database(bytes) : new sql.Database()
     bd.run('PRAGMA foreign_keys = ON')
     bd.run(ESQUEMA)
+    // Bases creadas antes de vincular cuentas: CREATE IF NOT EXISTS no añade columnas.
+    const columnas = bd.exec('PRAGMA table_info(participantes)')[0]?.values.map((f) => f[1]) ?? []
+    if (!columnas.includes('cuenta_id')) bd.run('ALTER TABLE participantes ADD COLUMN cuenta_id TEXT')
     return new RepositorioSqlite(bd, persistencia)
   }
 
@@ -69,8 +72,8 @@ export class RepositorioSqlite implements Repositorio {
     try {
       this.bd.run('DELETE FROM quedadas WHERE id = ?', [q.id])
       this.bd.run('INSERT INTO quedadas VALUES (?,?,?,?)', [q.id, q.nombre, q.inicio, q.fin])
-      q.participantes.forEach((p, i) => this.bd.run('INSERT INTO participantes VALUES (?,?,?,?,?,?)', [
-          q.id, p.id, i, p.nombre, p.porcentajeComida ?? null, p.pagaCasa === undefined ? null : p.pagaCasa ? 1 : 0,
+      q.participantes.forEach((p, i) => this.bd.run('INSERT INTO participantes VALUES (?,?,?,?,?,?,?)', [
+          q.id, p.id, i, p.nombre, p.porcentajeComida ?? null, p.pagaCasa === undefined ? null : p.pagaCasa ? 1 : 0, p.cuentaId ?? null,
         ]))
       q.grupos.forEach((g, i) => this.bd.run('INSERT INTO grupos VALUES (?,?,?,?,?,?)', [q.id, g.id, i, g.nombre, g.orden, g.reparto ?? null]))
       q.productos.forEach((p, i) =>
@@ -109,11 +112,12 @@ export class RepositorioSqlite implements Repositorio {
       nombre: String(q[0]),
       inicio: q[1] as string | null,
       fin: q[2] as string | null,
-      participantes: this.filas('SELECT id, nombre, porcentaje_comida, paga_casa FROM participantes WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
+      participantes: this.filas('SELECT id, nombre, porcentaje_comida, paga_casa, cuenta_id FROM participantes WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),
         nombre: String(f[1]),
         ...(f[2] !== null && { porcentajeComida: Number(f[2]) }),
         ...(f[3] !== null && { pagaCasa: f[3] === 1 }),
+        ...(f[4] !== null && { cuentaId: String(f[4]) }),
       })),
       grupos: this.filas('SELECT id, nombre, orden, reparto FROM grupos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),

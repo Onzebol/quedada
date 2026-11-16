@@ -89,6 +89,22 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   («Vienen N personas») sale también en la lista de la compra. **Los asistentes no cambian el
   reparto de gastos**: sigue la regla de #4 (test en `liquidacion.test.ts`). Al reimportar el
   Excel se conservan los asistentes y básicos de la quedada.
+- Sesión con Google y enlace (#19, `src/autenticacion/`): la autenticación va detrás de la interfaz
+  `Autenticacion` (`tipos.ts`; fake en `src/test/autenticacionMemoria.ts`). `autenticacionGoogle.ts`
+  usa Google Identity Services (ventana OAuth con `initTokenClient`, scopes `openid profile email`) y
+  consulta `userinfo`; guarda solo id, nombre y foto (nunca el correo) en `localStorage` 30 días.
+  **Es una sesión del navegador, sin servidor que valide la identidad: sirve para saber quién es
+  quién, no para proteger datos.** `Sesion` muestra entrar/salir, nombre, foto y «Este soy yo»
+  (`Participante.cuentaId`, columna `cuenta_id` en SQLite añadida con `ALTER` en bases antiguas;
+  lógica en `dominio/vinculos.ts`). `ruta.ts` + `useHashQuedada` mantienen `#/quedada/<id>` y
+  `CopiarEnlace` copia ese enlace. Hoy los datos siguen siendo locales: un enlace abierto en otro
+  navegador no trae la quedada (la app lo avisa); para eso hace falta el almacenamiento compartido
+  (pendiente).
+  **Configuración**: `VITE_GOOGLE_CLIENT_ID` (ver `.env.example`; en CI, variable de repositorio
+  `GOOGLE_CLIENT_ID`). Sin ella no se muestra «Entrar con Google» y la app sigue en modo local. En
+  Google Cloud Console: cliente OAuth de tipo «Aplicación web», orígenes JavaScript autorizados
+  `https://onzebol.github.io` y `http://localhost:<puerto>` de desarrollo; no hacen falta URI de
+  redirección (flujo con ventana emergente).
 - Importación del Excel (`src/importacion/`): `importarHoja.ts` (puro: filas de celdas a
   `Quedada`; detecta los formatos de 2023 a 2026, usa ids estables derivados del nombre de la
   hoja para que reimportar sustituya y no duplique, y avisa de lo que descarta),
