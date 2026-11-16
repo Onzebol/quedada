@@ -33,7 +33,7 @@ function MenuUsuario({ nombre, foto, salir }: { nombre: string; foto: string | n
   return (
     <div className="sesion__persona" ref={raiz}>
       <button type="button" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
-        <span>{nombre.trim().split(/\s+/)[0]}</span>
+        <span>{nombre}</span>
         {foto !== null && <img src={foto} alt="" width={32} height={32} referrerPolicy="no-referrer" />}
       </button>
       {abierto && (
@@ -61,7 +61,7 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
         </button>
       ) : (
         <>
-          <MenuUsuario nombre={usuario.nombre} foto={usuario.foto} salir={() => void salir()} />
+          <MenuUsuario nombre={usuario.nombrePila ?? usuario.nombre.trim().split(/\s+/)[0]} foto={usuario.foto} salir={() => void salir()} />
           {quedada !== null && quedada.participantes.length > 0 && (
             <label>
               Este soy yo

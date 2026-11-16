@@ -2,6 +2,8 @@
 export interface Usuario {
   id: string
   nombre: string
+  /** Nombre de pila que da el proveedor (p. ej. «Luis Miguel»), si lo da. */
+  nombrePila?: string
   foto: string | null
 }
 
