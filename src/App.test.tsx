@@ -467,3 +467,35 @@ describe('Eliminar una quedada', () => {
     expect(window.location.hash).not.toContain('q2')
   })
 })
+
+describe('Botón de eliminar quedada', () => {
+  const tres = () => [
+    quedada({ id: 'a', nombre: 'A' }),
+    quedada({ id: 'b', nombre: 'B' }),
+    quedada({ id: 'c', nombre: 'C' }),
+  ]
+
+  it('es un único botón aunque se cambie varias veces de quedada', async () => {
+    const { usuario } = preparar(new RepositorioMemoria(tres()))
+    const selector = await screen.findByRole('combobox', { name: 'Quedada' })
+
+    for (const id of ['b', 'c', 'a', 'b']) {
+      await usuario.selectOptions(selector, id)
+      await waitFor(() => expect(screen.getAllByRole('button', { name: 'Eliminar quedada' })).toHaveLength(1))
+    }
+    await new Promise((r) => setTimeout(r, 400))
+    expect(screen.getAllByRole('button', { name: 'Eliminar quedada' })).toHaveLength(1)
+  })
+
+  it('una confirmación abierta no pasa a otra quedada al cambiar de quedada', async () => {
+    const { usuario } = preparar(new RepositorioMemoria(tres()))
+    const selector = await screen.findByRole('combobox', { name: 'Quedada' })
+
+    await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
+    expect(screen.getByRole('group', { name: 'Confirmar eliminación' })).toHaveTextContent('«A»')
+
+    await usuario.selectOptions(selector, 'b')
+    await waitFor(() => expect(screen.queryByRole('group', { name: 'Confirmar eliminación' })).not.toBeInTheDocument())
+    expect(screen.getAllByRole('button', { name: 'Eliminar quedada' })).toHaveLength(1)
+  })
+})

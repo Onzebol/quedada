@@ -5,6 +5,16 @@
   gap: 0.25rem;
   margin-block: 0.75rem;
   font-size: 0.875rem;
+  color: var(--mut);
+}
+
+.selector-quedada select {
+  min-width: 0;
+  padding: 0 0.75rem;
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  color: var(--ink);
 }
 
 .selector-quedada select,
