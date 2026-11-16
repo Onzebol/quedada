@@ -2,30 +2,35 @@ import { useState } from 'react'
 import './eliminarQuedada.css'
 
 interface Props {
+  /** Quedada a la que se refiere el botón: la confirmación abierta solo vale para ella. */
+  quedadaId: string
   nombre: string
   /** Borra la quedada; debe rechazar si no se pudo. */
   onEliminar: () => Promise<void>
 }
 
 /** Botón «Eliminar quedada» con confirmación en la propia página (sin `window.confirm`). */
-export function EliminarQuedada({ nombre, onEliminar }: Props) {
-  const [confirmando, setConfirmando] = useState(false)
-  const [error, setError] = useState(false)
+export function EliminarQuedada({ quedadaId, nombre, onEliminar }: Props) {
+  // Se guarda para qué quedada se pidió confirmar, en vez de reiniciar el componente con `key`.
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null)
+  const [errorId, setErrorId] = useState<string | null>(null)
+  const confirmando = confirmandoId === quedadaId
+  const error = errorId === quedadaId
 
   async function eliminar() {
-    setError(false)
+    setErrorId(null)
     try {
       await onEliminar()
-      setConfirmando(false)
+      setConfirmandoId(null)
     } catch {
-      setError(true)
+      setErrorId(quedadaId)
     }
   }
 
   return (
     <div className="eliminar-quedada">
       {!confirmando ? (
-        <button type="button" className="eliminar-quedada__abrir" onClick={() => setConfirmando(true)}>
+        <button type="button" className="eliminar-quedada__abrir" onClick={() => setConfirmandoId(quedadaId)}>
           Eliminar quedada
         </button>
       ) : (
@@ -40,8 +45,8 @@ export function EliminarQuedada({ nombre, onEliminar }: Props) {
             <button
               type="button"
               onClick={() => {
-                setConfirmando(false)
-                setError(false)
+                setConfirmandoId(null)
+                setErrorId(null)
               }}
             >
               Cancelar

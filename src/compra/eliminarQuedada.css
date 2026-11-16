@@ -1,4 +1,4 @@
-/* Sierra (#11): confirmación de borrado sobre el fondo de la página. */
+/* Sierra (#11): mismos botones que el resto de la app (píldora con borde), con variante de peligro. */
 .eliminar-quedada {
   margin-block: 0.75rem;
 }
@@ -6,8 +6,15 @@
 .eliminar-quedada button {
   min-height: 2.5rem;
   padding: 0 1rem;
-  font: inherit;
+  background: transparent;
+  border: 1px solid var(--linea);
+  border-radius: 40px;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.eliminar-quedada button:hover {
+  border-color: var(--moss);
 }
 
 .eliminar-quedada__confirmar {
@@ -16,7 +23,7 @@
   gap: 0.75rem;
   padding: 1rem 1.25rem;
   background: var(--surf);
-  border: 2px solid var(--rose);
+  border: 1px solid var(--linea);
   border-radius: 16px;
 }
 
@@ -30,16 +37,14 @@
   gap: 0.5rem;
 }
 
-.eliminar-quedada__si {
-  color: #fff;
+.eliminar-quedada .eliminar-quedada__si {
   background: #a8324f;
-  border: 0;
-  border-radius: 12px;
+  border-color: #a8324f;
+  color: #fff;
 }
 
-.eliminar-quedada :focus-visible {
-  outline: 3px solid var(--sky);
-  outline-offset: 2px;
+.eliminar-quedada .eliminar-quedada__si:hover {
+  border-color: var(--ink);
 }
 
 .eliminar-quedada [role='alert'] {

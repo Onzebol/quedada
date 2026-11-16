@@ -95,7 +95,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
       {estado.quedada !== null && <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />}
       {estado.quedada !== null && (
         <EliminarQuedada
-          key={estado.quedada.id}
+          quedadaId={estado.quedada.id}
           nombre={estado.quedada.nombre}
           onEliminar={() => eliminar(estado.quedada!.id)}
         />
