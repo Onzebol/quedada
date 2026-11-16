@@ -105,6 +105,21 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   Google Cloud Console: cliente OAuth de tipo «Aplicación web», orígenes JavaScript autorizados
   `https://onzebol.github.io` y `http://localhost:<puerto>` de desarrollo; no hacen falta URI de
   redirección (flujo con ventana emergente).
+- Supabase (#25, `src/supabase/`, `supabase/migrations/`): identidad y datos compartidos en
+  Supabase (GitHub Pages es solo estático y SQLite no se puede compartir entre personas).
+  `AutenticacionSupabase` implementa `Autenticacion` con Supabase Auth (Google): `abrir` resuelve la
+  sesión una vez antes de pintar y `entrar` redirige a Google (la página se recarga al volver; el
+  enrutado por hash no choca con el flujo PKCE, que usa `?code=`). `RepositorioSupabase` guarda cada
+  quedada como una fila de `quedadas` con el documento en `datos` (jsonb); quién ve qué lo decide la
+  RLS de `0001_quedadas.sql` (solo el propietario), no el código. `cliente.ts` crea el cliente y
+  devuelve `null` sin configuración. `main.tsx` usa `RepositorioSupabase` con sesión y SQLite local
+  sin ella. Las clases reciben interfaces mínimas (`ClienteAuth`, `ClienteDatos`) para probarlas con
+  clientes falsos; **la RLS no se prueba en CI**, se verifica a mano con dos cuentas.
+  **Configuración**: `VITE_SUPABASE_URL` y `VITE_SUPABASE_CLAVE_PUBLICA` (ver `.env.example`; en CI,
+  variables de repositorio `SUPABASE_URL` y `SUPABASE_CLAVE_PUBLICA`), públicas. Nunca la
+  `service_role`. Pendiente (issues propias): conocidos, compartir/invitar por email, vincular un
+  participante manual a una cuenta y subir los datos locales. `autenticacionGoogle.ts` (GIS) queda
+  como respaldo sin Supabase y se retirará.
 - Importación del Excel (`src/importacion/`): `importarHoja.ts` (puro: filas de celdas a
   `Quedada`; detecta los formatos de 2023 a 2026, usa ids estables derivados del nombre de la
   hoja para que reimportar sustituya y no duplique, y avisa de lo que descarta),

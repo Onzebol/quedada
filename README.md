@@ -17,7 +17,8 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 5 | Despliegue continuo en GitHub Pages |
 | 6 | Importar el Excel (hecho): hojas «Compras 2023 a 2026» a quedadas, con selector de quedada |
 | 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes y básicos (leche, lavavajillas) asignados o sin asignar |
-| 19 | Sesión con Google y enlace de la quedada (`#/quedada/<id>`): entrar/salir, nombre y foto, «Este soy yo». Configuración: ver abajo |
+| 19 | Sesión con Google y enlace de la quedada (`#/quedada/<id>`): entrar/salir, nombre y foto, «Este soy yo» |
+| 25 | Supabase: login con Google y quedadas por usuario (primer trozo; compartir, conocidos e invitaciones, después). Configuración: ver abajo |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
@@ -44,15 +45,16 @@ npm run dev
 | `npm run typecheck` | Comprobación de tipos |
 | `npm run build` | Build de producción |
 
-## Iniciar sesión con Google
+## Cuentas y datos en Supabase
 
-El botón «Entrar con Google» solo aparece si hay un Client ID de OAuth (es público, no un secreto):
+Con Supabase configurado, la gente entra con su cuenta de Google y sus quedadas se guardan en la nube, cada una visible solo para su propietaria (seguridad por fila). Sin configuración (o sin sesión) la app sigue en modo local, con SQLite en el navegador.
 
-1. En Google Cloud Console crea un cliente OAuth de tipo «Aplicación web».
-2. Orígenes JavaScript autorizados: `https://onzebol.github.io` y `http://localhost:<puerto>` para desarrollo (no hacen falta URI de redirección).
-3. Local: copia `.env.example` a `.env.local` y rellena `VITE_GOOGLE_CLIENT_ID`. Despliegue: variable de repositorio `GOOGLE_CLIENT_ID` (Settings → Secrets and variables → Actions → Variables).
+1. Crea un proyecto en supabase.com y ejecuta `supabase/migrations/0001_quedadas.sql` en el editor SQL.
+2. En Google Cloud Console crea un cliente OAuth «Aplicación web» con la URI de redirección que muestra Supabase (*Authentication → Providers → Google*) y pega su Client ID y secret en Supabase.
+3. En *Authentication → URL Configuration* añade `https://onzebol.github.io/quedada/` y la URL de desarrollo.
+4. Local: copia `.env.example` a `.env.local` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_CLAVE_PUBLICA`. Despliegue: variables de repositorio `SUPABASE_URL` y `SUPABASE_CLAVE_PUBLICA` (Settings → Secrets and variables → Actions → Variables).
 
-Solo se piden los permisos `openid`, `profile` y `email`, y se guardan id, nombre y foto. Los datos de las quedadas siguen siendo locales a cada navegador, así que un enlace compartido solo abre la quedada donde ya esté guardada.
+La URL y la clave publishable son públicas; nunca pongas la `service_role` en la app ni en el repo. Los datos locales anteriores no se suben solos: al entrar con Google se ven las quedadas de la cuenta (vacías al principio).
 
 ## Estructura
 

@@ -30,6 +30,9 @@ jobs:
         env:
           # Client ID público de OAuth (variable del repositorio, no secreto). Sin él no se ofrece entrar.
           VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          # Supabase: URL y clave pública (variables del repositorio, no secretos). Sin ellas, modo local.
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_CLAVE_PUBLICA: ${{ vars.SUPABASE_CLAVE_PUBLICA }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
