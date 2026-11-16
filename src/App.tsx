@@ -18,22 +18,15 @@ interface Props {
 
 export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal }: Props) {
   const almacen = useMemo(() => repositorio ?? new RepositorioLocalStorage(), [repositorio])
-<<<<<<< HEAD
-  const estado = useQuedada(almacen, crearId)
-  return (
-    <main>
-      <h1>Quedada</h1>
-      <ListaCompra estado={estado} crearId={crearId} />
-      {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}
-=======
   const [quedadas, setQuedadas] = useState<Quedada[]>([])
   const [activa, setActiva] = useState<Id | null>(null)
+  const estado = useQuedada(almacen, crearId, activa)
 
   const refrescar = useCallback(async () => {
     try {
       setQuedadas(await almacen.listar())
     } catch {
-      // Si el almacenamiento falla, ListaCompra ya lo comunica; aquí solo no hay selector.
+      // Si el almacenamiento falla, la lista ya lo comunica; aquí solo no hay selector.
     }
   }, [almacen])
 
@@ -65,7 +58,8 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
           </select>
         </label>
       )}
-      <ListaCompra key={activa ?? 'primera'} repositorio={almacen} crearId={crearId} quedadaId={activa} />
+      <ListaCompra key={estado.quedada?.id ?? 'cargando'} estado={estado} crearId={crearId} />
+      {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}
       <ImportarExcel
         leer={leerExcel}
         repositorio={almacen}
@@ -74,7 +68,6 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
           void refrescar()
         }}
       />
->>>>>>> 2aee2db (Hito 6: importar el Excel de compras)
     </main>
   )
 }
