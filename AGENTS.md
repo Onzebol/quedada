@@ -149,7 +149,11 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   como respaldo sin Supabase y se retirará.
 - Importación del Excel (`src/importacion/`): `importarHoja.ts` (puro: filas de celdas a
   `Quedada`; detecta los formatos de 2023 a 2026, usa ids estables derivados del nombre de la
-  hoja para que reimportar sustituya y no duplique, y avisa de lo que descarta),
+  hoja para que reimportar sustituya y no duplique, y avisa de lo que descarta). **Con sesión, `ImportarExcel`
+  antepone el id de la cuenta al de la quedada** (`<idCuenta>-import-compras-2026`, #34): en Supabase
+  `quedadas.id` es clave primaria global y, si no, dos cuentas que importaran el mismo Excel chocarían.
+  Si la cuenta ya tenía la quedada con el id antiguo (sin prefijo) se sigue usando ese, para sustituirla
+  y no duplicarla; sin sesión el id no cambia,
   `leerExcel.ts` (lee el `.xlsx` con `read-excel-file`, cargada solo al importar; devuelve los
   valores ya calculados de las fórmulas) y `ImportarExcel.tsx` (botón e informe). Solo se
   importan las hojas «Compras AAAA». El bloque de **tickets** del final de cada hoja (filas con

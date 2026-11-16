@@ -7,6 +7,12 @@ import type { InformeImportacion } from './importarHoja'
 interface Props {
   leer: (archivo: Blob) => Promise<InformeImportacion>
   repositorio: Repositorio
+  /**
+   * Id de la cuenta con sesión. Los ids de las quedadas importadas salen del nombre de la hoja y son
+   * claves globales en el servidor, así que se les antepone para que dos cuentas que importen el
+   * mismo Excel no choquen. Sin él (tests, modo local) los ids no cambian.
+   */
+  espacio?: string
   /** Ids de las quedadas guardadas, en el orden del Excel (la primera suele ser la más reciente). */
   onImportado: (ids: Id[]) => void
 }
@@ -19,18 +25,32 @@ type Estado =
 
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
 
-export function ImportarExcel({ leer, repositorio, onImportado }: Props) {
+/**
+ * Id con el que se guarda una quedada importada. Si la cuenta ya la tenía con el id antiguo (sin
+ * prefijo, importada antes de existir los prefijos) se sigue usando ese, para sustituirla y no
+ * duplicarla. Las quedadas de otras cuentas no se ven, así que no cuentan.
+ */
+async function idDeDestino(repositorio: Repositorio, espacio: string | undefined, id: Id): Promise<Id> {
+  if (espacio === undefined) return id
+  return (await repositorio.obtener(id)) !== null ? id : `${espacio}-${id}`
+}
+
+export function ImportarExcel({ leer, repositorio, espacio, onImportado }: Props) {
   const [estado, setEstado] = useState<Estado>({ tipo: 'espera' })
 
   async function importar(archivo: File) {
     setEstado({ tipo: 'leyendo' })
     try {
       const informe = await leer(archivo)
+      const guardadas: Id[] = []
       for (const { quedada } of informe.importadas) {
+        const id = await idDeDestino(repositorio, espacio, quedada.id)
         // El Excel no trae asistentes: al reimportar se conservan los que ya había.
-        const previa = await repositorio.obtener(quedada.id)
+        const previa = await repositorio.obtener(id)
+        guardadas.push(id)
         await repositorio.guardar({
           ...quedada,
+          id,
           asistentes: previa?.asistentes ?? [],
           basicos: previa?.basicos ?? [],
         })
@@ -40,7 +60,7 @@ export function ImportarExcel({ leer, repositorio, onImportado }: Props) {
         return
       }
       setEstado({ tipo: 'listo', informe })
-      onImportado(informe.importadas.map((i) => i.quedada.id))
+      onImportado(guardadas)
     } catch {
       setEstado({ tipo: 'error', mensaje: 'No se pudo leer el archivo. Comprueba que es un Excel (.xlsx).' })
     }

@@ -88,6 +88,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
       <ImportarExcel
         leer={leerExcel}
         repositorio={almacen}
+        espacio={sesion.usuario?.id}
         onImportado={(ids) => {
           setActiva(ids[0] ?? null)
           void refrescar()
