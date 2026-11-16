@@ -47,14 +47,14 @@ npm run dev
 
 ## Cuentas y datos en Supabase
 
-Con Supabase configurado, la gente entra con su cuenta de Google y sus quedadas se guardan en la nube, cada una visible solo para su propietaria (seguridad por fila). Sin configuración (o sin sesión) la app sigue en modo local, con SQLite en el navegador.
+Con Supabase configurado, la gente entra con su cuenta de Google y sus quedadas se guardan en la nube, cada una visible solo para su propietaria (seguridad por fila). **Hay que entrar con Google para usar la app**: sin sesión solo se ve la pantalla de entrada (y, sin configuración de Supabase, un aviso).
 
 1. Crea un proyecto en supabase.com y ejecuta `supabase/migrations/0001_quedadas.sql` en el editor SQL.
 2. En Google Cloud Console crea un cliente OAuth «Aplicación web» con la URI de redirección que muestra Supabase (*Authentication → Providers → Google*) y pega su Client ID y secret en Supabase.
 3. En *Authentication → URL Configuration* añade `https://onzebol.github.io/quedada/` y la URL de desarrollo.
 4. Local: copia `.env.example` a `.env.local` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_CLAVE_PUBLICA`. Despliegue: variables de repositorio `SUPABASE_URL` y `SUPABASE_CLAVE_PUBLICA` (Settings → Secrets and variables → Actions → Variables).
 
-La URL y la clave publishable son públicas; nunca pongas la `service_role` en la app ni en el repo. Los datos locales anteriores no se suben solos: al entrar con Google se ven las quedadas de la cuenta (vacías al principio).
+La URL y la clave publishable son públicas; nunca pongas la `service_role` en la app ni en el repo. Los datos locales anteriores (SQLite del navegador) ya no se muestran y no se suben solos; la migración queda pendiente.
 
 ## Estructura
 
