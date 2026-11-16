@@ -28,8 +28,16 @@ interface Escritura extends PromiseLike<{ error: ErrorSupabase | null }> {
   in(columna: string, valores: string[]): Escritura
 }
 
+interface Canal {
+  on(tipo: 'broadcast', filtro: { event: string }, alMensaje: (mensaje: { event?: string }) => void): Canal
+  subscribe(alEstado?: (estado: string) => void): Canal
+}
+
 /** La parte de `SupabaseClient` que usa el repositorio, para poder probarlo con un cliente falso. */
 export interface ClienteDatos {
+  realtime: { setAuth(): PromiseLike<unknown> }
+  channel(nombre: string, opciones: { config: { private: boolean } }): Canal
+  removeChannel(canal: Canal): PromiseLike<unknown>
   from(tabla: string): {
     select(columnas: string): Lectura<FilaQuedada>
     upsert(filas: Fila | Fila[], opciones?: { onConflict: string }): Escritura
@@ -282,5 +290,34 @@ export class RepositorioSupabase implements Repositorio {
   async borrar(id: Id): Promise<void> {
     comprobar(await this.cliente.from('quedadas').delete().eq('id', id))
     this.vistas.delete(id)
+  }
+
+  /**
+   * Escucha el canal privado `quedada:<id>`, al que la base avisa de cada cambio (`0003`). El aviso
+   * solo dice «algo ha cambiado»: quien llama vuelve a leer. Al quedar suscrito (también tras una
+   * reconexión) avisa también, por si se perdió algo mientras tanto.
+   */
+  suscribir(id: Id, alCambiar: () => void): () => void {
+    let cancelado = false
+    let canal: Canal | null = null
+    const abrir = async () => {
+      await this.cliente.realtime.setAuth()
+      if (cancelado) return
+      canal = this.cliente
+        .channel(`quedada:${id}`, { config: { private: true } })
+        .on('broadcast', { event: '*' }, () => {
+          if (!cancelado) alCambiar()
+        })
+        .subscribe((estado) => {
+          if (estado === 'SUBSCRIBED' && !cancelado) alCambiar()
+        })
+    }
+    abrir().catch(() => {
+      // Sin tiempo real la app sigue funcionando: se verá lo ajeno al recargar.
+    })
+    return () => {
+      cancelado = true
+      if (canal) void this.cliente.removeChannel(canal)
+    }
   }
 }

@@ -16,7 +16,21 @@ export interface Escritura {
  * Aplica las escrituras como Postgres: `update` solo toca las columnas indicadas y `upsert` solo
  * las que trae la fila. Registra las escrituras y puede hacer fallar una concreta.
  */
+export interface CanalFalso {
+  nombre: string
+  privado: boolean
+  quitado: boolean
+  suscrito: boolean
+  alMensaje: ((mensaje: { event: string }) => void) | null
+  alEstado: ((estado: string) => void) | null
+}
+
 export class BackendSupabaseFalso {
+  /** Canales abiertos con `channel(...)`, en orden. */
+  canales: CanalFalso[] = []
+  /** Orden en que se llamó a `setAuth` y a `subscribe`, para comprobar que se autentica antes. */
+  bitacora: string[] = []
+
   tablas: Record<string, Fila[]> = { quedadas: [], participantes: [], grupos: [], productos: [], asistentes: [], basicos: [] }
   escrituras: Escritura[] = []
   private fallarEn: number | null = null
@@ -28,7 +42,48 @@ export class BackendSupabaseFalso {
   }
 
   cliente(): ClienteDatos {
-    return { from: (tabla: string) => new Tabla(this, tabla) } as unknown as ClienteDatos
+    return {
+      from: (tabla: string) => new Tabla(this, tabla),
+      realtime: {
+        setAuth: async () => {
+          this.bitacora.push('setAuth')
+        },
+      },
+      channel: (nombre: string, opciones: { config: { private: boolean } }) => {
+        const canal: CanalFalso = {
+          nombre,
+          privado: opciones.config.private,
+          quitado: false,
+          suscrito: false,
+          alMensaje: null,
+          alEstado: null,
+        }
+        this.canales.push(canal)
+        const api = {
+          on: (_tipo: string, _filtro: unknown, alMensaje: (m: { event: string }) => void) => {
+            canal.alMensaje = alMensaje
+            return api
+          },
+          subscribe: (alEstado?: (estado: string) => void) => {
+            this.bitacora.push('subscribe')
+            canal.suscrito = true
+            canal.alEstado = alEstado ?? null
+            queueMicrotask(() => alEstado?.('SUBSCRIBED'))
+            return api
+          },
+          canal,
+        }
+        return api
+      },
+      removeChannel: async (api: { canal: CanalFalso }) => {
+        api.canal.quitado = true
+      },
+    } as unknown as ClienteDatos
+  }
+
+  /** Simula que el servidor avisa de un cambio en el canal de la quedada `id`. */
+  emitir(id: string, evento = 'UPDATE') {
+    for (const c of this.canales) if (c.nombre === `quedada:${id}` && !c.quitado) c.alMensaje?.({ event: evento })
   }
 
   /** @internal */

@@ -17,6 +17,26 @@ const SUPABASE_FALSO = `
     as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   grant usage on schema auth, public to anon, authenticated;
   alter default privileges in schema public grant all on tables to authenticated;
+
+  -- Lo mínimo de realtime: la tabla de mensajes, el tema actual y broadcast_changes.
+  create schema realtime;
+  create table realtime.messages (
+    id bigserial primary key, topic text not null, event text, payload jsonb, extension text not null default 'broadcast'
+  );
+  alter table realtime.messages enable row level security;
+  grant usage on schema realtime to authenticated;
+  grant select on realtime.messages to authenticated;
+  create function realtime.topic() returns text language sql stable
+    as $$ select nullif(current_setting('realtime.topic', true), '') $$;
+  create function realtime.broadcast_changes(
+    topic_name text, event_name text, operation text, table_name text, table_schema text,
+    new record, old record, level text default 'ROW'
+  ) returns void language plpgsql as $$
+  begin
+    insert into realtime.messages (topic, event, payload)
+    values (topic_name, event_name, jsonb_build_object('operation', operation, 'table', table_name,
+                                                       'record', to_jsonb(new), 'old_record', to_jsonb(old)));
+  end $$;
 `
 
 const quedadaCompleta = {
@@ -49,6 +69,18 @@ async function como(db: PGlite, usuario: string, consulta: string) {
   }
 }
 
+async function comoEnTema(db: PGlite, usuario: string, tema: string, consulta: string) {
+  await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub', '${usuario}', false), set_config('realtime.topic', '${tema}', false);`)
+  try {
+    return await db.query<Record<string, unknown>>(consulta)
+  } finally {
+    await db.exec('reset role')
+  }
+}
+
+const avisos = async (db: PGlite) =>
+  (await db.query<{ topic: string; event: string; tabla: string }>("select topic, event, payload->>'table' as tabla from realtime.messages order by id")).rows
+
 describe('migraciones de Supabase', () => {
   let db: PGlite
 
@@ -64,6 +96,8 @@ describe('migraciones de Supabase', () => {
       'q2', LUIS, JSON.stringify({ ...quedadaCompleta, id: 'q2', nombre: 'De Luis' }),
     ])
     await db.exec(sql('0002_tablas.sql'))
+    await db.exec(sql('0003_tiempo_real.sql'))
+    await db.exec('truncate realtime.messages')
   })
 
   it('convierte las quedadas existentes en filas', async () => {
@@ -132,5 +166,60 @@ describe('migraciones de Supabase', () => {
 
   it('la conversión no se puede llamar desde la API', async () => {
     await expect(como(db, ANA, 'select public.convertir_quedadas_desde_datos()')).rejects.toThrow()
+  })
+  describe('tiempo real (0003)', () => {
+    it('avisa al tema de la quedada cuando cambia un producto: alta, cambio y borrado', async () => {
+      await db.exec("insert into public.productos (quedada_id, id, posicion, grupo_id, nombre, unidad, comprado, descuento, observaciones) values ('q1','nuevo',9,'g1','Vino','',false,0,'')")
+      await db.exec("update public.productos set comprado = true where quedada_id = 'q1' and id = 'nuevo'")
+      await db.exec("delete from public.productos where quedada_id = 'q1' and id = 'nuevo'")
+      expect(await avisos(db)).toEqual([
+        { topic: 'quedada:q1', event: 'INSERT', tabla: 'productos' },
+        { topic: 'quedada:q1', event: 'UPDATE', tabla: 'productos' },
+        { topic: 'quedada:q1', event: 'DELETE', tabla: 'productos' },
+      ])
+    })
+
+    it('avisa también de cambios en la propia quedada y en cada tabla hija', async () => {
+      await db.exec("update public.quedadas set nombre = 'Otro nombre' where id = 'q1'")
+      await db.exec("update public.participantes set nombre = 'Ana M.' where quedada_id = 'q1' and id = 'p1'")
+      await db.exec("update public.grupos set nombre = 'Cena grande' where quedada_id = 'q1' and id = 'g1'")
+      await db.exec("update public.asistentes set personas = 4 where quedada_id = 'q1' and id = 'a1'")
+      await db.exec("update public.basicos set nombre = 'Papel' where quedada_id = 'q1' and id = 'b1'")
+      expect((await avisos(db)).map((a) => [a.topic, a.tabla])).toEqual([
+        ['quedada:q1', 'quedadas'],
+        ['quedada:q1', 'participantes'],
+        ['quedada:q1', 'grupos'],
+        ['quedada:q1', 'asistentes'],
+        ['quedada:q1', 'basicos'],
+      ])
+    })
+
+    it('cada aviso va al tema de su quedada y no al de otra', async () => {
+      await db.exec("update public.productos set comprado = true where quedada_id = 'q2' and id = 'pr2'")
+      expect((await avisos(db)).map((a) => a.topic)).toEqual(['quedada:q2'])
+    })
+
+    it('al borrar una quedada se avisa de su borrado', async () => {
+      await db.exec("delete from public.quedadas where id = 'q0'")
+      expect((await avisos(db)).map((a) => [a.topic, a.event, a.tabla])).toContainEqual(['quedada:q0', 'DELETE', 'quedadas'])
+    })
+
+    it('quien tiene acceso lee los avisos de su quedada', async () => {
+      await db.exec("update public.productos set comprado = true where quedada_id = 'q1' and id = 'pr2'")
+      const r = await comoEnTema(db, ANA, 'quedada:q1', 'select topic from realtime.messages')
+      expect(r.rows).toEqual([{ topic: 'quedada:q1' }])
+    })
+
+    it('otra cuenta no lee los avisos de una quedada ajena', async () => {
+      await db.exec("update public.productos set comprado = true where quedada_id = 'q1' and id = 'pr2'")
+      const r = await comoEnTema(db, LUIS, 'quedada:q1', 'select topic from realtime.messages')
+      expect(r.rows).toEqual([])
+    })
+
+    it('un tema que no es de una quedada no deja leer nada', async () => {
+      await db.exec("update public.productos set comprado = true where quedada_id = 'q1' and id = 'pr2'")
+      const r = await comoEnTema(db, ANA, 'otra-cosa', 'select topic from realtime.messages')
+      expect(r.rows).toEqual([])
+    })
   })
 })
