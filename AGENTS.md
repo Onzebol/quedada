@@ -55,7 +55,8 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy solo `localStor
 - Estructura: `src/` con `App.tsx` y `main.tsx`; los tests van junto al código como
   `*.test.ts(x)`; la configuración común de tests está en `src/test/setup.ts`.
 - Dominio (`src/dominio/`, sin React): `tipos.ts` (Quedada, Grupo, Producto, Participante),
-  `totales.ts` (funciones puras de totales), `repositorio.ts` (interfaz asíncrona) y
+  `totales.ts` (funciones puras de totales), `liquidacion.ts` (reparto y «quién debe a quién»),
+  `repositorio.ts` (interfaz asíncrona) y
   `repositorioLocalStorage.ts` (implementación actual). `fabrica.ts` crea datos de prueba.
   `operaciones.ts` (altas, ediciones y borrados de participantes, comidas y productos, siempre
   devolviendo una quedada nueva), `filtros.ts` (filtros de la lista) y `numeros.ts` (leer y
@@ -66,6 +67,10 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy solo `localStor
   repositorio y el generador de ids por props para poder probarlo con un repositorio en memoria
   (`src/test/repositorioMemoria.ts`). Los estilos de `compra.css` son mínimos a propósito: la
   dirección visual definitiva es la issue #11.
+- Reparto de gastos (decidido en #4): los grupos con `reparto: 'casa'` se dividen a partes
+  iguales entre todos los participantes aunque al final no vengan, salvo los que tengan
+  `pagaCasa: false` (niños). El resto (comida) se reparte según `porcentajeComida` de cada
+  participante (100 por defecto; menos o 0 para niños). Los productos sin comprador no cuentan.
 - Dinero: siempre en **céntimos enteros** (`Centimos`) dentro del dominio; solo se convierte a
   euros al mostrarlo. Las entradas de precio y descuento del producto están en euros.
 - Los datos se guardan siempre a través de la interfaz `Repositorio`, nunca con

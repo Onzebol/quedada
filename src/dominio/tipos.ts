@@ -4,6 +4,10 @@ export type Id = string
 export interface Participante {
   id: Id
   nombre: string
+  /** Porcentaje de la comida que le toca (100 por defecto; 0 o menos para niños). */
+  porcentajeComida?: number
+  /** Si paga su parte de los gastos de la casa (`true` por defecto; `false` para niños). */
+  pagaCasa?: boolean
 }
 
 /** Una comida o bloque de la compra: cena del viernes, desayunos, bebida… */
@@ -11,6 +15,8 @@ export interface Grupo {
   id: Id
   nombre: string
   orden: number
+  /** `casa`: se reparte a partes iguales entre quienes pagan la casa. `comida` (por defecto): por porcentaje. */
+  reparto?: 'casa' | 'comida'
 }
 
 export interface Producto {
