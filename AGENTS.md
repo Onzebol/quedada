@@ -25,7 +25,10 @@ _Pendiente: confirmar con el Excel la estructura exacta de datos y cómo se repa
 - **Tests**: Vitest + React Testing Library + jest-dom (TDD, ver más abajo).
 - **Lint**: oxlint (el que trae la plantilla actual de Vite) y `tsc -b` para tipos.
 - **CI/CD**: GitHub Actions (lint, tests y build en cada PR; despliegue al fusionar en `main`).
-- **Despliegue**: GitHub Pages (Vite necesita `base` con el nombre del repo).
+- **Despliegue**: GitHub Pages en https://onzebol.github.io/quedada/ (`base: '/quedada/'` en
+  `vite.config.ts`). Se publica solo al fusionar en `main` (`.github/workflows/deploy.yml`, que
+  antes pasa los tests). Si se añade enrutado, usar rutas con hash (`#/ruta`): Pages no
+  redirige rutas desconocidas a `index.html` y recargar daría 404.
 - **Repositorio**: GitHub (cuenta `Onzebol`, CLI `gh`). Nota: el `CLAUDE.md` global menciona
   Gitea, pero este proyecto usa GitHub por decisión expresa del usuario.
 
