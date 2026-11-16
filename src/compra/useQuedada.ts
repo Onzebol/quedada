@@ -3,7 +3,7 @@ import { quedadaInicial } from '../dominio/operaciones'
 import type { Repositorio } from '../dominio/repositorio'
 import type { Id, Quedada } from '../dominio/tipos'
 
-export type ErrorAlmacen = 'carga' | 'guardado'
+export type ErrorAlmacen = 'carga' | 'guardado' | 'noEncontrada'
 
 /** Espera tras un aviso de cambio ajeno para juntar ráfagas (y los ecos de lo que guardamos nosotros). */
 export const ESPERA_AVISOS_MS = 150
@@ -11,7 +11,8 @@ export const ESPERA_AVISOS_MS = 150
 export type EstadoQuedada = ReturnType<typeof useQuedada>
 
 /**
- * Carga la quedada indicada, o la primera guardada (o crea una con las comidas habituales), y
+ * Carga la quedada indicada (error `noEncontrada` si no existe) o, sin id, la primera guardada (o crea
+ * una con las comidas habituales), y
  * guarda en el repositorio cada cambio que se aplique, de uno en uno y en orden (con un servicio
  * remoto, dos guardados a la vez podrían llegar desordenados y el viejo pisaría al nuevo; mientras
  * hay uno en curso solo se recuerda el último estado). Si el repositorio es compartido
@@ -35,6 +36,11 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaI
     async function cargar() {
       const guardadas = await repositorio.listar()
       const elegida = quedadaId === null ? undefined : guardadas.find((g) => g.id === quedadaId)
+      // Con un id concreto que no existe (o al que no se tiene acceso) no se muestra otra distinta.
+      if (quedadaId !== null && elegida === undefined) {
+        if (!cancelado) setError('noEncontrada')
+        return
+      }
       const q = elegida ?? guardadas[0] ?? quedadaInicial(idsRef.current)
       if (guardadas.length === 0) await repositorio.guardar(q)
       if (cancelado) return

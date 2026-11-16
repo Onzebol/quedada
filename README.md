@@ -15,7 +15,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 3 | Lista de la compra (hecho): comidas, productos, comprador, comprado, observaciones y filtros |
 | 4 | Gastos y liquidación (hecho): precio y descuento por producto, reparto (casa a partes iguales, comida por porcentaje) y quién paga a quién |
 | 5 | Despliegue continuo en GitHub Pages |
-| 6 | Importar el Excel (hecho): hojas «Compras 2023 a 2026» a quedadas, con selector de quedada |
+| 6 | Importar el Excel (hecho): hojas «Compras 2023 a 2026» a quedadas, con la lista de quedadas |
 | 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes y básicos (leche, lavavajillas) asignados o sin asignar |
 | 19 | Sesión con Google y enlace de la quedada (`#/<id>`): entrar/salir, nombre y foto, «Este soy yo» |
 | 25 | Supabase: login con Google y quedadas por usuario (primer trozo; compartir, conocidos e invitaciones, después). Configuración: ver abajo |
@@ -23,6 +23,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 32 | Tiempo real: los cambios de otra persona aparecen sin recargar (Broadcast desde la base de datos, canal privado por quedada; paso 2 de #29) |
 | 36 | Eliminar quedadas, con confirmación |
 | 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
+| 44 | Página inicial (sin `#/<id>`): crear, elegir y eliminar quedadas e importar el Excel; «← Todas las quedadas» vuelve a ella |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
@@ -65,6 +66,7 @@ En *Project Settings → Realtime* deja activado Realtime y desmarcado «Allow p
 - `src/dominio/`: modelo y lógica sin React (tipos, totales, liquidación, repositorio). Dinero en céntimos.
 - `src/compra/`: la lista de la compra (React).
 - `src/cuentas/`: pagado por persona, ajustes de reparto y transferencias (React).
+- `src/inicio/`: página inicial con la lista de quedadas (crear, elegir, eliminar).
 - `src/importacion/`: importación del Excel de compras (`.xlsx`) a quedadas.
 - `src/`: `App` y arranque de la interfaz.
 - `.github/workflows/`: CI y despliegue.

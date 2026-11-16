@@ -1,10 +1,11 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
 import type { Usuario } from './autenticacion/tipos'
 import { quedada } from './dominio/fabrica'
 import { AutenticacionMemoria } from './test/autenticacionMemoria'
+import { abrirPrimera } from './test/abrirPrimera'
 import { RepositorioMemoria } from './test/repositorioMemoria'
 
 const ana: Usuario = { id: 'g-ana', nombre: 'Ana Pérez', foto: 'https://fotos/ana.png' }
@@ -23,6 +24,7 @@ const q1 = () =>
 async function preparar(auth: AutenticacionMemoria, quedadas = [q1()], urlPagina = 'https://onzebol.github.io/quedada/') {
   const usuario = userEvent.setup()
   const repositorio = new RepositorioMemoria(quedadas)
+  abrirPrimera(repositorio)
   render(<App repositorio={repositorio} autenticacion={auth} urlPagina={urlPagina} crearId={() => 'x'} />)
   await screen.findByRole('heading', { level: 2, name: 'Lista de la compra' })
   return { usuario, repositorio }
@@ -100,7 +102,6 @@ describe('Enlace de la quedada', () => {
     const q2 = quedada({ id: 'q2', nombre: 'Quedada 2025', grupos: [{ id: 'g2', nombre: 'Merienda', orden: 0 }] })
     await preparar(new AutenticacionMemoria(ana), [q1(), q2])
     expect(await screen.findByRole('heading', { level: 3, name: 'Merienda' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Quedada' })).toHaveValue('q2')
   })
 
   it('un enlace antiguo #/quedada/<id> sigue mostrando esa quedada', async () => {
@@ -108,14 +109,6 @@ describe('Enlace de la quedada', () => {
     const q2 = quedada({ id: 'q2', nombre: 'Quedada 2025', grupos: [{ id: 'g2', nombre: 'Merienda', orden: 0 }] })
     await preparar(new AutenticacionMemoria(ana), [q1(), q2])
     expect(await screen.findByRole('heading', { level: 3, name: 'Merienda' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Quedada' })).toHaveValue('q2')
-  })
-
-  it('cambiar de quedada actualiza el enlace de la página', async () => {
-    const q2 = quedada({ id: 'q2', nombre: 'Quedada 2025', grupos: [{ id: 'g2', nombre: 'Merienda', orden: 0 }] })
-    const { usuario } = await preparar(new AutenticacionMemoria(ana), [q1(), q2])
-    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Quedada' }), 'q2')
-    expect(window.location.hash).toBe('#/q2')
   })
 
   it('reacciona a un cambio de hash con la página abierta', async () => {
@@ -125,12 +118,9 @@ describe('Enlace de la quedada', () => {
     expect(await screen.findByRole('heading', { level: 3, name: 'Merienda' })).toBeInTheDocument()
   })
 
-  it('avisa si la quedada del enlace no está en este navegador', async () => {
+  it('avisa si la quedada del enlace no existe o no es accesible', async () => {
     window.location.hash = '#/otra'
-    await preparar(new AutenticacionMemoria(ana))
-    await waitFor(() =>
-      expect(screen.getByText(/Esta quedada no está guardada en este navegador/)).toBeInTheDocument(),
-    )
-    expect(within(screen.getByRole('main')).getByRole('heading', { level: 2, name: 'Lista de la compra' })).toBeInTheDocument()
+    render(<App repositorio={new RepositorioMemoria([q1()])} autenticacion={new AutenticacionMemoria(ana)} crearId={() => 'x'} />)
+    expect(await screen.findByText(/No se encontró esta quedada/)).toBeInTheDocument()
   })
 })
