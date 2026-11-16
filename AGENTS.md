@@ -111,13 +111,24 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   Supabase (GitHub Pages es solo estático y SQLite no se puede compartir entre personas).
   `AutenticacionSupabase` implementa `Autenticacion` con Supabase Auth (Google): `abrir` resuelve la
   sesión una vez antes de pintar y `entrar` redirige a Google (la página se recarga al volver; el
-  enrutado por hash no choca con el flujo PKCE, que usa `?code=`). `RepositorioSupabase` guarda cada
-  quedada como una fila de `quedadas` con el documento en `datos` (jsonb); quién ve qué lo decide la
-  RLS de `0001_quedadas.sql` (solo el propietario), no el código. `cliente.ts` crea el cliente y
+  enrutado por hash no choca con el flujo PKCE, que usa `?code=`). `RepositorioSupabase` (#30, paso 1 de #29) guarda **una fila por cosa**: `quedadas` y las tablas
+  `participantes`, `grupos`, `productos`, `asistentes` y `basicos` (`0002_tablas.sql`, con `quedada_id`
+  y `posicion`). Lee con una sola consulta con las hijas incrustadas y guarda **por diferencias**
+  contra lo último leído o guardado (`vistas`): filas nuevas completas, solo las columnas que
+  cambian en las existentes y solo los ids que ya no están; así dos personas que tocan cosas
+  distintas no se pisan (tests con dos instancias sobre `src/test/backendSupabaseFalso.ts`). Todo
+  es idempotente: si un guardado falla a medias, `vistas` no avanza y reintentar lo repara. Quién ve
+  qué lo decide la RLS (`0001`/`0002`): las tablas hijas pasan por `puede_acceder(quedada_id)`, que
+  hoy comprueba el propietario y se redefinirá en el paso 3 (miembros). `quedadas.datos` (jsonb de
+  antes) se conserva, ya nullable, hasta comprobar los recuentos; `convertir_quedadas_desde_datos()`
+  lo pasa a filas y solo reconvierte lo que la versión anterior haya cambiado en `datos`. `cliente.ts` crea el cliente y
   devuelve `null` sin configuración. `main.tsx` exige sesión: sin ella (o sin configuración) solo
   pinta `PantallaEntrada` (`src/autenticacion/`); con ella, `App` con `RepositorioSupabase`. El modo
   local (`abrirRepositorio`, SQLite del navegador) ya no se usa en la app y queda para migrar datos. Las clases reciben interfaces mínimas (`ClienteAuth`, `ClienteDatos`) para probarlas con
-  clientes falsos; **la RLS no se prueba en CI**, se verifica a mano con dos cuentas.
+  clientes falsos. `migraciones.test.ts` ejecuta las migraciones de verdad con PGlite (Postgres en
+  WebAssembly, solo en tests): prueba la conversión de `datos` y que una cuenta no ve ni toca las
+  filas de otra. **Orden al desplegar una migración** (se aplica a mano en el editor SQL): ejecutarla,
+  fusionar la PR y volver a ejecutar `select public.convertir_quedadas_desde_datos();` una vez.
   **Configuración**: `VITE_SUPABASE_URL` y `VITE_SUPABASE_CLAVE_PUBLICA` (ver `.env.example`; en CI,
   variables de repositorio `SUPABASE_URL` y `SUPABASE_CLAVE_PUBLICA`), públicas. Nunca la
   `service_role`. Pendiente (issues propias): conocidos, compartir/invitar por email, vincular un
