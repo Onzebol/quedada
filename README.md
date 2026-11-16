@@ -17,6 +17,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 5 | Despliegue continuo en GitHub Pages |
 | 6 | Importar el Excel (hecho): hojas «Compras 2023 a 2026» a quedadas, con selector de quedada |
 | 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes y básicos (leche, lavavajillas) asignados o sin asignar |
+| 19 | Sesión con Google y enlace de la quedada (`#/quedada/<id>`): entrar/salir, nombre y foto, «Este soy yo». Configuración: ver abajo |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
@@ -42,6 +43,16 @@ npm run dev
 | `npm run lint` | Lint con oxlint |
 | `npm run typecheck` | Comprobación de tipos |
 | `npm run build` | Build de producción |
+
+## Iniciar sesión con Google
+
+El botón «Entrar con Google» solo aparece si hay un Client ID de OAuth (es público, no un secreto):
+
+1. En Google Cloud Console crea un cliente OAuth de tipo «Aplicación web».
+2. Orígenes JavaScript autorizados: `https://onzebol.github.io` y `http://localhost:<puerto>` para desarrollo (no hacen falta URI de redirección).
+3. Local: copia `.env.example` a `.env.local` y rellena `VITE_GOOGLE_CLIENT_ID`. Despliegue: variable de repositorio `GOOGLE_CLIENT_ID` (Settings → Secrets and variables → Actions → Variables).
+
+Solo se piden los permisos `openid`, `profile` y `email`, y se guardan id, nombre y foto. Los datos de las quedadas siguen siendo locales a cada navegador, así que un enlace compartido solo abre la quedada donde ya esté guardada.
 
 ## Estructura
 

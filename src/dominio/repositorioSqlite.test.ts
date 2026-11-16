@@ -87,6 +87,30 @@ describe('RepositorioSqlite', () => {
     expect(q).toMatchObject({ nombre: 'Vieja', asistentes: [], basicos: [] })
   })
 
+  it('guarda la cuenta vinculada a un participante', async () => {
+    const q = quedada({ id: 'q1', participantes: [{ id: 'u1', nombre: 'Ana', cuentaId: 'g-1' }, { id: 'u2', nombre: 'Luis' }] })
+    const repo = await abrir()
+    await repo.guardar(q)
+    expect(await repo.obtener('q1')).toEqual(q)
+  })
+
+  it('abre una base de participantes anterior a las cuentas y añade la columna', async () => {
+    const antigua = new sql.Database()
+    antigua.run('CREATE TABLE quedadas (id TEXT PRIMARY KEY, nombre TEXT NOT NULL, inicio TEXT, fin TEXT)')
+    antigua.run(`CREATE TABLE participantes (
+      quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
+      id TEXT NOT NULL, posicion INTEGER NOT NULL, nombre TEXT NOT NULL,
+      porcentaje_comida REAL, paga_casa INTEGER, PRIMARY KEY (quedada_id, id))`)
+    antigua.run("INSERT INTO quedadas VALUES ('q1','Vieja',NULL,NULL)")
+    antigua.run("INSERT INTO participantes VALUES ('q1','u1',0,'Ana',NULL,NULL)")
+    await persistencia.guardar(antigua.export())
+    const repo = await abrir()
+    expect((await repo.obtener('q1'))?.participantes).toEqual([{ id: 'u1', nombre: 'Ana' }])
+    const q = (await repo.obtener('q1'))!
+    await repo.guardar({ ...q, participantes: [{ id: 'u1', nombre: 'Ana', cuentaId: 'g-1' }] })
+    expect((await (await abrir()).obtener('q1'))?.participantes[0].cuentaId).toBe('g-1')
+  })
+
   it('persiste: otra instancia sobre la misma persistencia ve los datos', async () => {
     await (await abrir()).guardar(quedada({ id: 'q1' }))
     expect(await (await abrir()).listar()).toHaveLength(1)
