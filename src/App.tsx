@@ -11,11 +11,13 @@ import { useQuedada } from './compra/useQuedada'
 import { Cuentas } from './cuentas/Cuentas'
 import type { Repositorio } from './dominio/repositorio'
 import { RepositorioLocalStorage } from './dominio/repositorioLocalStorage'
+import { quedadaInicial } from './dominio/operaciones'
 import type { Id, Quedada } from './dominio/tipos'
-import { EliminarQuedada } from './compra/EliminarQuedada'
+import { Inicio } from './inicio/Inicio'
 import { ImportarExcel } from './importacion/ImportarExcel'
 import type { InformeImportacion } from './importacion/importarHoja'
 import { leerExcel as leerExcelReal } from './importacion/leerExcel'
+import './inicio/inicio.css'
 import './index.css'
 
 interface Props {
@@ -31,7 +33,6 @@ interface Props {
 
 export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir }: Props) {
   const almacen = useMemo(() => repositorio ?? new RepositorioLocalStorage(), [repositorio])
-  const [quedadas, setQuedadas] = useState<Quedada[]>([])
   const [activa, setActiva] = useHashQuedada()
   const auth = useMemo(() => autenticacion ?? new AutenticacionGoogle(), [autenticacion])
   const sesionBase = useSesion(auth)
@@ -45,29 +46,56 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
     }),
     [sesionBase, alSalir],
   )
-  const estado = useQuedada(almacen, crearId, activa)
+
+  return (
+    <main className="pagina">
+      <h1>Quedada</h1>
+      {activa === null ? (
+        <PaginaInicial
+          almacen={almacen}
+          crearId={crearId}
+          leerExcel={leerExcel}
+          sesion={sesion}
+          espacio={sesion.usuario?.id}
+          abrir={setActiva}
+        />
+      ) : (
+        <VistaQuedada
+          key={activa}
+          almacen={almacen}
+          crearId={crearId}
+          sesion={sesion}
+          quedadaId={activa}
+          urlPagina={urlPagina}
+          irAlInicio={() => setActiva(null)}
+        />
+      )}
+    </main>
+  )
+}
+
+interface PropsInicial {
+  almacen: Repositorio
+  crearId: () => Id
+  leerExcel: (archivo: Blob) => Promise<InformeImportacion>
+  sesion: ReturnType<typeof useSesion>
+  espacio?: string
+  abrir: (id: Id) => void
+}
+
+/** Página inicial: lista de quedadas para elegir, crear o eliminar (y la importación del Excel). */
+function PaginaInicial({ almacen, crearId, leerExcel, sesion, espacio, abrir }: PropsInicial) {
+  const [quedadas, setQuedadas] = useState<Quedada[] | null>(null)
+  const [error, setError] = useState(false)
 
   const refrescar = useCallback(async () => {
     try {
       setQuedadas(await almacen.listar())
+      setError(false)
     } catch {
-      // Si el almacenamiento falla, la lista ya lo comunica; aquí solo no hay selector.
+      setError(true)
     }
   }, [almacen])
-
-  const eliminar = useCallback(
-    async (id: string) => {
-      await almacen.borrar(id)
-      const quedan = await almacen.listar()
-      setQuedadas(quedan)
-      setActiva(quedan[0]?.id ?? null)
-      estado.recargar()
-    },
-    [almacen, setActiva, estado],
-  )
-
-  // La lista del selector sigue a la quedada que se muestra (p. ej. la que se crea al borrar la única).
-  const idMostrada = estado.quedada?.id
 
   useEffect(() => {
     let activo = true
@@ -76,57 +104,96 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
       .then((guardadas) => {
         if (activo) setQuedadas(guardadas)
       })
-      .catch(() => {})
+      .catch(() => {
+        if (activo) setError(true)
+      })
     return () => {
       activo = false
     }
-  }, [almacen, idMostrada])
+  }, [almacen])
+
+  const crear = useCallback(
+    async (nombre: string) => {
+      const nueva = quedadaInicial(crearId, nombre)
+      try {
+        await almacen.guardar(nueva)
+      } catch {
+        setError(true)
+        return
+      }
+      abrir(nueva.id)
+    },
+    [almacen, crearId, abrir],
+  )
+
+  const eliminar = useCallback(
+    async (id: Id) => {
+      await almacen.borrar(id)
+      await refrescar()
+    },
+    [almacen, refrescar],
+  )
 
   return (
-    <main className="pagina">
-      <h1>Quedada</h1>
+    <>
+      <Sesion sesion={sesion} quedada={null} aplicar={() => {}} />
+      {error && <p role="alert">No se pudieron cargar o guardar las quedadas. Recarga la página e inténtalo de nuevo.</p>}
+      {quedadas === null ? (
+        !error && <p role="status">Cargando…</p>
+      ) : (
+        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(n) => void crear(n)} alEliminar={eliminar}>
+          <ImportarExcel
+            leer={leerExcel}
+            repositorio={almacen}
+            espacio={espacio}
+            onImportado={(ids) => {
+              if (ids.length === 1) abrir(ids[0])
+              else void refrescar()
+            }}
+          />
+        </Inicio>
+      )}
+    </>
+  )
+}
+
+interface PropsVista {
+  almacen: Repositorio
+  crearId: () => Id
+  sesion: ReturnType<typeof useSesion>
+  quedadaId: Id
+  urlPagina?: string
+  irAlInicio: () => void
+}
+
+function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, irAlInicio }: PropsVista) {
+  const estado = useQuedada(almacen, crearId, quedadaId)
+
+  return (
+    <>
+      <nav>
+        <button type="button" className="volver" onClick={irAlInicio}>
+          ← Todas las quedadas
+        </button>
+      </nav>
       <Sesion sesion={sesion} quedada={estado.quedada} aplicar={estado.aplicar} />
-      {activa !== null && quedadas.length > 0 && !quedadas.some((q) => q.id === activa) && (
+      {estado.error === 'noEncontrada' ? (
         <p role="note">
-          Esta quedada no está guardada en este navegador (los datos aún no se comparten entre personas), así
-          que se muestra otra.
+          No se encontró esta quedada: puede que no exista o que no tengas acceso. Los enlaces solo funcionan
+          para quien ya participa en ella.
         </p>
+      ) : (
+        <>
+          {estado.quedada !== null && <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />}
+          <div className="pagina__columnas">
+            <ListaCompra estado={estado} crearId={crearId} />
+            {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}
+          </div>
+          {estado.quedada !== null && (
+            <Asistentes quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />
+          )}
+        </>
       )}
-      {quedadas.length > 1 && (
-        <label className="selector-quedada">
-          Quedada
-          <select value={estado.quedada?.id ?? activa ?? quedadas[0].id} onChange={(e) => setActiva(e.target.value)}>
-            {quedadas.map((q) => (
-              <option key={q.id} value={q.id}>
-                {q.nombre}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      {estado.quedada !== null && <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />}
-      {estado.quedada !== null && (
-        <EliminarQuedada
-          nombre={estado.quedada.nombre}
-          onEliminar={() => eliminar(estado.quedada!.id)}
-        />
-      )}
-      <div className="pagina__columnas">
-        <ListaCompra key={estado.quedada?.id ?? 'cargando'} estado={estado} crearId={crearId} />
-        {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}
-      </div>
-      {estado.quedada !== null && (
-        <Asistentes key={estado.quedada.id} quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />
-      )}
-      <ImportarExcel
-        leer={leerExcel}
-        repositorio={almacen}
-        espacio={sesion.usuario?.id}
-        onImportado={(ids) => {
-          setActiva(ids[0] ?? null)
-          void refrescar()
-        }}
-      />
-    </main>
+    </>
   )
 }

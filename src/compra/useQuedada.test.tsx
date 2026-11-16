@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { quedada } from '../dominio/fabrica'
 import type { Repositorio } from '../dominio/repositorio'
 import type { Id, Quedada } from '../dominio/tipos'
+import { RepositorioMemoria } from '../test/repositorioMemoria'
 import { ESPERA_AVISOS_MS, useQuedada } from './useQuedada'
 
 /** Repositorio que no termina un guardado hasta que el test lo libera, como una red lenta. */
@@ -252,5 +253,15 @@ describe('useQuedada: tiempo real', () => {
     repo.avisar()
     await pausa()
     expect(pintados).toBe(antes)
+  })
+})
+
+describe('useQuedada: id que no existe', () => {
+  it('con un id desconocido no muestra otra quedada ni crea una: avisa noEncontrada', async () => {
+    const repo = new RepositorioMemoria([quedada({ id: 'q1' })])
+    const { result } = renderHook(() => useQuedada(repo, () => 'id', 'otra'))
+    await waitFor(() => expect(result.current.error).toBe('noEncontrada'))
+    expect(result.current.quedada).toBeNull()
+    expect(repo.quedadas.map((q) => q.id)).toEqual(['q1'])
   })
 })

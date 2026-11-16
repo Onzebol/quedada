@@ -1,0 +1,104 @@
+/* Página inicial: mismos tokens Sierra que el resto de la app. */
+.inicio {
+  max-width: 40rem;
+}
+
+.inicio__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.inicio__lista li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--surf);
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+}
+
+.inicio__lista .eliminar-quedada {
+  margin: 0;
+}
+
+.inicio .inicio__abrir {
+  flex: 1 1 10rem;
+  min-height: 2.5rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--moss);
+  font: inherit;
+  font-size: 1.125rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inicio__nueva {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.5rem;
+  margin-block: 1rem;
+}
+
+.inicio__nueva label {
+  display: flex;
+  flex: 1 1 14rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--mut);
+}
+
+.inicio__nueva input {
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  color: var(--ink);
+  font: inherit;
+}
+
+.inicio__nueva button {
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  background: var(--moss);
+  border: 1px solid var(--moss);
+  border-radius: 40px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inicio :focus-visible {
+  outline: 3px solid Highlight;
+  outline-offset: 2px;
+}
+
+/* «← Todas las quedadas» en la vista de una quedada. */
+.volver {
+  min-height: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0 1rem;
+  background: transparent;
+  border: 1px solid var(--linea);
+  border-radius: 40px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.volver:hover {
+  border-color: var(--moss);
+}

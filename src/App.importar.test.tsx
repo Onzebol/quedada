@@ -1,9 +1,13 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { importarLibro, type Celda, type InformeImportacion } from './importacion/importarHoja'
 import { RepositorioMemoria } from './test/repositorioMemoria'
+
+afterEach(() => {
+  window.location.hash = ''
+})
 
 function contador() {
   let n = 0
@@ -30,8 +34,9 @@ function preparar(leerExcel: (a: Blob) => Promise<InformeImportacion>, repositor
   return { usuario, repositorio, vista }
 }
 
+/** La importación vive en la página inicial. */
 async function esperarCarga() {
-  await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
+  await screen.findByRole('region', { name: 'Importar Excel' })
 }
 
 async function subir(usuario: ReturnType<typeof userEvent.setup>) {
@@ -50,7 +55,7 @@ describe('Importar Excel', () => {
       basicos: [{ id: 'b1', nombre: 'Leche', asistenteId: 'a1' }],
     }
     const { usuario, repositorio } = preparar(async () => informe(), new RepositorioMemoria([previa]))
-    await screen.findByRole('heading', { level: 2, name: 'Lista de la compra' })
+    await esperarCarga()
     await subir(usuario)
     await within(importacion()).findByRole('status')
     const guardada = await repositorio.obtener(importada.id)
@@ -82,28 +87,29 @@ describe('Importar Excel', () => {
     expect(within(importacion()).getByText('Grupo vacío ignorado: Leches')).toBeInTheDocument()
   })
 
-  it('muestra la quedada importada más reciente y permite cambiar de quedada', async () => {
+  it('las quedadas importadas aparecen en la lista y se pueden abrir', async () => {
     const { usuario } = preparar(async () => informe())
     await esperarCarga()
     await subir(usuario)
-    expect(await screen.findByRole('checkbox', { name: 'Pizza 2026' })).toBeInTheDocument()
-
-    const selector = screen.getByRole('combobox', { name: 'Quedada' })
-    expect(within(selector).getAllByRole('option').map((o) => o.textContent)).toEqual([
-      'Quedada',
-      'Quedada 2026',
-      'Quedada 2025',
+    await within(importacion()).findByRole('status')
+    expect(within(screen.getByRole('list', { name: 'Quedadas' })).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      expect.stringContaining('Quedada 2026'),
+      expect.stringContaining('Quedada 2025'),
     ])
 
-    await usuario.selectOptions(selector, 'Quedada 2025')
+    await usuario.click(screen.getByRole('button', { name: 'Quedada 2025' }))
     expect(await screen.findByRole('checkbox', { name: 'Pizza 2025' })).toBeChecked()
     expect(screen.queryByRole('checkbox', { name: 'Pizza 2026' })).not.toBeInTheDocument()
   })
 
-  it('no muestra el selector si solo hay una quedada', async () => {
-    preparar(async () => informe())
+  it('si el Excel trae una sola quedada la abre directamente', async () => {
+    const { usuario } = preparar(async () => {
+      const i = informe()
+      return { ...i, importadas: [i.importadas[0]] }
+    })
     await esperarCarga()
-    expect(screen.queryByRole('combobox', { name: 'Quedada' })).not.toBeInTheDocument()
+    await subir(usuario)
+    expect(await screen.findByRole('checkbox', { name: 'Pizza 2026' })).toBeInTheDocument()
   })
 
   it('guarda las quedadas en el repositorio y conserva los cambios al volver a importar sin duplicar', async () => {
@@ -111,7 +117,7 @@ describe('Importar Excel', () => {
     const { usuario } = preparar(async () => informe(), repositorio)
     await esperarCarga()
     await subir(usuario)
-    await screen.findByRole('checkbox', { name: 'Pizza 2026' })
+    await within(importacion()).findByRole('status')
     expect(repositorio.quedadas.map((q) => q.id)).toEqual(
       expect.arrayContaining(['import-compras-2026', 'import-compras-2025']),
     )
@@ -120,8 +126,7 @@ describe('Importar Excel', () => {
     await subir(usuario)
     await within(importacion()).findByText(/Importadas 2 quedadas/)
     expect(repositorio.quedadas).toHaveLength(antes)
-    const selector = screen.getByRole('combobox', { name: 'Quedada' })
-    expect(within(selector).getAllByRole('option')).toHaveLength(antes)
+    expect(within(screen.getByRole('list', { name: 'Quedadas' })).getAllByRole('listitem')).toHaveLength(antes)
   })
 
   it('las quedadas importadas siguen ahí al recargar', async () => {
@@ -129,11 +134,11 @@ describe('Importar Excel', () => {
     const primera = preparar(async () => informe(), repositorio)
     await esperarCarga()
     await subir(primera.usuario)
-    await screen.findByRole('checkbox', { name: 'Pizza 2026' })
+    await within(importacion()).findByRole('status')
     primera.vista.unmount()
 
     preparar(async () => informe(), repositorio)
-    expect(await screen.findByRole('combobox', { name: 'Quedada' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Quedada 2025' })).toBeInTheDocument()
   })
 
   it('avisa si el archivo no se puede leer', async () => {

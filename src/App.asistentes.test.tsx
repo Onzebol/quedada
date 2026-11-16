@@ -1,8 +1,9 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
 import { quedada } from './dominio/fabrica'
+import { abrirPrimera } from './test/abrirPrimera'
 import { RepositorioMemoria } from './test/repositorioMemoria'
 
 function contador() {
@@ -13,10 +14,15 @@ function contador() {
 async function preparar(inicial = quedada({ id: 'q1', grupos: [{ id: 'g1', nombre: 'Cena', orden: 0 }] })) {
   const usuario = userEvent.setup()
   const repositorio = new RepositorioMemoria([inicial])
+  abrirPrimera(repositorio)
   render(<App repositorio={repositorio} crearId={contador()} />)
   await screen.findByRole('region', { name: 'Asistentes' })
   return { usuario, repositorio }
 }
+
+afterEach(() => {
+  window.location.hash = ''
+})
 
 const seccion = () => screen.getByRole('region', { name: 'Asistentes' })
 
