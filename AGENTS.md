@@ -67,7 +67,9 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   mostrar cantidades y euros con coma decimal).
 - Interfaz de la compra (`src/compra/`): `ListaCompra` (filtro, participantes, comidas),
   `GrupoCompra`, `FilaProducto` y el hook `useQuedada`, que carga la primera quedada del
-  repositorio (o crea una con las comidas habituales) y guarda cada cambio. `App` recibe el
+  repositorio (o crea una con las comidas habituales) y guarda cada cambio, de uno en uno y en orden (#27: con un
+  repositorio remoto dos guardados a la vez podrían llegar desordenados; mientras hay uno en curso solo
+  se guarda el último estado). `App` recibe el
   repositorio y el generador de ids por props para poder probarlo con un repositorio en memoria
   (`src/test/repositorioMemoria.ts`). Dirección visual «Sierra» (#11; maqueta en
   `docs/diseno/c-sierra.html`): tokens de color y tipografía Bricolage Grotesque en `index.css`,
