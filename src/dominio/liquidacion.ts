@@ -1,0 +1,108 @@
+import { totalLinea, totalPorComprador } from './totales'
+import type { Centimos, Id, Quedada } from './tipos'
+
+export interface Transferencia {
+  de: Id
+  a: Id
+  importe: Centimos
+}
+
+export interface Liquidacion {
+  /** Total pagado por compradores (los productos sin comprador no cuentan). */
+  total: Centimos
+  pagado: Record<Id, Centimos>
+  /** Pagado menos lo que le toca: positivo = le deben, negativo = debe. Suma cero. */
+  balances: Record<Id, Centimos>
+  transferencias: Transferencia[]
+}
+
+/**
+ * Reparte `total` en proporción a `pesos` en céntimos enteros (mayor resto):
+ * la suma de las partes es siempre `total`. Con todos los pesos a 0 reparte a partes iguales.
+ */
+export function repartirProporcional(total: Centimos, pesos: Record<Id, number>): Record<Id, Centimos> {
+  const ids = Object.keys(pesos)
+  const hayPeso = ids.some((id) => pesos[id] > 0)
+  const pesoDe = (id: Id) => (hayPeso ? Math.max(pesos[id], 0) : 1)
+  const sumaPesos = ids.reduce((suma, id) => suma + pesoDe(id), 0)
+  const signo = total < 0 ? -1 : 1
+  const absoluto = Math.abs(total)
+
+  const partes = ids.map((id, indice) => {
+    const exacto = sumaPesos === 0 ? 0 : (absoluto * pesoDe(id)) / sumaPesos
+    return { id, indice, base: Math.floor(exacto), resto: exacto - Math.floor(exacto) }
+  })
+  let sobrante = absoluto - partes.reduce((suma, p) => suma + p.base, 0)
+  const porResto = [...partes].sort((x, y) => y.resto - x.resto || x.indice - y.indice)
+  for (const p of porResto) {
+    if (sobrante <= 0) break
+    p.base += 1
+    sobrante -= 1
+  }
+
+  const resultado: Record<Id, Centimos> = {}
+  for (const p of partes) resultado[p.id] = p.base === 0 ? 0 : signo * p.base
+  return resultado
+}
+
+function sumarPorReparto(quedada: Quedada, reparto: 'casa' | 'comida'): Centimos {
+  const casa = new Set(quedada.grupos.filter((g) => g.reparto === 'casa').map((g) => g.id))
+  return quedada.productos
+    .filter((p) => p.compradorId !== null && casa.has(p.grupoId) === (reparto === 'casa'))
+    .reduce((suma, p) => suma + totalLinea(p), 0)
+}
+
+/** Saldo de cada persona: lo que ha pagado menos lo que le corresponde. */
+export function balances(quedada: Quedada): Record<Id, Centimos> {
+  const pagado = totalPorComprador(quedada)
+  const pesosCasa: Record<Id, number> = {}
+  const pesosComida: Record<Id, number> = {}
+  for (const p of quedada.participantes) {
+    pesosCasa[p.id] = p.pagaCasa === false ? 0 : 1
+    pesosComida[p.id] = p.porcentajeComida ?? 100
+  }
+  const debeCasa = repartirProporcional(sumarPorReparto(quedada, 'casa'), pesosCasa)
+  const debeComida = repartirProporcional(sumarPorReparto(quedada, 'comida'), pesosComida)
+
+  const saldos: Record<Id, Centimos> = {}
+  for (const p of quedada.participantes) saldos[p.id] = 0
+  for (const id of Object.keys(pagado)) saldos[id] ??= 0
+  for (const id of Object.keys(saldos)) {
+    saldos[id] = (pagado[id] ?? 0) - (debeCasa[id] ?? 0) - (debeComida[id] ?? 0)
+    if (saldos[id] === 0) saldos[id] = 0 // evita -0
+  }
+  return saldos
+}
+
+/** Transferencias que saldan los balances: mayor deudor con mayor acreedor, como mucho n-1. */
+export function liquidar(saldos: Record<Id, Centimos>): Transferencia[] {
+  const restantes = Object.entries(saldos)
+    .filter(([, saldo]) => saldo !== 0)
+    .map(([id, saldo]) => ({ id, saldo }))
+  const transferencias: Transferencia[] = []
+  for (;;) {
+    let acreedor = restantes[0]
+    let deudor = restantes[0]
+    for (const r of restantes) {
+      if (r.saldo > (acreedor?.saldo ?? 0)) acreedor = r
+      if (r.saldo < (deudor?.saldo ?? 0)) deudor = r
+    }
+    if (!acreedor || !deudor || acreedor.saldo <= 0 || deudor.saldo >= 0) break
+    const importe = Math.min(acreedor.saldo, -deudor.saldo)
+    transferencias.push({ de: deudor.id, a: acreedor.id, importe })
+    acreedor.saldo -= importe
+    deudor.saldo += importe
+  }
+  return transferencias
+}
+
+export function liquidacion(quedada: Quedada): Liquidacion {
+  const pagado = totalPorComprador(quedada)
+  const saldos = balances(quedada)
+  return {
+    total: Object.values(pagado).reduce((suma, v) => suma + v, 0),
+    pagado,
+    balances: saldos,
+    transferencias: liquidar(saldos),
+  }
+}

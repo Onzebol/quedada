@@ -1,0 +1,13 @@
+.cuentas__personas,
+.cuentas__transferencias {
+  list-style: none;
+  padding: 0;
+}
+
+.cuentas__personas li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}

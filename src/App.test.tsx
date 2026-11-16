@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from './App'
+import { producto, quedada } from './dominio/fabrica'
 import { quedadaInicial } from './dominio/operaciones'
 import { RepositorioMemoria } from './test/repositorioMemoria'
 
@@ -262,5 +263,96 @@ describe('Lista de la compra', () => {
     await esperarCarga()
     expect(repositorio.quedadas).toHaveLength(1)
     expect(repositorio.quedadas[0].nombre).toBe('Almunia 2026')
+  })
+})
+
+function normalizar(texto: string | null) {
+  return (texto ?? '').replace(/\s/g, ' ')
+}
+
+function quedadaConGastos() {
+  return quedada({
+    participantes: [
+      { id: 'ana', nombre: 'Ana' },
+      { id: 'beto', nombre: 'Beto' },
+    ],
+    grupos: [
+      { id: 'cena', nombre: 'Cena del viernes', orden: 0 },
+      { id: 'alquiler', nombre: 'Alquiler', orden: 1, reparto: 'casa' },
+    ],
+    productos: [
+      producto({ id: 'p1', grupoId: 'cena', nombre: 'Pizza', compradorId: 'ana', cantidad: 2, precioUnidad: 10, descuento: -4 }),
+      producto({ id: 'p2', grupoId: 'alquiler', nombre: 'Casa', compradorId: 'ana', cantidad: 1, precioUnidad: 100 }),
+    ],
+  })
+}
+
+describe('Gastos y liquidación', () => {
+  it('guarda precio por unidad y descuento y muestra el total de la línea', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.click(screen.getByRole('button', { name: 'Editar Sidra' }))
+    await usuario.type(screen.getByRole('textbox', { name: 'Cantidad' }), '3')
+    await usuario.type(screen.getByRole('textbox', { name: 'Precio por unidad (€)' }), '2,5')
+    await usuario.type(screen.getByRole('textbox', { name: 'Descuento (€)' }), '-1')
+    await usuario.click(screen.getByRole('button', { name: 'Guardar' }))
+    expect(screen.getByText('6,50 €', { exact: false })).toBeInTheDocument()
+  })
+
+  it('muestra lo pagado por persona, el total y quién debe a quién', async () => {
+    preparar(new RepositorioMemoria([quedadaConGastos()]))
+    const cuentas = await screen.findByRole('region', { name: 'Cuentas' })
+    // comida 16 € a medias (8 + 8); casa 100 € (50 + 50); Ana pagó 116 €
+    expect(normalizar(within(cuentas).getByText(/Total de la quedada/).textContent)).toContain('116,00 €')
+    expect(normalizar(within(cuentas).getByText(/Ana ha pagado/).textContent)).toContain('116,00 €')
+    expect(normalizar(within(cuentas).getByText(/Beto ha pagado/).textContent)).toContain('0,00 €')
+    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 58,00 € a Ana')
+  })
+
+  it('dice que no hay nada que liquidar cuando las cuentas cuadran', async () => {
+    preparar(new RepositorioMemoria([quedada({ participantes: [{ id: 'a', nombre: 'Ana' }] })]))
+    const cuentas = await screen.findByRole('region', { name: 'Cuentas' })
+    expect(within(cuentas).getByText('No hay nada que liquidar')).toBeInTheDocument()
+  })
+
+  it('recalcula al cambiar el porcentaje de comida de un participante', async () => {
+    const { usuario } = preparar(new RepositorioMemoria([quedadaConGastos()]))
+    const cuentas = await screen.findByRole('region', { name: 'Cuentas' })
+    const porcentaje = within(cuentas).getByRole('spinbutton', { name: 'Porcentaje de comida de Beto' })
+    await usuario.clear(porcentaje)
+    await usuario.type(porcentaje, '0')
+    // comida 16 € solo para Ana; casa 100 € a medias → Beto debe 50 €
+    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 50,00 € a Ana')
+  })
+
+  it('un participante que no paga la casa queda fuera de ese reparto', async () => {
+    const { usuario } = preparar(new RepositorioMemoria([quedadaConGastos()]))
+    const cuentas = await screen.findByRole('region', { name: 'Cuentas' })
+    await usuario.click(within(cuentas).getByRole('switch', { name: 'Beto paga la casa' }))
+    // casa 100 € solo para Ana; comida 8 € de Beto
+    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 8,00 € a Ana')
+  })
+
+  it('marcar una comida como gasto de la casa cambia cómo se reparte', async () => {
+    const { usuario } = preparar(new RepositorioMemoria([quedadaConGastos()]))
+    const cuentas = await screen.findByRole('region', { name: 'Cuentas' })
+    await usuario.click(within(cuentas).getByRole('switch', { name: 'Beto paga la casa' }))
+    await usuario.click(screen.getByRole('switch', { name: 'Gasto de la casa: Alquiler' }))
+    // el alquiler pasa a ser comida: 116 € por porcentaje, Beto debe 58 € aunque no pague la casa
+    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 58,00 € a Ana')
+  })
+
+  it('conserva los porcentajes al recargar', async () => {
+    const repositorio = new RepositorioMemoria([quedadaConGastos()])
+    const primera = preparar(repositorio)
+    const cuentas = await screen.findByRole('region', { name: 'Cuentas' })
+    const porcentaje = within(cuentas).getByRole('spinbutton', { name: 'Porcentaje de comida de Beto' })
+    await primera.usuario.clear(porcentaje)
+    await primera.usuario.type(porcentaje, '50')
+    primera.vista.unmount()
+
+    preparar(repositorio)
+    expect(await screen.findByRole('spinbutton', { name: 'Porcentaje de comida de Beto' })).toHaveValue(50)
   })
 })

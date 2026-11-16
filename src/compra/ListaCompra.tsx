@@ -6,17 +6,17 @@ import {
   anadirProducto,
   borrarGrupo,
   borrarProducto,
+  cambiarReparto,
   editarProducto,
   renombrarGrupo,
 } from '../dominio/operaciones'
-import type { Repositorio } from '../dominio/repositorio'
 import type { Id } from '../dominio/tipos'
 import './compra.css'
 import { GrupoCompra } from './GrupoCompra'
-import { useQuedada } from './useQuedada'
+import type { EstadoQuedada } from './useQuedada'
 
 interface Props {
-  repositorio: Repositorio
+  estado: EstadoQuedada
   crearId: () => Id
 }
 
@@ -33,8 +33,8 @@ function aFiltro(valor: string): Filtro {
   return { tipo: 'todos' }
 }
 
-export function ListaCompra({ repositorio, crearId }: Props) {
-  const { quedada, aplicar, error } = useQuedada(repositorio, crearId)
+export function ListaCompra({ estado, crearId }: Props) {
+  const { quedada, aplicar, error } = estado
   const [valorFiltro, setValorFiltro] = useState('todos')
   const [participante, setParticipante] = useState('')
   const [comida, setComida] = useState('')
@@ -112,6 +112,7 @@ export function ListaCompra({ repositorio, crearId }: Props) {
             onBorrarProducto={(id) => aplicar((q) => borrarProducto(q, id))}
             onRenombrar={(id, nombre) => aplicar((q) => renombrarGrupo(q, id, nombre))}
             onBorrar={(id) => aplicar((q) => borrarGrupo(q, id))}
+            onCambiarReparto={(id, reparto) => aplicar((q) => cambiarReparto(q, id, reparto))}
           />
         )
       })}
