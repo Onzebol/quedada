@@ -9,7 +9,9 @@ export type EstadoQuedada = ReturnType<typeof useQuedada>
 
 /**
  * Carga la quedada indicada, o la primera guardada (o crea una con las comidas habituales), y
- * guarda en el repositorio cada cambio que se aplique. Si el almacenamiento falla
+ * guarda en el repositorio cada cambio que se aplique, de uno en uno y en orden (con un servicio
+ * remoto, dos guardados a la vez podrían llegar desordenados y el viejo pisaría al nuevo; mientras
+ * hay uno en curso solo se recuerda el último estado). Si el almacenamiento falla
  * (bloqueado por el navegador, lleno…) lo comunica en `error` en vez de quedarse esperando.
  */
 export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaId: Id | null = null) {
@@ -17,6 +19,8 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaI
   const [error, setError] = useState<ErrorAlmacen | null>(null)
   const actual = useRef<Quedada | null>(null)
   const idsRef = useRef(crearId)
+  const guardando = useRef(false)
+  const pendiente = useRef<Quedada | null>(null)
 
   useEffect(() => {
     let cancelado = false
@@ -37,6 +41,26 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaI
     }
   }, [repositorio, quedadaId])
 
+  const vaciarGuardados = useCallback(async () => {
+    if (guardando.current) return
+    guardando.current = true
+    try {
+      while (pendiente.current !== null) {
+        const q = pendiente.current
+        pendiente.current = null
+        try {
+          await repositorio.guardar(q)
+          // Cada guardado lleva la quedada entera: si este sale bien, un fallo anterior ya no importa.
+          if (pendiente.current === null) setError(null)
+        } catch {
+          setError('guardado')
+        }
+      }
+    } finally {
+      guardando.current = false
+    }
+  }, [repositorio])
+
   const aplicar = useCallback(
     (cambio: (q: Quedada) => Quedada) => {
       if (actual.current === null) return
@@ -45,9 +69,10 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaI
       actual.current = siguiente
       setQuedada(siguiente)
       setError(null)
-      repositorio.guardar(siguiente).catch(() => setError('guardado'))
+      pendiente.current = siguiente
+      void vaciarGuardados()
     },
-    [repositorio],
+    [vaciarGuardados],
   )
 
   return { quedada, aplicar, error }
