@@ -79,6 +79,11 @@ describe('Sesión con Google', () => {
     await waitFor(() => expect(avisos).toBe(1))
   })
 
+  it('muestra el nombre de pila de la cuenta si lo hay (nombres compuestos) y si no, la primera palabra', async () => {
+    await preparar(new AutenticacionMemoria({ ...ana, nombre: 'Luis Miguel Arpón', nombrePila: 'Luis Miguel' }, { ...ana, nombre: 'Luis Miguel Arpón', nombrePila: 'Luis Miguel' }))
+    expect(screen.getByRole('button', { name: 'Luis Miguel' })).toBeInTheDocument()
+  })
+
   it('mantiene la sesión que ya existía al cargar la página', async () => {
     await preparar(new AutenticacionMemoria(ana, ana))
     expect(screen.getByRole('button', { name: 'Ana' })).toBeInTheDocument()

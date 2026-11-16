@@ -23,7 +23,9 @@ export function usuarioDeSupabase(u: UsuarioSupabase): Usuario {
   const meta = u.user_metadata ?? {}
   const nombreMeta = [meta.full_name, meta.name].find((n): n is string => typeof n === 'string' && n !== '')
   const nombre = nombreMeta ?? (u.email ? u.email.split('@')[0] : u.id)
-  return { id: u.id, nombre, foto: typeof meta.avatar_url === 'string' ? meta.avatar_url : null }
+  const foto = typeof meta.avatar_url === 'string' ? meta.avatar_url : null
+  const pila = typeof meta.given_name === 'string' && meta.given_name !== '' ? { nombrePila: meta.given_name } : {}
+  return { id: u.id, nombre, ...pila, foto }
 }
 
 /**
