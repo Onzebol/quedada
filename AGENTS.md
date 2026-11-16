@@ -42,7 +42,7 @@ Comandos:
 
 La CI (`.github/workflows/ci.yml`) ejecuta lint, tipos, tests y build en cada PR y push a `main`.
 
-_Pendiente: sistema de persistencia/datos y visibilidad del repo (Pages gratis exige repo público)._
+_Pendiente: almacenamiento compartido entre varias personas (hoy solo `localStorage`, por navegador)._
 
 ## Convenciones
 
@@ -51,6 +51,15 @@ _Pendiente: sistema de persistencia/datos y visibilidad del repo (Pages gratis e
   (verde), luego refactor. Ningún cambio de comportamiento sin test previo.
 - Estructura: `src/` con `App.tsx` y `main.tsx`; los tests van junto al código como
   `*.test.ts(x)`; la configuración común de tests está en `src/test/setup.ts`.
+- Dominio (`src/dominio/`, sin React): `tipos.ts` (Quedada, Grupo, Producto, Participante),
+  `totales.ts` (funciones puras de totales), `repositorio.ts` (interfaz asíncrona) y
+  `repositorioLocalStorage.ts` (implementación actual). `fabrica.ts` crea datos de prueba.
+- Dinero: siempre en **céntimos enteros** (`Centimos`) dentro del dominio; solo se convierte a
+  euros al mostrarlo. Las entradas de precio y descuento del producto están en euros.
+- Los datos se guardan siempre a través de la interfaz `Repositorio`, nunca con
+  `localStorage` directo desde los componentes, para poder cambiar a un servicio compartido.
+- La TypeScript de la plantilla activa `erasableSyntaxOnly`: nada de propiedades de parámetro
+  en constructores ni `enum`.
 - Estilo: TypeScript estricto, componentes de función, consultas de Testing Library por rol y
   nombre accesible antes que por texto o `data-testid`.
 
@@ -66,5 +75,7 @@ _Pendiente: sistema de persistencia/datos y visibilidad del repo (Pages gratis e
   Dentro hay que ejecutar `npm install` y levantar su propio servidor de desarrollo.
 - Al fusionar la PR: parar el servidor (y su proceso `node`), borrar el worktree con
   `git worktree remove` y la rama local y remota.
+- **Documentación al día**: cada PR actualiza `AGENTS.md` y `README.md` cuando cambian
+  comandos, estructura, hitos, decisiones o la URL, en la misma PR del cambio.
 - **Siempre PR**, nunca push directo a `main`. La PR cierra la issue con `Closes #<n>`.
 - La PR solo se fusiona con la CI en verde.
