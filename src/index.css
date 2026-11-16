@@ -1,10 +1,73 @@
+/* Dirección visual «Sierra» (issue #11): maqueta en docs/diseno/c-sierra.html */
 :root {
-  font-family: system-ui, sans-serif;
-  color-scheme: light dark;
+  --bg: #e8ecea;
+  --surf: #f7f9f8;
+  --ink: #17231f;
+  --mut: #5b6a64;
+  --linea: #d5dcd9;
+  --moss: #2f6b4f;
+  --sky: #3b7dd8;
+  --sun: #f0a030;
+  --rose: #d9577a;
+  --lil: #7b5cc9;
+  --radio: 28px;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  padding-block: 2rem;
-  padding-inline: max(1rem, env(safe-area-inset-left, 0px));
+  padding: 1.5rem max(1rem, env(safe-area-inset-left, 0px)) 3rem;
+  background: var(--bg);
+  line-height: 1.4;
+}
+
+.pagina {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.pagina > h1 {
+  margin: 0 0 1.5rem;
+  font-size: clamp(2.75rem, 9vw, 4.75rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--moss);
+}
+
+.pagina__columnas {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 60rem) {
+  .pagina__columnas {
+    grid-template-columns: 1.5fr 1fr;
+  }
+}
+
+h2,
+h3,
+h4 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+input,
+select,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 2px;
 }

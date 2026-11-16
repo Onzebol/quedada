@@ -1,6 +1,27 @@
+/* Sierra: panel verde para las cuentas, con filas separadas por líneas translúcidas. */
+.cuentas {
+  padding: 1.5rem 1.625rem;
+  background: var(--moss);
+  color: #fff;
+  border-radius: var(--radio);
+}
+
+.cuentas h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.625rem;
+}
+
+.cuentas > p:first-of-type {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
 .cuentas__personas,
 .cuentas__transferencias {
   list-style: none;
+  margin: 0;
   padding: 0;
 }
 
@@ -9,5 +30,39 @@
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
   align-items: center;
-  margin-bottom: 0.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgb(255 255 255 / 0.25);
+  font-size: 0.9375rem;
+}
+
+.cuentas__personas label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cuentas input[type='text'],
+.cuentas input[type='number'] {
+  min-height: 2.25rem;
+  width: 5rem;
+  padding: 0 0.5rem;
+  background: #fff;
+  border: 0;
+  border-radius: 10px;
+  color: var(--ink);
+}
+
+.cuentas h4 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.cuentas__transferencias li {
+  padding: 0.75rem 0;
+  border-top: 1px solid rgb(255 255 255 / 0.25);
+  font-weight: 600;
+}
+
+.cuentas :focus-visible {
+  outline-color: #fff;
 }

@@ -69,8 +69,9 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   `GrupoCompra`, `FilaProducto` y el hook `useQuedada`, que carga la primera quedada del
   repositorio (o crea una con las comidas habituales) y guarda cada cambio. `App` recibe el
   repositorio y el generador de ids por props para poder probarlo con un repositorio en memoria
-  (`src/test/repositorioMemoria.ts`). Los estilos de `compra.css` son mínimos a propósito: la
-  dirección visual definitiva es la issue #11.
+  (`src/test/repositorioMemoria.ts`). Dirección visual «Sierra» (#11; maqueta en
+  `docs/diseno/c-sierra.html`): tokens de color y tipografía Bricolage Grotesque en `index.css`,
+  paneles en `compra.css` (claro) y `cuentas.css` (verde), dos columnas desde 60 rem.
 - Interfaz de cuentas (`src/cuentas/`): `Cuentas` muestra el total, lo pagado por persona, los
   ajustes de reparto (porcentaje de comida y «paga la casa» por participante; el interruptor
   «Gasto de la casa» está en cada comida de la lista) y las transferencias. `App` llama a
