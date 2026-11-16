@@ -11,7 +11,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | Hito | Resultado |
 |---|---|
 | 1 | Andamiaje con Vite, React, TypeScript, Vitest y CI (hecho) |
-| 2 | Modelo de datos y almacenamiento |
+| 2 | Modelo de datos y almacenamiento (hecho): tipos, totales en céntimos y repositorio `localStorage` |
 | 3 | Lista de la compra |
 | 4 | Gastos y liquidación |
 | 5 | Despliegue continuo en GitHub Pages |
@@ -40,6 +40,12 @@ npm run dev
 | `npm run lint` | Lint con oxlint |
 | `npm run typecheck` | Comprobación de tipos |
 | `npm run build` | Build de producción |
+
+## Estructura
+
+- `src/dominio/`: modelo y lógica sin React (tipos, totales, repositorio). Dinero en céntimos.
+- `src/`: la interfaz React.
+- `.github/workflows/`: CI y despliegue.
 
 ## Cómo se trabaja
 
