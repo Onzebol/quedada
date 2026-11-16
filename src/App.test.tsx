@@ -139,11 +139,21 @@ describe('Lista de la compra', () => {
     expect(screen.queryByText('borrador')).not.toBeInTheDocument()
   })
 
-  it('borra un producto', async () => {
+  it('borra un producto solo tras confirmar en una ventana modal', async () => {
     const { usuario } = preparar()
     await esperarCarga()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
+
     await usuario.click(screen.getByRole('button', { name: 'Borrar Sidra' }))
+    expect(screen.getByRole('dialog', { name: '¿Borrar «Sidra»?' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
+
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Borrar Sidra' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
   })
 
@@ -168,16 +178,17 @@ describe('Lista de la compra', () => {
     expect(screen.queryByRole('heading', { level: 3, name: 'Bebida' })).not.toBeInTheDocument()
   })
 
-  it('borra una comida y sus productos solo tras confirmar', async () => {
+  it('borra una comida y sus productos solo tras confirmar en una ventana modal', async () => {
     const { usuario } = preparar()
     await esperarCarga()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
     await usuario.click(screen.getByRole('button', { name: 'Borrar comida Bebida' }))
-    expect(screen.getByText('¿Borrar Bebida y su 1 producto?')).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Cancelar borrado' }))
+    const aviso = screen.getByRole('dialog', { name: '¿Borrar «Bebida»?' })
+    expect(aviso).toHaveTextContent('su 1 producto')
+    await usuario.click(within(aviso).getByRole('button', { name: 'Cancelar' }))
     expect(screen.getByRole('heading', { level: 3, name: 'Bebida' })).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Borrar comida Bebida' }))
-    await usuario.click(screen.getByRole('button', { name: 'Confirmar borrado' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect(screen.queryByRole('heading', { level: 3, name: 'Bebida' })).not.toBeInTheDocument()
     expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
   })
@@ -402,12 +413,11 @@ describe('Eliminar una quedada', () => {
     await screen.findByText('Leche')
 
     await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
-    const aviso = screen.getByRole('group', { name: 'Confirmar eliminación' })
-    expect(aviso).toHaveTextContent('¿Eliminar «Almunia 2026»?')
+    const aviso = screen.getByRole('dialog', { name: '¿Eliminar «Almunia 2026»?' })
     expect(aviso).toHaveTextContent('no se puede deshacer')
 
     await usuario.click(within(aviso).getByRole('button', { name: 'Cancelar' }))
-    expect(screen.queryByRole('group', { name: 'Confirmar eliminación' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(repositorio.quedadas.map((q) => q.id).sort()).toEqual(['q1', 'q2'])
     expect(screen.getByText('Leche')).toBeInTheDocument()
   })
@@ -417,7 +427,7 @@ describe('Eliminar una quedada', () => {
     await screen.findByText('Leche')
 
     await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
-    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, eliminar' }))
 
     expect(await screen.findByText('Pan')).toBeInTheDocument()
     expect(screen.queryByText('Leche')).not.toBeInTheDocument()
@@ -430,7 +440,7 @@ describe('Eliminar una quedada', () => {
     await screen.findByText('Leche')
 
     await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
-    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, eliminar' }))
 
     await waitFor(() => expect(screen.queryByText('Leche')).not.toBeInTheDocument())
     await esperarCarga()
@@ -448,9 +458,9 @@ describe('Eliminar una quedada', () => {
     await screen.findByText('Leche')
 
     await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
-    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, eliminar' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo eliminar la quedada')
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo borrar')
     expect(repositorio.quedadas).toHaveLength(2)
     expect(screen.getByText('Leche')).toBeInTheDocument()
   })
@@ -461,7 +471,7 @@ describe('Eliminar una quedada', () => {
     await screen.findByText('Pan')
 
     await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
-    await usuario.click(within(screen.getByRole('group', { name: 'Confirmar eliminación' })).getByRole('button', { name: 'Sí, eliminar' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, eliminar' }))
 
     await screen.findByText('Leche')
     expect(window.location.hash).not.toContain('q2')
@@ -487,15 +497,12 @@ describe('Botón de eliminar quedada', () => {
     expect(screen.getAllByRole('button', { name: 'Eliminar quedada' })).toHaveLength(1)
   })
 
-  it('una confirmación abierta no pasa a otra quedada al cambiar de quedada', async () => {
+  it('tras cambiar de quedada, la ventana pregunta por la quedada elegida', async () => {
     const { usuario } = preparar(new RepositorioMemoria(tres()))
     const selector = await screen.findByRole('combobox', { name: 'Quedada' })
 
-    await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
-    expect(screen.getByRole('group', { name: 'Confirmar eliminación' })).toHaveTextContent('«A»')
-
     await usuario.selectOptions(selector, 'b')
-    await waitFor(() => expect(screen.queryByRole('group', { name: 'Confirmar eliminación' })).not.toBeInTheDocument())
-    expect(screen.getAllByRole('button', { name: 'Eliminar quedada' })).toHaveLength(1)
+    await usuario.click(await screen.findByRole('button', { name: 'Eliminar quedada' }))
+    expect(screen.getByRole('dialog', { name: '¿Eliminar «B»?' })).toBeInTheDocument()
   })
 })

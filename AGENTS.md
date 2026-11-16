@@ -161,8 +161,11 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   2024 la columna del precio es el total de la línea, no el precio por unidad. Ojo: sumar la
   columna «total» de toda la hoja cuenta dos veces lo comprado (líneas más tickets).
 - `App` muestra un selector de quedada cuando hay más de una; `ListaCompra` recibe `quedadaId`.
-  **Eliminar quedada** (#36, `src/compra/EliminarQuedada.tsx`): botón con confirmación en la propia página
-  (nombre y «no se puede deshacer»; sin `window.confirm`). `App.eliminar` llama a `Repositorio.borrar`, refresca
+  **Todos los borrados piden confirmación en una ventana modal** (#42, `src/ui/`): `Modal` (propia, no el `<dialog>` nativo, para
+  controlar el estilo «Sierra» en `modal.css` y poder probarla: rol `dialog` + `aria-modal`, Esc, clic fuera, foco contenido y
+  devuelto al botón, bloqueo del scroll, foco inicial en el elemento con `data-autofocus`) y `BotonBorrar` (botón + modal; si el
+  borrado rechaza deja la ventana abierta con el aviso, y no se confirma dos veces). Se usa en los cinco borrados: quedada, comida,
+  producto, asistente y básico. **Eliminar quedada** (#36, `src/compra/EliminarQuedada.tsx`): `App.eliminar` llama a `Repositorio.borrar`, refresca
   la lista, activa la primera que quede y pide `useQuedada.recargar()`; si era la única, el hook crea una nueva
   con las comidas habituales. Si falla, avisa y no cambia nada. En Supabase el borrado es en cascada y solo
   puede el propietario (RLS `borrar las propias`); al compartir (paso 3 de #29) el botón solo se ofrecerá a él.

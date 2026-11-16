@@ -1,4 +1,4 @@
-/* Sierra (#11): mismos botones que el resto de la app (píldora con borde), con variante de peligro. */
+/* Sierra (#11): mismo botón que el resto de la app (píldora con borde). */
 .eliminar-quedada {
   margin-block: 0.75rem;
 }
@@ -15,40 +15,4 @@
 
 .eliminar-quedada button:hover {
   border-color: var(--moss);
-}
-
-.eliminar-quedada__confirmar {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: var(--surf);
-  border: 1px solid var(--linea);
-  border-radius: 16px;
-}
-
-.eliminar-quedada__confirmar p {
-  margin: 0;
-}
-
-.eliminar-quedada__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.eliminar-quedada .eliminar-quedada__si {
-  background: #a8324f;
-  border-color: #a8324f;
-  color: #fff;
-}
-
-.eliminar-quedada .eliminar-quedada__si:hover {
-  border-color: var(--ink);
-}
-
-.eliminar-quedada [role='alert'] {
-  margin: 0.5rem 0 0;
-  color: #a8324f;
-  font-weight: 700;
 }
