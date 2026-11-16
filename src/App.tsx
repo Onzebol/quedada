@@ -25,14 +25,26 @@ interface Props {
   autenticacion?: Autenticacion
   /** URL de la página para construir el enlace de la quedada (por defecto, la actual). */
   urlPagina?: string
+  /** Se llama tras cerrar sesión (la raíz vuelve a la pantalla de entrada). */
+  alSalir?: () => void
 }
 
-export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina }: Props) {
+export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir }: Props) {
   const almacen = useMemo(() => repositorio ?? new RepositorioLocalStorage(), [repositorio])
   const [quedadas, setQuedadas] = useState<Quedada[]>([])
   const [activa, setActiva] = useHashQuedada()
   const auth = useMemo(() => autenticacion ?? new AutenticacionGoogle(), [autenticacion])
-  const sesion = useSesion(auth)
+  const sesionBase = useSesion(auth)
+  const sesion = useMemo(
+    () => ({
+      ...sesionBase,
+      salir: async () => {
+        await sesionBase.salir()
+        alSalir?.()
+      },
+    }),
+    [sesionBase, alSalir],
+  )
   const estado = useQuedada(almacen, crearId, activa)
 
   const refrescar = useCallback(async () => {

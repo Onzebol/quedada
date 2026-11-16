@@ -20,10 +20,15 @@ const q1 = () =>
     grupos: [{ id: 'g1', nombre: 'Cena', orden: 0 }],
   })
 
-async function preparar(auth: AutenticacionMemoria, quedadas = [q1()], urlPagina = 'https://onzebol.github.io/quedada/') {
+async function preparar(
+  auth: AutenticacionMemoria,
+  quedadas = [q1()],
+  urlPagina = 'https://onzebol.github.io/quedada/',
+  alSalir?: () => void,
+) {
   const usuario = userEvent.setup()
   const repositorio = new RepositorioMemoria(quedadas)
-  render(<App repositorio={repositorio} autenticacion={auth} urlPagina={urlPagina} crearId={() => 'x'} />)
+  render(<App repositorio={repositorio} autenticacion={auth} urlPagina={urlPagina} crearId={() => 'x'} alSalir={alSalir} />)
   await screen.findByRole('heading', { level: 2, name: 'Lista de la compra' })
   return { usuario, repositorio }
 }
@@ -60,6 +65,16 @@ describe('Sesión con Google', () => {
     await usuario.click(boton)
     await usuario.click(document.body)
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+  })
+
+  it('al cerrar sesión avisa para volver a la pantalla de entrada', async () => {
+    let avisos = 0
+    const { usuario } = await preparar(new AutenticacionMemoria(ana, ana), [q1()], undefined, () => {
+      avisos++
+    })
+    await usuario.click(screen.getByRole('button', { name: 'Ana' }))
+    await usuario.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
+    await waitFor(() => expect(avisos).toBe(1))
   })
 
   it('mantiene la sesión que ya existía al cargar la página', async () => {
