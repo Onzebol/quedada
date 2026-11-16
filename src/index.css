@@ -1,0 +1,10 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  padding-block: 2rem;
+  padding-inline: max(1rem, env(safe-area-inset-left, 0px));
+}

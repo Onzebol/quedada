@@ -22,19 +22,22 @@ _Pendiente: confirmar con el Excel la estructura exacta de datos y cómo se repa
 ## Stack y comandos
 
 - **Vite + React** en sus últimas versiones estables, con TypeScript.
-- **Tests**: Vitest + React Testing Library (TDD, ver más abajo).
+- **Tests**: Vitest + React Testing Library + jest-dom (TDD, ver más abajo).
+- **Lint**: oxlint (el que trae la plantilla actual de Vite) y `tsc -b` para tipos.
 - **CI/CD**: GitHub Actions (lint, tests y build en cada PR; despliegue al fusionar en `main`).
 - **Despliegue**: GitHub Pages (Vite necesita `base` con el nombre del repo).
 - **Repositorio**: GitHub (cuenta `Onzebol`, CLI `gh`). Nota: el `CLAUDE.md` global menciona
   Gitea, pero este proyecto usa GitHub por decisión expresa del usuario.
 
-Comandos (se completarán al crear el proyecto en el primer hito):
+Comandos:
 
 - Instalar: `npm install`
-- Desarrollo: `npm run dev` (puerto aleatorio libre con `--strictPort`, ver preferencias globales)
-- Tests: `npm test`
-- Lint: `npm run lint`
+- Desarrollo: `npm run dev -- --port <puerto> --strictPort` (puerto aleatorio libre, ver preferencias globales)
+- Tests: `npm test` (una pasada) o `npm run test:watch`; cobertura con `npm run coverage`
+- Lint: `npm run lint`; tipos: `npm run typecheck`
 - Build: `npm run build`
+
+La CI (`.github/workflows/ci.yml`) ejecuta lint, tipos, tests y build en cada PR y push a `main`.
 
 _Pendiente: sistema de persistencia/datos y visibilidad del repo (Pages gratis exige repo público)._
 
@@ -43,7 +46,10 @@ _Pendiente: sistema de persistencia/datos y visibilidad del repo (Pages gratis e
 - Idioma de la interfaz, issues, PRs y commits: español.
 - **TDD obligatorio**: primero un test que falla (rojo), luego el código mínimo para que pase
   (verde), luego refactor. Ningún cambio de comportamiento sin test previo.
-- Estructura de carpetas y estilo de código: _pendiente de definir en el primer hito._
+- Estructura: `src/` con `App.tsx` y `main.tsx`; los tests van junto al código como
+  `*.test.ts(x)`; la configuración común de tests está en `src/test/setup.ts`.
+- Estilo: TypeScript estricto, componentes de función, consultas de Testing Library por rol y
+  nombre accesible antes que por texto o `data-testid`.
 
 ## Flujo de trabajo
 
@@ -51,8 +57,9 @@ _Pendiente: sistema de persistencia/datos y visibilidad del repo (Pages gratis e
   entenderlo, imágenes: capturas, bocetos o diagramas).
 - Una issue por cambio, rama `issue-<n>-<slug>` en su propio git worktree; nunca cambiar de
   rama en la carpeta principal.
-- **Cada issue tiene su worktree**, creado junto a la carpeta principal:
-  `git worktree add ../quedada-issue-<n>-<slug> -b issue-<n>-<slug> origin/main`.
+- **Cada issue tiene su worktree**, siempre dentro del proyecto, en `.worktrees/` (ignorada
+  por git); no se trabaja fuera de la carpeta del repositorio:
+  `git worktree add .worktrees/issue-<n>-<slug> -b issue-<n>-<slug> origin/main`.
   Dentro hay que ejecutar `npm install` y levantar su propio servidor de desarrollo.
 - Al fusionar la PR: parar el servidor (y su proceso `node`), borrar el worktree con
   `git worktree remove` y la rama local y remota.
