@@ -19,6 +19,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes y básicos (leche, lavavajillas) asignados o sin asignar |
 | 19 | Sesión con Google y enlace de la quedada (`#/quedada/<id>`): entrar/salir, nombre y foto, «Este soy yo» |
 | 25 | Supabase: login con Google y quedadas por usuario (primer trozo; compartir, conocidos e invitaciones, después). Configuración: ver abajo |
+| 30 | Supabase: una fila por cosa (participantes, comidas, productos…) y guardado por diferencias, para que varias personas editen sin pisarse (paso 1 de #29) |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
@@ -49,7 +50,7 @@ npm run dev
 
 Con Supabase configurado, la gente entra con su cuenta de Google y sus quedadas se guardan en la nube, cada una visible solo para su propietaria (seguridad por fila). **Hay que entrar con Google para usar la app**: sin sesión solo se ve la pantalla de entrada (y, sin configuración de Supabase, un aviso).
 
-1. Crea un proyecto en supabase.com y ejecuta `supabase/migrations/0001_quedadas.sql` en el editor SQL.
+1. Crea un proyecto en supabase.com y ejecuta en el editor SQL, por orden, `supabase/migrations/0001_quedadas.sql` y `0002_tablas.sql` (la segunda pasa las quedadas existentes a tablas; si ya tenías datos, después de fusionar la PR del cambio vuelve a ejecutar una vez `select public.convertir_quedadas_desde_datos();`).
 2. En Google Cloud Console crea un cliente OAuth «Aplicación web» con la URI de redirección que muestra Supabase (*Authentication → Providers → Google*) y pega su Client ID y secret en Supabase.
 3. En *Authentication → URL Configuration* añade `https://onzebol.github.io/quedada/` y la URL de desarrollo.
 4. Local: copia `.env.example` a `.env.local` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_CLAVE_PUBLICA`. Despliegue: variables de repositorio `SUPABASE_URL` y `SUPABASE_CLAVE_PUBLICA` (Settings → Secrets and variables → Actions → Variables).
