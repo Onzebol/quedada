@@ -22,6 +22,7 @@ export type EstadoQuedada = ReturnType<typeof useQuedada>
 export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaId: Id | null = null) {
   const [quedada, setQuedada] = useState<Quedada | null>(null)
   const [error, setError] = useState<ErrorAlmacen | null>(null)
+  const [recargas, setRecargas] = useState(0)
   const actual = useRef<Quedada | null>(null)
   const idsRef = useRef(crearId)
   const guardando = useRef(false)
@@ -46,7 +47,7 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaI
     return () => {
       cancelado = true
     }
-  }, [repositorio, quedadaId])
+  }, [repositorio, quedadaId, recargas])
 
   const vaciarGuardados = useCallback(async () => {
     if (guardando.current) return
@@ -82,6 +83,9 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaI
     },
     [vaciarGuardados],
   )
+
+  /** Vuelve a elegir la quedada (la indicada o la primera): tras borrar la que se estaba viendo. */
+  const recargar = useCallback(() => setRecargas((n) => n + 1), [])
 
   const idCargada = quedada?.id ?? null
   useEffect(() => {
@@ -121,5 +125,5 @@ export function useQuedada(repositorio: Repositorio, crearId: () => Id, quedadaI
     }
   }, [repositorio, idCargada])
 
-  return { quedada, aplicar, error }
+  return { quedada, aplicar, error, recargar }
 }

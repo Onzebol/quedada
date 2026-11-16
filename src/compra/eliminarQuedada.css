@@ -1,0 +1,49 @@
+/* Sierra (#11): confirmación de borrado sobre el fondo de la página. */
+.eliminar-quedada {
+  margin-block: 0.75rem;
+}
+
+.eliminar-quedada button {
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.eliminar-quedada__confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--surf);
+  border: 2px solid var(--rose);
+  border-radius: 16px;
+}
+
+.eliminar-quedada__confirmar p {
+  margin: 0;
+}
+
+.eliminar-quedada__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.eliminar-quedada__si {
+  color: #fff;
+  background: #a8324f;
+  border: 0;
+  border-radius: 12px;
+}
+
+.eliminar-quedada :focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 2px;
+}
+
+.eliminar-quedada [role='alert'] {
+  margin: 0.5rem 0 0;
+  color: #a8324f;
+  font-weight: 700;
+}
