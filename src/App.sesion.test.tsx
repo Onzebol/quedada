@@ -79,8 +79,9 @@ describe('Sesión con Google', () => {
     await waitFor(() => expect(avisos).toBe(1))
   })
 
-  it('muestra el nombre de pila de la cuenta si lo hay (nombres compuestos) y si no, la primera palabra', async () => {
-    await preparar(new AutenticacionMemoria({ ...ana, nombre: 'Luis Miguel Arpón', nombrePila: 'Luis Miguel' }, { ...ana, nombre: 'Luis Miguel Arpón', nombrePila: 'Luis Miguel' }))
+  it('muestra el nombre sin apellidos, también si el nombre es compuesto', async () => {
+    const luis = { ...ana, nombre: 'Luis Miguel Arpón Izquierdo' }
+    await preparar(new AutenticacionMemoria(luis, luis))
     expect(screen.getByRole('button', { name: 'Luis Miguel' })).toBeInTheDocument()
   })
 
