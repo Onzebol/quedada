@@ -25,6 +25,16 @@ CREATE TABLE IF NOT EXISTS productos (
   precio_unidad REAL, descuento REAL NOT NULL, observaciones TEXT NOT NULL,
   PRIMARY KEY (quedada_id, id)
 );
+CREATE TABLE IF NOT EXISTS asistentes (
+  quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
+  id TEXT NOT NULL, posicion INTEGER NOT NULL, familia TEXT NOT NULL, personas INTEGER NOT NULL, llegada TEXT,
+  PRIMARY KEY (quedada_id, id)
+);
+CREATE TABLE IF NOT EXISTS basicos (
+  quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
+  id TEXT NOT NULL, posicion INTEGER NOT NULL, nombre TEXT NOT NULL, asistente_id TEXT,
+  PRIMARY KEY (quedada_id, id)
+);
 `
 
 /** Repositorio sobre SQLite (sql.js, WebAssembly). Cada escritura persiste la base entera. */
@@ -69,6 +79,8 @@ export class RepositorioSqlite implements Repositorio {
           p.comprado ? 1 : 0, p.precioUnidad, p.descuento, p.observaciones,
         ]),
       )
+      q.asistentes.forEach((a, i) => this.bd.run('INSERT INTO asistentes VALUES (?,?,?,?,?,?)', [q.id, a.id, i, a.familia, a.personas, a.llegada]))
+      q.basicos.forEach((b, i) => this.bd.run('INSERT INTO basicos VALUES (?,?,?,?,?)', [q.id, b.id, i, b.nombre, b.asistenteId]))
       this.bd.run('COMMIT')
     } catch (error) {
       this.bd.run('ROLLBACK')
@@ -123,6 +135,17 @@ export class RepositorioSqlite implements Repositorio {
         precioUnidad: f[7] as number | null,
         descuento: Number(f[8]),
         observaciones: String(f[9]),
+      })),
+      asistentes: this.filas('SELECT id, familia, personas, llegada FROM asistentes WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
+        id: String(f[0]),
+        familia: String(f[1]),
+        personas: Number(f[2]),
+        llegada: f[3] as string | null,
+      })),
+      basicos: this.filas('SELECT id, nombre, asistente_id FROM basicos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
+        id: String(f[0]),
+        nombre: String(f[1]),
+        asistenteId: f[2] as string | null,
       })),
     }
   }

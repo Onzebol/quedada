@@ -210,3 +210,18 @@ describe('liquidacion', () => {
     expect(r.transferencias.length).toBeLessThanOrEqual(6)
   })
 })
+
+describe('reparto y asistentes (#7)', () => {
+  it('la regla de #4 no depende de las familias apuntadas como asistentes', () => {
+    const base = quedada({
+      participantes: [persona('ana'), persona('luis')],
+      grupos: [comida, casa],
+      productos: [compra('casa', 'ana', 100), compra('comida', 'luis', 40)],
+    })
+    const conAsistentes = {
+      ...base,
+      asistentes: [{ id: 'a1', familia: 'Pérez', personas: 9, llegada: null }],
+    }
+    expect(liquidacion(conAsistentes)).toEqual(liquidacion(base))
+  })
+})

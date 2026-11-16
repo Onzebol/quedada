@@ -1,0 +1,83 @@
+/* Sierra: panel claro, igual que la compra, con filas separadas por líneas finas. */
+.asistentes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem 1.625rem;
+  background: var(--surf);
+  border-radius: var(--radio);
+}
+
+.asistentes h2,
+.asistentes h4 {
+  margin: 0;
+}
+
+.asistentes h2 {
+  font-size: 1.625rem;
+}
+
+.asistentes__total,
+.asistentes__resumen {
+  margin: 0;
+  color: var(--mut);
+}
+
+.asistentes form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.asistentes label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--mut);
+}
+
+.asistentes input,
+.asistentes select {
+  min-height: 2.5rem;
+  min-width: 0;
+  padding: 0 0.75rem;
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  color: var(--ink);
+}
+
+.asistentes input[type='number'] {
+  width: 5rem;
+}
+
+.asistentes button {
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  background: transparent;
+  border: 1px solid var(--linea);
+  border-radius: 40px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.asistentes__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.asistentes__lista li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.625rem 0;
+  border-top: 1px solid var(--linea);
+}
+
+.asistentes__lista li > span {
+  flex: 1 1 8rem;
+}

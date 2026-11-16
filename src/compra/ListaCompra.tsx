@@ -10,6 +10,7 @@ import {
   editarProducto,
   renombrarGrupo,
 } from '../dominio/operaciones'
+import { totalAsistentes } from '../dominio/asistentes'
 import type { Id } from '../dominio/tipos'
 import './compra.css'
 import { GrupoCompra } from './GrupoCompra'
@@ -59,6 +60,9 @@ export function ListaCompra({ estado, crearId }: Props) {
       <h2>Lista de la compra</h2>
       <p role="status" className="compra__resumen">
         {resumen(contarSinAsignar(quedada.productos), quedada.productos.length)}
+      </p>
+      <p className="compra__resumen">
+        Vienen {totalAsistentes(quedada)} {totalAsistentes(quedada) === 1 ? 'persona' : 'personas'}
       </p>
 
       {error === 'guardado' && (

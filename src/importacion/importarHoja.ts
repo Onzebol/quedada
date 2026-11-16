@@ -214,6 +214,8 @@ export function importarHoja(nombre: string, filas: Celda[][]): ResultadoHoja | 
       participantes,
       grupos: conProductos.map((g, orden) => ({ ...g, orden })),
       productos,
+      asistentes: [],
+      basicos: [],
     },
     avisos,
   }

@@ -36,6 +36,24 @@ export interface Producto {
   observaciones: string
 }
 
+/** Una familia (o persona sola) que viene a la quedada. */
+export interface Asistente {
+  id: Id
+  familia: string
+  /** Número de personas de la familia (entero, al menos 1). */
+  personas: number
+  /** Hora de llegada `HH:MM`, o `null` si aún no se sabe. */
+  llegada: string | null
+}
+
+/** Algo que no se compra para una comida concreta: leche, lavavajillas… Lo trae una familia. */
+export interface Basico {
+  id: Id
+  nombre: string
+  /** Familia que lo trae. `null` si queda sin asignar. */
+  asistenteId: Id | null
+}
+
 export interface Quedada {
   id: Id
   nombre: string
@@ -45,6 +63,8 @@ export interface Quedada {
   participantes: Participante[]
   grupos: Grupo[]
   productos: Producto[]
+  asistentes: Asistente[]
+  basicos: Basico[]
 }
 
 /** Dinero en céntimos enteros, para que las sumas no arrastren errores de coma flotante. */

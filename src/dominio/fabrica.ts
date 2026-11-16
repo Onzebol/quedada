@@ -26,6 +26,8 @@ export function quedada(parcial: Partial<Quedada> = {}): Quedada {
     participantes: [],
     grupos: [],
     productos: [],
+    asistentes: [],
+    basicos: [],
     ...parcial,
   }
 }
