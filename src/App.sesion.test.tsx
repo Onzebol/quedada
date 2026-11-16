@@ -91,11 +91,19 @@ describe('Enlace de la quedada', () => {
   it('copia el enlace con la ruta de hash de la quedada', async () => {
     const { usuario } = await preparar(new AutenticacionMemoria(ana))
     await usuario.click(screen.getByRole('button', { name: 'Copiar enlace' }))
-    expect(await navigator.clipboard.readText()).toBe('https://onzebol.github.io/quedada/#/quedada/q1')
+    expect(await navigator.clipboard.readText()).toBe('https://onzebol.github.io/quedada/#/q1')
     expect(await screen.findByText('Enlace copiado')).toBeInTheDocument()
   })
 
-  it('abrir #/quedada/<id> muestra esa quedada', async () => {
+  it('abrir #/<id> muestra esa quedada', async () => {
+    window.location.hash = '#/q2'
+    const q2 = quedada({ id: 'q2', nombre: 'Quedada 2025', grupos: [{ id: 'g2', nombre: 'Merienda', orden: 0 }] })
+    await preparar(new AutenticacionMemoria(ana), [q1(), q2])
+    expect(await screen.findByRole('heading', { level: 3, name: 'Merienda' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Quedada' })).toHaveValue('q2')
+  })
+
+  it('un enlace antiguo #/quedada/<id> sigue mostrando esa quedada', async () => {
     window.location.hash = '#/quedada/q2'
     const q2 = quedada({ id: 'q2', nombre: 'Quedada 2025', grupos: [{ id: 'g2', nombre: 'Merienda', orden: 0 }] })
     await preparar(new AutenticacionMemoria(ana), [q1(), q2])
@@ -107,18 +115,18 @@ describe('Enlace de la quedada', () => {
     const q2 = quedada({ id: 'q2', nombre: 'Quedada 2025', grupos: [{ id: 'g2', nombre: 'Merienda', orden: 0 }] })
     const { usuario } = await preparar(new AutenticacionMemoria(ana), [q1(), q2])
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Quedada' }), 'q2')
-    expect(window.location.hash).toBe('#/quedada/q2')
+    expect(window.location.hash).toBe('#/q2')
   })
 
   it('reacciona a un cambio de hash con la página abierta', async () => {
     const q2 = quedada({ id: 'q2', nombre: 'Quedada 2025', grupos: [{ id: 'g2', nombre: 'Merienda', orden: 0 }] })
     await preparar(new AutenticacionMemoria(ana), [q1(), q2])
-    window.location.hash = '#/quedada/q2'
+    window.location.hash = '#/q2'
     expect(await screen.findByRole('heading', { level: 3, name: 'Merienda' })).toBeInTheDocument()
   })
 
   it('avisa si la quedada del enlace no está en este navegador', async () => {
-    window.location.hash = '#/quedada/otra'
+    window.location.hash = '#/otra'
     await preparar(new AutenticacionMemoria(ana))
     await waitFor(() =>
       expect(screen.getByText(/Esta quedada no está guardada en este navegador/)).toBeInTheDocument(),

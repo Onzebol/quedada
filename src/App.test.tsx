@@ -456,7 +456,7 @@ describe('Eliminar una quedada', () => {
   })
 
   it('el enlace de la página no queda apuntando a la quedada borrada', async () => {
-    window.location.hash = '#/quedada/q2'
+    window.location.hash = '#/q2'
     const { usuario } = preparar(new RepositorioMemoria([conLeche(), conPan()]))
     await screen.findByText('Pan')
 

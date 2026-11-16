@@ -98,7 +98,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   **Es una sesión del navegador, sin servidor que valide la identidad: sirve para saber quién es
   quién, no para proteger datos.** `Sesion` muestra entrar/salir, nombre, foto y «Este soy yo»
   (`Participante.cuentaId`, columna `cuenta_id` en SQLite añadida con `ALTER` en bases antiguas;
-  lógica en `dominio/vinculos.ts`). `ruta.ts` + `useHashQuedada` mantienen `#/quedada/<id>` y
+  lógica en `dominio/vinculos.ts`). `ruta.ts` + `useHashQuedada` mantienen `#/<id>` (#40; antes `#/quedada/<id>`, que se sigue entendiendo para no romper enlaces ya compartidos: un id nuevo nunca lleva `/` sin codificar) y
   `CopiarEnlace` copia ese enlace. Hoy los datos siguen siendo locales: un enlace abierto en otro
   navegador no trae la quedada (la app lo avisa); para eso hace falta el almacenamiento compartido
   (pendiente).
