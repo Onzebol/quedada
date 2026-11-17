@@ -1,3 +1,4 @@
+import { pesoCasa } from './casa'
 import { totalLinea, totalPorComprador } from './totales'
 import type { Centimos, Id, Quedada } from './tipos'
 
@@ -52,16 +53,30 @@ function sumarPorReparto(quedada: Quedada, reparto: 'casa' | 'comida'): Centimos
     .reduce((suma, p) => suma + totalLinea(p), 0)
 }
 
+/** Lo pagado por cada persona: compras y, si lo ha pagado, el alquiler de la casa. */
+function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
+  const pagado = totalPorComprador(quedada)
+  const { precio, pagadorId } = quedada.casa
+  if (precio !== null && pagadorId !== null) pagado[pagadorId] = (pagado[pagadorId] ?? 0) + precio
+  return pagado
+}
+
+/** Gasto de la casa que entra en las cuentas: compras de comidas «casa» y el alquiler si tiene pagador. */
+function totalCasa(quedada: Quedada): Centimos {
+  const { precio, pagadorId } = quedada.casa
+  return sumarPorReparto(quedada, 'casa') + (precio !== null && pagadorId !== null ? precio : 0)
+}
+
 /** Saldo de cada persona: lo que ha pagado menos lo que le corresponde. */
 export function balances(quedada: Quedada): Record<Id, Centimos> {
-  const pagado = totalPorComprador(quedada)
+  const pagado = pagadoPor(quedada)
   const pesosCasa: Record<Id, number> = {}
   const pesosComida: Record<Id, number> = {}
   for (const p of quedada.participantes) {
-    pesosCasa[p.id] = p.pagaCasa === false ? 0 : 1
+    pesosCasa[p.id] = pesoCasa(p)
     pesosComida[p.id] = p.porcentajeComida ?? 100
   }
-  const debeCasa = repartirProporcional(sumarPorReparto(quedada, 'casa'), pesosCasa)
+  const debeCasa = repartirProporcional(totalCasa(quedada), pesosCasa)
   const debeComida = repartirProporcional(sumarPorReparto(quedada, 'comida'), pesosComida)
 
   const saldos: Record<Id, Centimos> = {}
@@ -97,7 +112,7 @@ export function liquidar(saldos: Record<Id, Centimos>): Transferencia[] {
 }
 
 export function liquidacion(quedada: Quedada): Liquidacion {
-  const pagado = totalPorComprador(quedada)
+  const pagado = pagadoPor(quedada)
   const saldos = balances(quedada)
   return {
     total: Object.values(pagado).reduce((suma, v) => suma + v, 0),

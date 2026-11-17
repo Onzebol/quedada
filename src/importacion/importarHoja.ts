@@ -1,3 +1,4 @@
+import { casaVacia } from '../dominio/casa'
 import type { Grupo, Participante, Producto, Quedada } from '../dominio/tipos'
 
 export type Celda = string | number | boolean | Date | null
@@ -211,6 +212,7 @@ export function importarHoja(nombre: string, filas: Celda[][]): ResultadoHoja | 
       nombre: anio ? `Quedada ${anio}` : nombre,
       inicio: null,
       fin: null,
+      casa: casaVacia(),
       participantes,
       grupos: conProductos.map((g, orden) => ({ ...g, orden })),
       productos,

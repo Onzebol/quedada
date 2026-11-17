@@ -44,6 +44,34 @@ describe('RepositorioSqlite', () => {
     expect(await repo.obtener('q1')).toEqual(q)
   })
 
+  it('guarda la casa y las familias de los participantes', async () => {
+    const q = quedada({
+      id: 'q1',
+      casa: { titulo: 'Casa Almunia', descripcion: 'Ver https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050, pagadorId: 'u1' },
+      participantes: [{ id: 'u1', nombre: 'Ana', porcentajeCasa: 50, familiaId: 'f1' }],
+      asistentes: [{ id: 'f1', familia: 'Pérez', personas: 1, llegada: null }],
+    })
+    const repo = await abrir()
+    await repo.guardar(q)
+    expect(await repo.obtener('q1')).toEqual(q)
+  })
+
+  it('abre una base antigua (sin casa ni familias) y la completa', async () => {
+    const vieja = new sql.Database()
+    vieja.run('CREATE TABLE quedadas (id TEXT PRIMARY KEY, nombre TEXT NOT NULL, inicio TEXT, fin TEXT)')
+    vieja.run(`CREATE TABLE participantes (quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
+      id TEXT NOT NULL, posicion INTEGER NOT NULL, nombre TEXT NOT NULL,
+      porcentaje_comida REAL, paga_casa INTEGER, cuenta_id TEXT, PRIMARY KEY (quedada_id, id))`)
+    vieja.run("INSERT INTO quedadas VALUES ('q1', 'Vieja', NULL, NULL)")
+    vieja.run("INSERT INTO participantes VALUES ('q1', 'u1', 0, 'Ana', NULL, NULL, NULL)")
+    await persistencia.guardar(vieja.export())
+    const repo = await abrir()
+    const leida = (await repo.obtener('q1'))!
+    expect(leida.casa).toEqual({ titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: null, pagadorId: null })
+    await repo.guardar({ ...leida, casa: { ...leida.casa, precio: 100 }, participantes: [{ id: 'u1', nombre: 'Ana', familiaId: 'f1' }] })
+    expect((await repo.obtener('q1'))!.participantes[0].familiaId).toBe('f1')
+  })
+
   it('guarda los campos de reparto de participantes y comidas', async () => {
     const q = quedada({
       id: 'q1',

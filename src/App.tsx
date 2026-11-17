@@ -10,6 +10,8 @@ import { useSesion } from './autenticacion/useSesion'
 import { Asistentes } from './asistentes/Asistentes'
 import { ListaCompra } from './compra/ListaCompra'
 import { useQuedada } from './compra/useQuedada'
+import { DatosCasa } from './casa/DatosCasa'
+import type { Geocodificador } from './casa/mapa'
 import { Cuentas } from './cuentas/Cuentas'
 import type { Repositorio } from './dominio/repositorio'
 import { RepositorioLocalStorage } from './dominio/repositorioLocalStorage'
@@ -32,9 +34,11 @@ interface Props {
   urlPagina?: string
   /** Se llama tras cerrar sesión (la raíz vuelve a la pantalla de entrada). */
   alSalir?: () => void
+  /** Busca coordenadas de la dirección de la casa (por defecto, Nominatim); inyectable para los tests. */
+  geocodificar?: Geocodificador
 }
 
-export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir }: Props) {
+export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir, geocodificar }: Props) {
   const almacen = useMemo(() => repositorio ?? new RepositorioLocalStorage(), [repositorio])
   const [activa, setActiva] = useHashQuedada()
   const auth = useMemo(() => autenticacion ?? new AutenticacionGoogle(), [autenticacion])
@@ -70,6 +74,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
           sesion={sesion}
           quedadaId={activa}
           urlPagina={urlPagina}
+          geocodificar={geocodificar}
           irAlInicio={() => setActiva(null)}
         />
       )}
@@ -166,10 +171,11 @@ interface PropsVista {
   sesion: ReturnType<typeof useSesion>
   quedadaId: Id
   urlPagina?: string
+  geocodificar?: Geocodificador
   irAlInicio: () => void
 }
 
-function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, irAlInicio }: PropsVista) {
+function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodificar, irAlInicio }: PropsVista) {
   const estado = useQuedada(almacen, crearId, quedadaId)
 
   return (
@@ -198,7 +204,12 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, irAlInic
                 {
                   id: 'casa',
                   titulo: 'La casa',
-                  contenido: <Asistentes quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />,
+                  contenido: (
+                    <>
+                      <DatosCasa quedada={estado.quedada} aplicar={estado.aplicar} geocodificar={geocodificar} />
+                      <Asistentes quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />
+                    </>
+                  ),
                 },
                 { id: 'compra', titulo: 'Lista de la compra', contenido: <ListaCompra estado={estado} crearId={crearId} /> },
                 {
@@ -209,7 +220,7 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, irAlInic
                 {
                   id: 'resumen',
                   titulo: 'Resumen',
-                  contenido: <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />,
+                  contenido: <Cuentas quedada={estado.quedada} />,
                 },
               ]}
             />

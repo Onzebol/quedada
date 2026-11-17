@@ -6,7 +6,7 @@ import { RepositorioMemoria } from '../test/repositorioMemoria'
 import { ImportarExcel } from './ImportarExcel'
 import type { InformeImportacion } from './importarHoja'
 
-const importada = (id = 'import-compras-2026', nombre = 'Quedada 2026') => quedada({ id, nombre, productos: [producto({ id: `${id}-producto-1` })] })
+const importada = (id = 'import-compras-2026', nombre = 'Quedada 2026') => quedada({ id, nombre, participantes: [{ id: 'p1', nombre: 'Ana' }, { id: 'p2', nombre: 'Beto' }], productos: [producto({ id: `${id}-producto-1` })] })
 const informe = (...ids: string[]): InformeImportacion => ({
   importadas: ids.map((id) => ({ hoja: 'Compras 2026', quedada: importada(id), avisos: [] })),
   ignoradas: [],
@@ -77,6 +77,22 @@ describe('ImportarExcel: id de la quedada importada', () => {
     expect(q.id).toBe('ana-import-compras-2026')
     expect(q.asistentes).toHaveLength(1)
     expect(q.basicos).toHaveLength(1)
+  })
+
+  it('conserva la casa, las familias y el porcentaje de casa al reimportar', async () => {
+    const repo = new RepositorioMemoria([
+      quedada({
+        id: 'ana-import-compras-2026',
+        casa: { titulo: 'Casa Almunia', descripcion: '', direccion: 'Calle 1', latitud: 1, longitud: 2, precio: 90000, pagadorId: 'p1' },
+        participantes: [{ id: 'p1', nombre: 'Ana', familiaId: 'f1', porcentajeCasa: 50 }],
+        asistentes: [{ id: 'f1', familia: 'Pérez', personas: 1, llegada: null }],
+      }),
+    ])
+    await importar({ repo, espacio: 'ana' })
+    const q = repo.quedadas[0]
+    expect(q.casa).toMatchObject({ titulo: 'Casa Almunia', precio: 90000, pagadorId: 'p1' })
+    expect(q.participantes.find((p) => p.id === 'p1')).toMatchObject({ familiaId: 'f1', porcentajeCasa: 50 })
+    expect(q.participantes.find((p) => p.id === 'p2')).toEqual({ id: 'p2', nombre: 'Beto' })
   })
 
   it('con varias hojas, cada quedada recibe su id con la cuenta', async () => {

@@ -45,12 +45,24 @@ export function ImportarExcel({ leer, repositorio, espacio, onImportado }: Props
       const guardadas: Id[] = []
       for (const { quedada } of informe.importadas) {
         const id = await idDeDestino(repositorio, espacio, quedada.id)
-        // El Excel no trae asistentes: al reimportar se conservan los que ya había.
+        // El Excel no trae asistentes ni la casa: al reimportar se conservan los que ya había
+        // (y, de cada participante que sigue, su familia y su porcentaje de casa).
         const previa = await repositorio.obtener(id)
         guardadas.push(id)
+        const casa = previa?.casa ?? quedada.casa
+        const participantes = quedada.participantes.map((p) => {
+          const antes = previa?.participantes.find((x) => x.id === p.id)
+          return {
+            ...p,
+            ...(antes?.familiaId !== undefined && { familiaId: antes.familiaId }),
+            ...(antes?.porcentajeCasa !== undefined && { porcentajeCasa: antes.porcentajeCasa }),
+          }
+        })
         await repositorio.guardar({
           ...quedada,
           id,
+          casa: participantes.some((p) => p.id === casa.pagadorId) ? casa : { ...casa, pagadorId: null },
+          participantes,
           asistentes: previa?.asistentes ?? [],
           basicos: previa?.basicos ?? [],
         })

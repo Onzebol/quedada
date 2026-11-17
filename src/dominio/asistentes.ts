@@ -27,18 +27,29 @@ export function editarAsistente(q: Quedada, id: Id, cambios: CambiosAsistente): 
   return { ...q, asistentes: q.asistentes.map((a) => (a.id === id ? { ...a, ...seguros } : a)) }
 }
 
-/** Borra la familia; sus básicos quedan sin asignar. */
+/** Borra la familia; sus básicos quedan sin asignar y sus componentes se quedan como participantes sin familia. */
 export function borrarAsistente(q: Quedada, id: Id): Quedada {
   return {
     ...q,
+    participantes: q.participantes.map((p) => {
+      if (p.familiaId !== id) return p
+      const { familiaId: _suelta, ...resto } = p
+      return resto
+    }),
     asistentes: q.asistentes.filter((a) => a.id !== id),
     basicos: q.basicos.map((b) => (b.asistenteId === id ? { ...b, asistenteId: null } : b)),
   }
 }
 
+/** Personas de una familia: sus componentes si los tiene; si no, el número escrito. */
+export function personasDe(q: Quedada, a: Asistente): number {
+  const componentes = q.participantes.filter((p) => p.familiaId === a.id).length
+  return componentes > 0 ? componentes : a.personas
+}
+
 /** Total de personas que vienen (suma de las familias). */
 export function totalAsistentes(q: Quedada): number {
-  return q.asistentes.reduce((suma, a) => suma + a.personas, 0)
+  return q.asistentes.reduce((suma, a) => suma + personasDe(q, a), 0)
 }
 
 /** Por hora de llegada; quienes no tienen hora van al final, en su orden. */

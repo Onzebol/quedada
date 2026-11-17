@@ -44,6 +44,24 @@ describe('RepositorioSupabase', () => {
     expect(await repo().obtener('q1')).toEqual(q)
   })
 
+  it('guarda la casa y la familia de cada participante, y solo envía lo que cambia', async () => {
+    const { repo, backend } = nuevo()
+    const q = quedada({
+      id: 'q1',
+      participantes: [{ id: 'a', nombre: 'Ana', porcentajeCasa: 50, familiaId: 's1' }],
+      asistentes: [{ id: 's1', familia: 'Pérez', personas: 1, llegada: null }],
+      casa: { titulo: 'Casa', descripcion: 'https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050, pagadorId: 'a' },
+    })
+    const r = repo()
+    await r.guardar(q)
+    expect(await repo().obtener('q1')).toEqual(q)
+
+    backend.escrituras.length = 0
+    await r.guardar({ ...q, casa: { ...q.casa, precio: 100000 } })
+    expect(backend.escrituras).toHaveLength(1)
+    expect(backend.escrituras[0]).toMatchObject({ operacion: 'update', tabla: 'quedadas', valores: { casa_precio: 100000 } })
+  })
+
   it('devuelve las listas en el orden en que se guardaron', async () => {
     const { repo } = nuevo()
     const q = quedada({ productos: [producto({ id: 'z' }), producto({ id: 'a' }), producto({ id: 'm' })] })

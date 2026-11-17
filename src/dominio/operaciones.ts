@@ -1,3 +1,4 @@
+import { casaVacia } from './casa'
 import type { Grupo, Id, Participante, Producto, Quedada } from './tipos'
 
 const COMIDAS_HABITUALES = [
@@ -17,6 +18,7 @@ export function quedadaInicial(crearId: () => Id, nombre = 'Quedada'): Quedada {
     nombre,
     inicio: null,
     fin: null,
+    casa: casaVacia(),
     participantes: [],
     grupos: COMIDAS_HABITUALES.map((n, orden) => ({ id: crearId(), nombre: n, orden })),
     productos: [],
@@ -98,7 +100,7 @@ export function borrarProducto(q: Quedada, id: Id): Quedada {
   return { ...q, productos: q.productos.filter((p) => p.id !== id) }
 }
 
-export type CambiosParticipante = Partial<Pick<Participante, 'porcentajeComida' | 'pagaCasa'>>
+export type CambiosParticipante = Partial<Pick<Participante, 'nombre' | 'porcentajeComida' | 'pagaCasa' | 'porcentajeCasa'>>
 
 /** Ajusta cómo reparte un participante: porcentaje de comida (0–100) y si paga la casa. */
 export function editarParticipante(q: Quedada, id: Id, cambios: CambiosParticipante): Quedada {
@@ -106,6 +108,16 @@ export function editarParticipante(q: Quedada, id: Id, cambios: CambiosParticipa
   if (seguros.porcentajeComida !== undefined) {
     if (Number.isNaN(seguros.porcentajeComida)) return q
     seguros.porcentajeComida = Math.min(100, Math.max(0, seguros.porcentajeComida))
+  }
+  if (seguros.porcentajeCasa !== undefined) {
+    if (Number.isNaN(seguros.porcentajeCasa)) return q
+    seguros.porcentajeCasa = Math.min(100, Math.max(0, seguros.porcentajeCasa))
+  }
+  if (seguros.nombre !== undefined) {
+    const nombre = seguros.nombre.trim()
+    const repetido = q.participantes.some((p) => p.id !== id && p.nombre.toLowerCase() === nombre.toLowerCase())
+    if (nombre === '' || repetido) delete seguros.nombre
+    else seguros.nombre = nombre
   }
   return { ...q, participantes: q.participantes.map((p) => (p.id === id ? { ...p, ...seguros } : p)) }
 }

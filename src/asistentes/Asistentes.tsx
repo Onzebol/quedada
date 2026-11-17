@@ -1,6 +1,8 @@
 import { Plus } from 'lucide-react'
 import { ConIcono } from '../ui/ConIcono'
 import { useState } from 'react'
+import { FilaComponente } from '../casa/FilaComponente'
+import { anadirComponente, asignarFamilia } from '../dominio/casa'
 import {
   anadirAsistente,
   anadirBasico,
@@ -10,6 +12,7 @@ import {
   borrarBasico,
   editarAsistente,
   ordenarPorLlegada,
+  personasDe,
   totalAsistentes,
 } from '../dominio/asistentes'
 import type { Id, Quedada } from '../dominio/tipos'
@@ -76,11 +79,17 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
               defaultValue={a.familia}
               onBlur={(e) => aplicar((q) => editarAsistente(q, a.id, { familia: e.target.value }))}
             />
-            <CampoEntero
-              aria-label={`Personas de ${a.familia}`}
-              valor={a.personas}
-              onCambiar={(n) => aplicar((q) => editarAsistente(q, a.id, { personas: n }))}
-            />
+            {quedada.participantes.some((p) => p.familiaId === a.id) ? (
+              <span>
+                {personasDe(quedada, a)} {personasDe(quedada, a) === 1 ? 'persona' : 'personas'}
+              </span>
+            ) : (
+              <CampoEntero
+                aria-label={`Personas de ${a.familia}`}
+                valor={a.personas}
+                onCambiar={(n) => aplicar((q) => editarAsistente(q, a.id, { personas: n }))}
+              />
+            )}
             <input
               type="time"
               aria-label={`Llegada de ${a.familia}`}
@@ -93,9 +102,61 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
               mensaje="Dejará de contar entre quienes vienen y los básicos que traía quedarán sin asignar. No se puede deshacer."
               onConfirmar={() => aplicar((q) => borrarAsistente(q, a.id))}
             />
+            <ul className="asistentes__componentes" aria-label={`Componentes de ${a.familia}`}>
+              {quedada.participantes
+                .filter((p) => p.familiaId === a.id)
+                .map((p) => (
+                  <FilaComponente key={p.id} participante={p} aplicar={aplicar}>
+                    <label>
+                      Familia de {p.nombre}
+                      <select
+                        value={a.id}
+                        onChange={(e) => aplicar((q) => asignarFamilia(q, p.id, e.target.value === '' ? null : e.target.value))}
+                      >
+                        <option value="">Sin familia</option>
+                        {quedada.asistentes.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.familia}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </FilaComponente>
+                ))}
+            </ul>
+            <NuevoComponente familia={a.familia} alAnadir={(nombre) => aplicar((q) => anadirComponente(q, { id: crearId(), familiaId: a.id, nombre }))} />
           </li>
         ))}
       </ul>
+
+      {quedada.participantes.some((p) => p.familiaId === undefined) && (
+        <>
+          <h4>Participantes sin familia</h4>
+          <ul className="asistentes__componentes" aria-label="Participantes sin familia">
+            {quedada.participantes
+              .filter((p) => p.familiaId === undefined)
+              .map((p) => (
+                <FilaComponente key={p.id} participante={p} aplicar={aplicar}>
+                  <label>
+                    Familia de {p.nombre}
+                    <select
+                      value=""
+                      disabled={quedada.asistentes.length === 0}
+                      onChange={(e) => aplicar((q) => asignarFamilia(q, p.id, e.target.value === '' ? null : e.target.value))}
+                    >
+                      <option value="">Sin familia</option>
+                      {quedada.asistentes.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.familia}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </FilaComponente>
+              ))}
+          </ul>
+        </>
+      )}
 
       <h4>Básicos</h4>
       <p className="asistentes__resumen">
@@ -145,5 +206,28 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
         ))}
       </ul>
     </section>
+  )
+}
+
+function NuevoComponente({ familia, alAnadir }: { familia: string; alAnadir: (nombre: string) => void }) {
+  const [nombre, setNombre] = useState('')
+  return (
+    <form
+      aria-label={`Nuevo componente de ${familia}`}
+      className="asistentes__nuevo-componente"
+      onSubmit={(e) => {
+        e.preventDefault()
+        alAnadir(nombre)
+        setNombre('')
+      }}
+    >
+      <label>
+        Nombre
+        <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+      </label>
+      <button type="submit" aria-label={`Añadir componente a ${familia}`}>
+        <ConIcono icono={Plus}>Añadir componente</ConIcono>
+      </button>
+    </form>
   )
 }

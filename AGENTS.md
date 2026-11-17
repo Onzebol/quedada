@@ -74,10 +74,24 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   (`src/test/repositorioMemoria.ts`). Dirección visual «Sierra» (#11; maqueta en
   `docs/diseno/c-sierra.html`): tokens de color y tipografía Bricolage Grotesque en `index.css`,
   paneles en `compra.css` (claro) y `cuentas.css` (verde), dos columnas desde 60 rem.
-- **Pestañas** (#55, `src/ui/Pestanas.tsx`, accesible: `role="tablist"`, flechas/Inicio/Fin, solo se monta el panel activo): `VistaQuedada` divide la quedada en **La casa** (`Asistentes`), **Lista de la compra** (`ListaCompra`, la que se abre al entrar), **Tickets** (marcador: aún no hay modelo de tiques) y **Resumen** (`Cuentas`). Ya no hay dos columnas. La pestaña activa es estado local (no va en el hash). En los tests hay que pulsar la pestaña (`getByRole('tab', …)`) antes de buscar su contenido; un elemento de otra pestaña se desmonta al cambiar.
+- **Pestañas** (#55, `src/ui/Pestanas.tsx`, accesible: `role="tablist"`, flechas/Inicio/Fin, solo se monta el panel activo): `VistaQuedada` divide la quedada en **La casa** (`DatosCasa` y `Asistentes`), **Lista de la compra** (`ListaCompra`, la que se abre al entrar), **Tickets** (marcador: aún no hay modelo de tiques) y **Resumen** (`Cuentas`). Ya no hay dos columnas. La pestaña activa es estado local (no va en el hash). En los tests hay que pulsar la pestaña (`getByRole('tab', …)`) antes de buscar su contenido; un elemento de otra pestaña se desmonta al cambiar.
+- **La casa** (#56, `src/casa/`, `dominio/casa.ts`): `Quedada.casa` (título, descripción, dirección, coordenadas, `precio` en
+  céntimos y `pagadorId`) vive en columnas `casa_*` de `quedadas` (`0004_casa.sql`; en SQLite, `ALTER` en bases antiguas).
+  `DatosCasa` edita la ficha al salir de cada campo; los enlaces `http(s)` de la descripción se muestran como enlaces
+  (`enlaces.ts`, nunca HTML) y el mapa es un `iframe` de OpenStreetMap (`mapa.ts`) a partir de coordenadas que se obtienen
+  **solo al pulsar «Situar en el mapa»** (Nominatim, inyectable con la prop `geocodificar` de `App`; cambiar la dirección
+  borra las coordenadas). **Familias y componentes**: un componente es un `Participante` con `familiaId` (id de un
+  `Asistente`); `Asistente.personas` se mantiene igual al número de componentes y `personasDe` cuenta los componentes si los
+  hay. Borrar una familia deja a sus componentes sin familia; quitar un componente lo suelta como comprador y pagador.
+  **Reparto**: `Participante.porcentajeCasa` (100 por defecto; si falta, `pagaCasa: false` = 0) da el peso en el reparto de
+  la casa y `porcentajeComida` el de los demás gastos. El precio entra en las cuentas **solo si tiene pagador**
+  (`casa.pagadorId`): se suma a lo que pagó y al gasto «casa». Ojo con duplicar: si ya hay un producto «Alquiler» en una comida
+  `casa` (como en el Excel), no pongas también el precio. Los porcentajes se editan en «La casa» (`FilaComponente`);
+  `Cuentas` es de solo lectura. Al reimportar el Excel se conservan la casa, `familiaId` y `porcentajeCasa`.
+  **Al desplegar**: ejecutar `0004_casa.sql` en el editor SQL de Supabase antes de fusionar (solo añade columnas).
 - Interfaz de cuentas (`src/cuentas/`): `Cuentas` muestra el total, lo pagado por persona, los
-  ajustes de reparto (porcentaje de comida y «paga la casa» por participante; el interruptor
-  «Gasto de la casa» está en cada comida de la lista) y las transferencias. `App` llama a
+  las transferencias; los porcentajes de reparto se ajustan en «La casa» (#56) y el interruptor
+  «Gasto de la casa» está en cada comida de la lista. `App` llama a
   `useQuedada` y reparte el estado entre `ListaCompra` y `Cuentas`. Los interruptores usan
   `role="switch"` para no mezclarse con las casillas «comprado» de los productos.
 - Reparto de gastos (decidido en #4): los grupos con `reparto: 'casa'` se dividen a partes

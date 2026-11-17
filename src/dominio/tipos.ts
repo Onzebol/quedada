@@ -10,6 +10,10 @@ export interface Participante {
   pagaCasa?: boolean
   /** Cuenta de Google vinculada («este soy yo»), si la hay. */
   cuentaId?: string
+  /** Porcentaje de la casa que le toca (100 por defecto). Si falta, `pagaCasa: false` equivale a 0. */
+  porcentajeCasa?: number
+  /** Familia (unidad familiar) de la que es componente, si la tiene. */
+  familiaId?: Id
 }
 
 /** Una comida o bloque de la compra: cena del viernes, desayunos, bebida… */
@@ -56,12 +60,28 @@ export interface Basico {
   asistenteId: Id | null
 }
 
+/** La casa rural: ficha, precio y quién lo ha pagado. */
+export interface Casa {
+  titulo: string
+  /** Texto libre; los enlaces `http(s)://` se muestran como tales. */
+  descripcion: string
+  direccion: string
+  /** Coordenadas del mapa (se obtienen de la dirección). */
+  latitud: number | null
+  longitud: number | null
+  /** Precio total del alquiler. `null` si aún no se sabe. */
+  precio: Centimos | null
+  /** Quién ha pagado el alquiler. Sin pagador el precio se muestra, pero no entra en las cuentas. */
+  pagadorId: Id | null
+}
+
 export interface Quedada {
   id: Id
   nombre: string
   /** Fechas ISO (AAAA-MM-DD). */
   inicio: string | null
   fin: string | null
+  casa: Casa
   participantes: Participante[]
   grupos: Grupo[]
   productos: Producto[]

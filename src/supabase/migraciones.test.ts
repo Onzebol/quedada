@@ -97,6 +97,7 @@ describe('migraciones de Supabase', () => {
     ])
     await db.exec(sql('0002_tablas.sql'))
     await db.exec(sql('0003_tiempo_real.sql'))
+    await db.exec(sql('0004_casa.sql'))
     await db.exec('truncate realtime.messages')
   })
 
@@ -221,5 +222,18 @@ describe('migraciones de Supabase', () => {
       const r = await comoEnTema(db, ANA, 'otra-cosa', 'select topic from realtime.messages')
       expect(r.rows).toEqual([])
     })
+  })
+
+  it('0004: las quedadas y participantes existentes quedan con la casa vacía y sin familia', async () => {
+    const q = await db.query('select casa_titulo, casa_descripcion, casa_direccion, casa_latitud, casa_precio, casa_pagador_id from public.quedadas where id = $1', ['q1'])
+    expect(q.rows).toEqual([{ casa_titulo: '', casa_descripcion: '', casa_direccion: '', casa_latitud: null, casa_precio: null, casa_pagador_id: null }])
+    const p = await db.query('select porcentaje_casa, familia_id from public.participantes where quedada_id = $1', ['q1'])
+    expect((p.rows as Record<string, unknown>[]).every((f) => f.porcentaje_casa === null && f.familia_id === null)).toBe(true)
+  })
+
+  it('0004: no admite un precio negativo y el propietario puede guardar la casa', async () => {
+    await expect(db.query("update public.quedadas set casa_precio = -1 where id = 'q1'")).rejects.toThrow()
+    await db.query("update public.quedadas set casa_titulo = 'Casa', casa_precio = 90000 where id = 'q1'")
+    expect((await db.query("select casa_precio from public.quedadas where id = 'q1'")).rows).toEqual([{ casa_precio: 90000 }])
   })
 })
