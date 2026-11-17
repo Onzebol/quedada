@@ -6,7 +6,7 @@ import {
   anadirAsistente,
   borrarAsistente,
   editarAsistente,
-  ordenarPorLlegada,
+  ordenarPorNombre,
   personasDe,
   totalAsistentes,
 } from '../dominio/asistentes'
@@ -40,7 +40,7 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
       </p>
 
       <ul className="asistentes__lista">
-        {ordenarPorLlegada(quedada.asistentes).map((a) => (
+        {ordenarPorNombre(quedada.asistentes, (a) => a.familia).map((a) => (
           <FichaFamilia key={a.id} quedada={quedada} asistente={a} aplicar={aplicar} crearId={crearId} />
         ))}
       </ul>
@@ -49,7 +49,7 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
         <>
           <h4>Participantes sin familia</h4>
           <ul className="asistentes__componentes" aria-label="Participantes sin familia">
-            {sinFamilia.map((p) => (
+            {ordenarPorNombre(sinFamilia, (p) => p.nombre).map((p) => (
               <FichaPersona key={p.id} participante={p} aplicar={aplicar} />
             ))}
           </ul>
@@ -129,7 +129,7 @@ function FichaFamilia({ quedada, asistente: a, aplicar, crearId }: PropsFamilia)
         <div id={idDetalle} className="familia__detalle">
           {componentes.length > 0 && (
             <ul className="asistentes__componentes" aria-label={`Personas de la familia ${a.familia}`}>
-              {componentes.map((p) => (
+              {ordenarPorNombre(componentes, (p) => p.nombre).map((p) => (
                 <FichaPersona key={p.id} participante={p} aplicar={aplicar} />
               ))}
             </ul>

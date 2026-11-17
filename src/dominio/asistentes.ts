@@ -51,12 +51,9 @@ export function totalAsistentes(q: Quedada): number {
   return q.asistentes.reduce((suma, a) => suma + personasDe(q, a), 0)
 }
 
-/** Por hora de llegada; quienes no tienen hora van al final, en su orden. */
-export function ordenarPorLlegada(asistentes: Asistente[]): Asistente[] {
-  return [...asistentes].sort((a, b) => {
-    if (a.llegada === b.llegada) return 0
-    if (a.llegada === null) return 1
-    if (b.llegada === null) return -1
-    return a.llegada < b.llegada ? -1 : 1
-  })
+/** Alfabético (como se ordena en español: sin distinguir mayúsculas ni acentos). No modifica la lista. */
+export function ordenarPorNombre<T>(elementos: T[], nombre: (e: T) => string): T[] {
+  return [...elementos].sort((a, b) =>
+    nombre(a).localeCompare(nombre(b), 'es', { sensitivity: 'base' }),
+  )
 }

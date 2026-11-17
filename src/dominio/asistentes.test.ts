@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   anadirAsistente,
   editarAsistente,
-  ordenarPorLlegada,
+  ordenarPorNombre,
   totalAsistentes,
 } from './asistentes'
 import { quedada } from './fabrica'
@@ -41,11 +41,9 @@ describe('asistentes', () => {
     expect(totalAsistentes(quedada())).toBe(0)
   })
 
-  it('ordena por hora de llegada y deja al final los que no la tienen', () => {
-    let q = quedada()
-    q = anadirAsistente(q, { id: 'a1', familia: 'Sin hora', personas: 1, llegada: null })
-    q = anadirAsistente(q, { id: 'a2', familia: 'Tarde', personas: 1, llegada: '21:00' })
-    q = anadirAsistente(q, { id: 'a3', familia: 'Pronto', personas: 1, llegada: '09:05' })
-    expect(ordenarPorLlegada(q.asistentes).map((a) => a.familia)).toEqual(['Pronto', 'Tarde', 'Sin hora'])
+  it('ordena alfabéticamente sin distinguir mayúsculas ni acentos', () => {
+    const nombres = ['zapata', 'Álvarez', 'Pérez', 'alonso', 'Ñúñez']
+    const ordenados = ordenarPorNombre(nombres.map((n) => ({ nombre: n })), (x) => x.nombre)
+    expect(ordenados.map((x) => x.nombre)).toEqual(['alonso', 'Álvarez', 'Ñúñez', 'Pérez', 'zapata'])
   })
 })
