@@ -225,3 +225,29 @@ describe('reparto y asistentes (#7)', () => {
     expect(liquidacion(conAsistentes)).toEqual(liquidacion(base))
   })
 })
+
+describe('alquiler de la casa', () => {
+  const personas = [
+    { id: 'a', nombre: 'Ana' },
+    { id: 'b', nombre: 'Beto', porcentajeCasa: 50 },
+    { id: 'c', nombre: 'Cris', pagaCasa: false },
+  ]
+  const casa = (pagadorId: string | null) => ({
+    titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: 90000, pagadorId,
+  })
+
+  it('con pagador, el alquiler cuenta como pagado por él y se reparte por porcentaje de casa', () => {
+    const l = liquidacion(quedada({ participantes: personas, casa: casa('a') }))
+    expect(l.total).toBe(90000)
+    expect(l.pagado.a).toBe(90000)
+    // Ana 2/3 = 60000, Beto 1/3 = 30000, Cris 0
+    expect(l.balances).toEqual({ a: 30000, b: -30000, c: 0 })
+    expect(l.transferencias).toEqual([{ de: 'b', a: 'a', importe: 30000 }])
+  })
+
+  it('sin pagador el precio no entra en las cuentas', () => {
+    const l = liquidacion(quedada({ participantes: personas, casa: casa(null) }))
+    expect(l.total).toBe(0)
+    expect(l.transferencias).toEqual([])
+  })
+})

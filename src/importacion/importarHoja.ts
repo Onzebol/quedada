@@ -1,4 +1,5 @@
-import type { Grupo, Participante, Producto, Quedada } from '../dominio/tipos'
+import { casaVacia } from '../dominio/casa'
+import type { Asistente, Grupo, Participante, Producto, Quedada } from '../dominio/tipos'
 
 export type Celda = string | number | boolean | Date | null
 
@@ -204,6 +205,16 @@ export function importarHoja(nombre: string, filas: Celda[][]): ResultadoHoja | 
     if (!conProductos.includes(g)) avisos.push(`Grupo vacío ignorado: ${g.nombre}`)
   }
 
+  // En el Excel cada comprador es una unidad familiar: se crea su familia y él queda como su primer
+  // componente; luego se añaden a mano los demás componentes.
+  const familias: Asistente[] = participantes.map((p) => ({
+    id: `${quedadaId}-familia-${slug(p.nombre)}`,
+    familia: p.nombre,
+    personas: 1,
+    llegada: null,
+  }))
+  const participantesConFamilia = participantes.map((p, i) => ({ ...p, familiaId: familias[i].id }))
+
   const anio = /\d{4}/.exec(nombre)?.[0]
   return {
     quedada: {
@@ -211,10 +222,11 @@ export function importarHoja(nombre: string, filas: Celda[][]): ResultadoHoja | 
       nombre: anio ? `Quedada ${anio}` : nombre,
       inicio: null,
       fin: null,
-      participantes,
+      casa: casaVacia(),
+      participantes: participantesConFamilia,
       grupos: conProductos.map((g, orden) => ({ ...g, orden })),
       productos,
-      asistentes: [],
+      asistentes: familias,
       basicos: [],
     },
     avisos,

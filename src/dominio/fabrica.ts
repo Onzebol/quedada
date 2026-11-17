@@ -1,3 +1,4 @@
+import { casaVacia } from './casa'
 import type { Producto, Quedada } from './tipos'
 
 /** Constructores con valores por defecto, para escribir tests legibles. */
@@ -23,6 +24,7 @@ export function quedada(parcial: Partial<Quedada> = {}): Quedada {
     nombre: 'Quedada 2026',
     inicio: null,
     fin: null,
+    casa: casaVacia(),
     participantes: [],
     grupos: [],
     productos: [],

@@ -316,10 +316,10 @@ function quedadaConGastos() {
 }
 
 describe('Pestañas', () => {
-  it('divide la quedada en La casa, Lista de la compra, Tickets y Resumen, y abre la lista de la compra', async () => {
+  it('divide la quedada en La casa, Lista de la compra, Pagos y Resumen, y abre la lista de la compra', async () => {
     preparar()
     await esperarCarga()
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['La casa', 'Lista de la compra', 'Tickets', 'Resumen'])
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['La casa', 'Lista de la compra', 'Pagos', 'Resumen'])
     expect(screen.getByRole('tab', { name: 'Lista de la compra' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.queryByRole('region', { name: 'Asistentes' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Cuentas' })).not.toBeInTheDocument()
@@ -331,8 +331,8 @@ describe('Pestañas', () => {
     await abrirPestana('La casa')
     expect(screen.getByRole('region', { name: 'Asistentes' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 3, name: 'Cena del viernes' })).not.toBeInTheDocument()
-    await abrirPestana('Tickets')
-    expect(screen.getByRole('tabpanel', { name: 'Tickets' })).toBeInTheDocument()
+    await abrirPestana('Pagos')
+    expect(screen.getByRole('tabpanel', { name: 'Pagos' })).toBeInTheDocument()
     await abrirPestana('Resumen')
     expect(screen.getByRole('region', { name: 'Cuentas' })).toBeInTheDocument()
   })
@@ -367,47 +367,57 @@ describe('Gastos y liquidación', () => {
     expect(within(cuentas).getByText('No hay nada que liquidar')).toBeInTheDocument()
   })
 
-  it('recalcula al cambiar el porcentaje de comida de un participante', async () => {
+  /** En «La casa» se ajusta lo que paga cada participante de la casa (%) y de los demás gastos (%). */
+  async function ajustar(usuario: ReturnType<typeof userEvent.setup>, nombre: string, campo: 'casa' | 'gastos', valor: string) {
+    await abrirPestana('La casa')
+    const etiqueta = campo === 'casa' ? `% de la casa de ${nombre}` : `% de los demás gastos de ${nombre}`
+    const entrada = await screen.findByRole('spinbutton', { name: etiqueta })
+    await usuario.clear(entrada)
+    await usuario.type(entrada, valor)
+  }
+
+  it('recalcula al cambiar el porcentaje de los demás gastos de un participante', async () => {
     const { usuario } = preparar(new RepositorioMemoria([quedadaConGastos()]))
+    await ajustar(usuario, 'Beto', 'gastos', '0')
     const cuentas = await abrirCuentas()
-    const porcentaje = within(cuentas).getByRole('spinbutton', { name: 'Porcentaje de comida de Beto' })
-    await usuario.clear(porcentaje)
-    await usuario.type(porcentaje, '0')
     // comida 16 € solo para Ana; casa 100 € a medias → Beto debe 50 €
     expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 50,00 € a Ana')
   })
 
-  it('un participante que no paga la casa queda fuera de ese reparto', async () => {
+  it('un participante con 0 % de la casa queda fuera de ese reparto', async () => {
     const { usuario } = preparar(new RepositorioMemoria([quedadaConGastos()]))
+    await ajustar(usuario, 'Beto', 'casa', '0')
     const cuentas = await abrirCuentas()
-    await usuario.click(within(cuentas).getByRole('switch', { name: 'Beto paga la casa' }))
     // casa 100 € solo para Ana; comida 8 € de Beto
     expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 8,00 € a Ana')
   })
 
+  it('el Resumen es de solo lectura: los porcentajes se ajustan en La casa', async () => {
+    preparar(new RepositorioMemoria([quedadaConGastos()]))
+    const cuentas = await abrirCuentas()
+    expect(within(cuentas).queryByRole('spinbutton')).not.toBeInTheDocument()
+    expect(within(cuentas).queryByRole('switch')).not.toBeInTheDocument()
+  })
+
   it('marcar una comida como gasto de la casa cambia cómo se reparte', async () => {
     const { usuario } = preparar(new RepositorioMemoria([quedadaConGastos()]))
-    const cuentas = await abrirCuentas()
-    await usuario.click(within(cuentas).getByRole('switch', { name: 'Beto paga la casa' }))
+    await ajustar(usuario, 'Beto', 'casa', '0')
     await abrirPestana('Lista de la compra')
     await usuario.click(screen.getByRole('switch', { name: 'Gasto de la casa: Alquiler' }))
-    const cuentasDeNuevo = await abrirCuentas()
+    const cuentas = await abrirCuentas()
     // el alquiler pasa a ser comida: 116 € por porcentaje, Beto debe 58 € aunque no pague la casa
-    expect(normalizar(within(cuentasDeNuevo).getByText(/Beto paga/).textContent)).toBe('Beto paga 58,00 € a Ana')
+    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 58,00 € a Ana')
   })
 
   it('conserva los porcentajes al recargar', async () => {
     const repositorio = new RepositorioMemoria([quedadaConGastos()])
     const primera = preparar(repositorio)
-    const cuentas = await abrirCuentas()
-    const porcentaje = within(cuentas).getByRole('spinbutton', { name: 'Porcentaje de comida de Beto' })
-    await primera.usuario.clear(porcentaje)
-    await primera.usuario.type(porcentaje, '50')
+    await ajustar(primera.usuario, 'Beto', 'gastos', '50')
     primera.vista.unmount()
 
     preparar(repositorio)
-    await abrirCuentas()
-    expect(await screen.findByRole('spinbutton', { name: 'Porcentaje de comida de Beto' })).toHaveValue(50)
+    await abrirPestana('La casa')
+    expect(await screen.findByRole('spinbutton', { name: '% de los demás gastos de Beto' })).toHaveValue(50)
   })
 })
 

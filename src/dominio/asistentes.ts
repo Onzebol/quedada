@@ -1,4 +1,4 @@
-import type { Asistente, Basico, Id, Quedada } from './tipos'
+import type { Asistente, Id, Quedada } from './tipos'
 
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/
 
@@ -27,18 +27,28 @@ export function editarAsistente(q: Quedada, id: Id, cambios: CambiosAsistente): 
   return { ...q, asistentes: q.asistentes.map((a) => (a.id === id ? { ...a, ...seguros } : a)) }
 }
 
-/** Borra la familia; sus básicos quedan sin asignar. */
+/** Borra la familia; sus componentes se quedan como participantes sin familia. */
 export function borrarAsistente(q: Quedada, id: Id): Quedada {
   return {
     ...q,
+    participantes: q.participantes.map((p) => {
+      if (p.familiaId !== id) return p
+      const { familiaId: _suelta, ...resto } = p
+      return resto
+    }),
     asistentes: q.asistentes.filter((a) => a.id !== id),
-    basicos: q.basicos.map((b) => (b.asistenteId === id ? { ...b, asistenteId: null } : b)),
   }
+}
+
+/** Personas de una familia: sus componentes si los tiene; si no, el número escrito. */
+export function personasDe(q: Quedada, a: Asistente): number {
+  const componentes = q.participantes.filter((p) => p.familiaId === a.id).length
+  return componentes > 0 ? componentes : a.personas
 }
 
 /** Total de personas que vienen (suma de las familias). */
 export function totalAsistentes(q: Quedada): number {
-  return q.asistentes.reduce((suma, a) => suma + a.personas, 0)
+  return q.asistentes.reduce((suma, a) => suma + personasDe(q, a), 0)
 }
 
 /** Por hora de llegada; quienes no tienen hora van al final, en su orden. */
@@ -49,24 +59,4 @@ export function ordenarPorLlegada(asistentes: Asistente[]): Asistente[] {
     if (b.llegada === null) return -1
     return a.llegada < b.llegada ? -1 : 1
   })
-}
-
-export function anadirBasico(q: Quedada, nuevo: Pick<Basico, 'id' | 'nombre'>): Quedada {
-  const nombre = nuevo.nombre.trim()
-  if (nombre === '' || q.basicos.some((b) => b.nombre.toLowerCase() === nombre.toLowerCase())) return q
-  return { ...q, basicos: [...q.basicos, { id: nuevo.id, nombre, asistenteId: null }] }
-}
-
-/** Asigna el básico a una familia existente, o lo suelta con `null`. */
-export function asignarBasico(q: Quedada, id: Id, asistenteId: Id | null): Quedada {
-  if (asistenteId !== null && !q.asistentes.some((a) => a.id === asistenteId)) return q
-  return { ...q, basicos: q.basicos.map((b) => (b.id === id ? { ...b, asistenteId } : b)) }
-}
-
-export function borrarBasico(q: Quedada, id: Id): Quedada {
-  return { ...q, basicos: q.basicos.filter((b) => b.id !== id) }
-}
-
-export function basicosSinAsignar(q: Quedada): Basico[] {
-  return q.basicos.filter((b) => b.asistenteId === null)
 }

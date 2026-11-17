@@ -3,13 +3,15 @@ import { useState } from 'react'
 interface Props {
   valor: number
   onCambiar: (porcentaje: number) => void
+  'aria-label'?: string
 }
 
 /** Número 0–100 que admite estar vacío mientras se escribe: solo comunica valores válidos. */
-export function CampoPorcentaje({ valor, onCambiar }: Props) {
+export function CampoPorcentaje({ valor, onCambiar, ...resto }: Props) {
   const [texto, setTexto] = useState(String(valor))
   return (
     <input
+      {...resto}
       type="number"
       min={0}
       max={100}

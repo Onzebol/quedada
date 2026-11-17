@@ -1,17 +1,17 @@
+import { partesDeLaCasa } from '../dominio/casa'
 import { liquidacion } from '../dominio/liquidacion'
 import { formatearEuros } from '../dominio/numeros'
-import { editarParticipante } from '../dominio/operaciones'
 import type { Quedada } from '../dominio/tipos'
-import { CampoPorcentaje } from './CampoPorcentaje'
 import './cuentas.css'
 
 interface Props {
   quedada: Quedada
-  aplicar: (cambio: (q: Quedada) => Quedada) => void
 }
 
-export function Cuentas({ quedada, aplicar }: Props) {
+/** Resumen de las cuentas, de solo lectura: lo que cada uno paga de casa y gastos se ajusta en «La casa». */
+export function Cuentas({ quedada }: Props) {
   const { total, pagado, transferencias } = liquidacion(quedada)
+  const casa = partesDeLaCasa(quedada)
   const nombre = (id: string) => quedada.participantes.find((p) => p.id === id)?.nombre ?? id
 
   return (
@@ -25,26 +25,24 @@ export function Cuentas({ quedada, aplicar }: Props) {
             <span>
               {p.nombre} ha pagado {formatearEuros(pagado[p.id] ?? 0)}
             </span>
-            <label>
-              Porcentaje de comida de {p.nombre}
-              <CampoPorcentaje
-                valor={p.porcentajeComida ?? 100}
-                onCambiar={(n) => aplicar((q) => editarParticipante(q, p.id, { porcentajeComida: n }))}
-              />
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                role="switch"
-                aria-label={`${p.nombre} paga la casa`}
-                checked={p.pagaCasa !== false}
-                onChange={(e) => aplicar((q) => editarParticipante(q, p.id, { pagaCasa: e.target.checked }))}
-              />
-              Paga la casa
-            </label>
           </li>
         ))}
       </ul>
+
+      {quedada.casa.precio !== null && (
+        <>
+          <h4>Lo que paga cada uno de la casa</h4>
+          <ul className="cuentas__personas" aria-label="Lo que paga cada uno de la casa">
+            {quedada.participantes.map((p) => (
+              <li key={p.id}>
+                <span>
+                  {p.nombre}: {formatearEuros(casa[p.id] ?? 0)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <h4>Quién paga a quién</h4>
       {transferencias.length === 0 ? (

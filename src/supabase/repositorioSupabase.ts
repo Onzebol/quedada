@@ -81,6 +81,8 @@ const TABLAS: Tabla[] = [
       porcentaje_comida: p.porcentajeComida ?? null,
       paga_casa: p.pagaCasa ?? null,
       cuenta_id: p.cuentaId ?? null,
+      porcentaje_casa: p.porcentajeCasa ?? null,
+      familia_id: p.familiaId ?? null,
     }),
     (f): Participante => ({
       id: texto(f.id),
@@ -88,6 +90,8 @@ const TABLAS: Tabla[] = [
       ...(hay(f.porcentaje_comida) && { porcentajeComida: Number(f.porcentaje_comida) }),
       ...(hay(f.paga_casa) && { pagaCasa: f.paga_casa === true }),
       ...(hay(f.cuenta_id) && { cuentaId: texto(f.cuenta_id) }),
+      ...(hay(f.porcentaje_casa) && { porcentajeCasa: Number(f.porcentaje_casa) }),
+      ...(hay(f.familia_id) && { familiaId: texto(f.familia_id) }),
     }),
   ),
   tabla(
@@ -148,9 +152,23 @@ const TABLAS: Tabla[] = [
   ),
 ]
 
-const COLUMNAS_QUEDADA = ['nombre', 'inicio', 'fin'] as const
+const COLUMNAS_QUEDADA = [
+  'nombre', 'inicio', 'fin', 'casa_titulo', 'casa_descripcion', 'casa_direccion',
+  'casa_latitud', 'casa_longitud', 'casa_precio', 'casa_pagador_id',
+] as const
 
-const filaQuedada = (q: Quedada): Fila => ({ nombre: q.nombre, inicio: q.inicio, fin: q.fin })
+const filaQuedada = (q: Quedada): Fila => ({
+  nombre: q.nombre,
+  inicio: q.inicio,
+  fin: q.fin,
+  casa_titulo: q.casa.titulo,
+  casa_descripcion: q.casa.descripcion,
+  casa_direccion: q.casa.direccion,
+  casa_latitud: q.casa.latitud,
+  casa_longitud: q.casa.longitud,
+  casa_precio: q.casa.precio,
+  casa_pagador_id: q.casa.pagadorId,
+})
 
 const CONSULTA = `*, ${LISTAS.map((t) => `${t}(*)`).join(', ')}`
 
@@ -164,6 +182,15 @@ function leerQuedada(f: FilaQuedada): Quedada | null {
     nombre: f.nombre,
     inicio: hay(f.inicio) ? texto(f.inicio) : null,
     fin: hay(f.fin) ? texto(f.fin) : null,
+    casa: {
+      titulo: texto(f.casa_titulo),
+      descripcion: texto(f.casa_descripcion),
+      direccion: texto(f.casa_direccion),
+      latitud: numeroONulo(f.casa_latitud),
+      longitud: numeroONulo(f.casa_longitud),
+      precio: numeroONulo(f.casa_precio),
+      pagadorId: hay(f.casa_pagador_id) ? texto(f.casa_pagador_id) : null,
+    },
     ...listas,
   } as unknown as Quedada
 }
