@@ -3,18 +3,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin-block: 0.75rem;
+  margin: 0;
   font-size: 0.875rem;
   color: var(--mut);
-}
-
-.selector-quedada select {
-  min-width: 0;
-  padding: 0 0.75rem;
-  background: #fff;
-  border: 1px solid var(--linea);
-  border-radius: 12px;
-  color: var(--ink);
 }
 
 .selector-quedada select,
@@ -22,23 +13,6 @@
   min-height: 2.5rem;
   max-width: 100%;
   font: inherit;
-}
-
-.importar {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding: 1.5rem 1.625rem;
-  background: var(--surf);
-  border-radius: var(--radio);
-}
-
-.importar label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.875rem;
 }
 
 .importar p {
@@ -62,8 +36,3 @@
   overflow-wrap: anywhere;
 }
 
-.importar :focus-visible,
-.selector-quedada :focus-visible {
-  outline: 3px solid Highlight;
-  outline-offset: 2px;
-}

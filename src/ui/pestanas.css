@@ -12,11 +12,17 @@
   background: transparent;
   border: 0;
   border-bottom: 3px solid transparent;
+  border-radius: 0;
   color: var(--ink);
   font: inherit;
   font-weight: 700;
+  line-height: 1.4;
   white-space: nowrap;
   cursor: pointer;
+}
+
+.pestanas__tab:active {
+  transform: none;
 }
 
 .pestanas__tab:hover {

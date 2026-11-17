@@ -370,10 +370,12 @@ describe('Gastos y liquidación', () => {
   /** En «La casa» se ajusta lo que paga cada participante de la casa (%) y de los demás gastos (%). */
   async function ajustar(usuario: ReturnType<typeof userEvent.setup>, nombre: string, campo: 'casa' | 'gastos', valor: string) {
     await abrirPestana('La casa')
-    const etiqueta = campo === 'casa' ? `% de la casa de ${nombre}` : `% de los demás gastos de ${nombre}`
-    const entrada = await screen.findByRole('spinbutton', { name: etiqueta })
+    await usuario.click(await screen.findByRole('button', { name: `Editar persona ${nombre}` }))
+    const d = within(screen.getByRole('dialog', { name: 'Editar persona' }))
+    const entrada = d.getByRole('spinbutton', { name: campo === 'casa' ? '% casa' : '% demás gastos' })
     await usuario.clear(entrada)
     await usuario.type(entrada, valor)
+    await usuario.click(d.getByRole('button', { name: 'Guardar' }))
   }
 
   it('recalcula al cambiar el porcentaje de los demás gastos de un participante', async () => {
@@ -417,7 +419,8 @@ describe('Gastos y liquidación', () => {
 
     preparar(repositorio)
     await abrirPestana('La casa')
-    expect(await screen.findByRole('spinbutton', { name: '% de los demás gastos de Beto' })).toHaveValue(50)
+    await userEvent.click(await screen.findByRole('button', { name: 'Editar persona Beto' }))
+    expect(await screen.findByRole('spinbutton', { name: '% demás gastos' })).toHaveValue(50)
   })
 })
 
@@ -501,14 +504,14 @@ describe('Página inicial', () => {
     const usuario = abrirInicio(repositorio)
     await screen.findByRole('button', { name: 'Almunia 2026' })
 
-    await usuario.click(screen.getAllByRole('button', { name: 'Eliminar quedada' })[0])
+    await usuario.click(screen.getAllByRole('button', { name: /^Borrar quedada/ })[0])
     const aviso = screen.getByRole('dialog')
     expect(aviso).toHaveTextContent('no se puede deshacer')
     await usuario.click(within(aviso).getByRole('button', { name: 'Cancelar' }))
     expect(repositorio.quedadas).toHaveLength(2)
 
-    await usuario.click(screen.getAllByRole('button', { name: 'Eliminar quedada' })[0])
-    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, eliminar' }))
+    await usuario.click(screen.getAllByRole('button', { name: /^Borrar quedada/ })[0])
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     await waitFor(() => expect(repositorio.quedadas).toHaveLength(1))
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
   })
@@ -522,8 +525,8 @@ describe('Página inicial', () => {
     const repositorio = new NoBorra([conLeche()])
     const usuario = abrirInicio(repositorio)
     await screen.findByRole('button', { name: 'Almunia 2026' })
-    await usuario.click(screen.getByRole('button', { name: 'Eliminar quedada' }))
-    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, eliminar' }))
+    await usuario.click(screen.getByRole('button', { name: /^Borrar quedada/ }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo borrar')
     expect(screen.getByRole('button', { name: 'Almunia 2026' })).toBeInTheDocument()
   })

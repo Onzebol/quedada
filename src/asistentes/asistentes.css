@@ -1,83 +1,173 @@
-/* Sierra: panel claro, igual que la compra, con filas separadas por líneas finas. */
-.asistentes {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem 1.625rem;
-  background: var(--surf);
-  border-radius: var(--radio);
-}
-
+/* Sierra: el panel, los botones y los campos vienen de ui/controles.css. */
 .asistentes h2,
 .asistentes h4 {
   margin: 0;
 }
 
-.asistentes h2 {
-  font-size: 1.625rem;
-}
-
-.asistentes__total,
-.asistentes__resumen {
-  margin: 0;
-  color: var(--mut);
-}
-
-.asistentes form {
+.asistentes__cabecera {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: end;
+  gap: var(--esp-3);
+  align-items: center;
+  justify-content: space-between;
 }
 
-.asistentes label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.875rem;
+.asistentes__total {
+  margin: calc(var(--esp-2) * -1) 0 0;
   color: var(--mut);
 }
 
-.asistentes input,
-.asistentes select {
-  min-height: 2.5rem;
-  min-width: 0;
-  padding: 0 0.75rem;
-  background: #fff;
-  border: 1px solid var(--linea);
-  border-radius: 12px;
-  color: var(--ink);
-}
-
-.asistentes input[type='number'] {
-  width: 5rem;
-}
-
-.asistentes button {
-  min-height: 2.5rem;
-  padding: 0 1rem;
-  background: transparent;
-  border: 1px solid var(--linea);
-  border-radius: 40px;
-  color: var(--ink);
-  cursor: pointer;
-}
-
+/* Las fichas se reparten en columnas: dos por fila en escritorio, una en móvil. */
 .asistentes__lista {
-  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(26rem, 100%), 1fr));
+  align-items: start;
+  gap: var(--esp-3);
   margin: 0;
   padding: 0;
+  list-style: none;
 }
 
-.asistentes__lista li {
+/* Cada familia es una ficha de solo lectura: título y datos, sus personas y «Añadir persona». */
+.familia {
+  container: ficha / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+}
+
+.familia__cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 var(--esp-3);
+  align-items: center;
+}
+
+/* El contenedor del título no pinta nada: su h3 y sus datos son celdas de la rejilla de la cabecera. */
+.familia__titulo {
+  display: contents;
+}
+
+/* Primera fila: el nombre mide lo mismo que los botones; los detalles siempre van en la segunda. */
+.familia h3 {
+  display: flex;
+  grid-column: 1;
+  grid-row: 1;
+  align-items: center;
+  min-height: var(--alto-control);
+  margin: 0;
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.familia__datos {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  gap: 0 var(--esp-4);
+  margin: 0;
+  color: var(--mut);
+}
+
+.familia__acciones,
+.persona__acciones {
+  display: flex;
+  gap: var(--esp-2);
+}
+
+.familia__acciones {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* El nombre es el botón que expande o contrae la ficha: sin aspecto de botón, con una flecha que gira. */
+.familia h3 button.familia__alternar {
+  display: inline-flex;
+  gap: var(--esp-2);
   align-items: center;
-  padding: 0.625rem 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.familia__alternar:hover {
+  color: var(--moss);
+}
+
+.familia__flecha {
+  color: var(--mut);
+}
+
+.familia__alternar[aria-expanded='true'] .familia__flecha {
+  transform: rotate(180deg);
+}
+
+.familia__detalle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.familia__anadir {
+  align-self: flex-start;
+}
+
+/* Personas de una familia (o sin familia): nombre y botones en la primera línea, porcentajes debajo en pequeño. */
+.asistentes__componentes {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0 0 0 var(--esp-3);
+  list-style: none;
+  border-left: 3px solid var(--linea);
+}
+
+.persona {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 var(--esp-3);
+  align-items: center;
+  padding: var(--esp-2) 0;
+}
+
+.persona + .persona {
   border-top: 1px solid var(--linea);
 }
 
-.asistentes__lista li > span {
-  flex: 1 1 8rem;
+.persona__nombre {
+  grid-column: 1;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.persona__datos {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--esp-3);
+  color: var(--mut);
+  font-size: 0.8125rem;
+}
+
+/* Los botones ocupan las dos líneas de la persona y quedan centrados en vertical. */
+.persona__acciones {
+  --alto-control: 2rem;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
+.persona__acciones button {
+  padding: 0 var(--esp-3);
+  font-size: 0.875rem;
 }

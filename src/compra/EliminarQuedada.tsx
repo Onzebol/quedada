@@ -7,15 +7,15 @@ interface Props {
   onEliminar: () => Promise<void>
 }
 
-/** Botón «Eliminar quedada»: pide confirmación en una ventana modal. */
+/** Botón «Borrar quedada»: pide confirmación en una ventana modal. */
 export function EliminarQuedada({ nombre, onEliminar }: Props) {
   return (
     <div className="eliminar-quedada">
       <BotonBorrar
-        texto="Eliminar quedada"
-        titulo={`¿Eliminar «${nombre}»?`}
+        texto="Borrar"
+        etiqueta={`Borrar quedada ${nombre}`}
+        titulo={`¿Borrar «${nombre}»?`}
         mensaje="Se borrará con todos sus productos, participantes y gastos y no se puede deshacer."
-        textoConfirmar="Sí, eliminar"
         onConfirmar={onEliminar}
       />
     </div>

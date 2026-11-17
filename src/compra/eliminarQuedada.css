@@ -1,18 +1,4 @@
-/* Sierra (#11): mismo botón que el resto de la app (píldora con borde). */
+/* Sin estilos propios: el botón viene de ui/controles.css (#63). */
 .eliminar-quedada {
-  margin-block: 0.75rem;
-}
-
-.eliminar-quedada button {
-  min-height: 2.5rem;
-  padding: 0 1rem;
-  background: transparent;
-  border: 1px solid var(--linea);
-  border-radius: 40px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.eliminar-quedada button:hover {
-  border-color: var(--moss);
+  margin: 0;
 }

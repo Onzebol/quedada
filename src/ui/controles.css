@@ -1,0 +1,151 @@
+/* Controles compartidos (#63): botones, campos, etiquetas, paneles y ritmo de espaciado.
+   Todo va dentro de :where() (especificidad 0) para que cualquier clase de un componente
+   lo pueda matizar sin pelearse con estas reglas. Los paneles NO redefinen botones ni campos. */
+:root {
+  --esp-1: 0.25rem;
+  --esp-2: 0.5rem;
+  --esp-3: 0.75rem;
+  --esp-4: 1rem;
+  --esp-5: 1.5rem;
+  --esp-6: 2rem;
+  --moss-oscuro: #245640;
+  --peligro: #a8324f;
+  --alto-control: 2.5rem;
+  --relleno-panel: var(--esp-5) clamp(1rem, 4vw, 1.625rem);
+}
+
+/* Botón normal: píldora con borde. */
+:where(button) {
+  display: inline-flex;
+  gap: var(--esp-2);
+  align-items: center;
+  justify-content: center;
+  min-height: var(--alto-control);
+  padding: 0 var(--esp-4);
+  background: transparent;
+  border: 1px solid var(--linea);
+  border-radius: 40px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+:where(button:hover:not(:disabled)) {
+  border-color: var(--moss);
+  color: var(--moss);
+}
+
+:where(button:active:not(:disabled)) {
+  transform: translateY(1px);
+}
+
+:where(button:disabled) {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Botón principal: el envío de un formulario. */
+:where(button[type='submit']) {
+  background: var(--moss);
+  border-color: var(--moss);
+  color: #fff;
+}
+
+:where(button[type='submit']:hover:not(:disabled)) {
+  background: var(--moss-oscuro);
+  border-color: var(--moss-oscuro);
+  color: #fff;
+}
+
+/* Campos de texto, números, selectores y áreas de texto. */
+:where(input:not([type='checkbox'], [type='radio'], [type='file'], [type='range']), select, textarea) {
+  min-height: var(--alto-control);
+  min-width: 0;
+  padding: 0 var(--esp-3);
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  color: var(--ink);
+  font: inherit;
+}
+
+:where(textarea) {
+  padding: var(--esp-2) var(--esp-3);
+  line-height: 1.4;
+}
+
+:where(input:not([type='checkbox'], [type='radio'], [type='file'], [type='range']), select, textarea):hover {
+  border-color: #aebcb5;
+}
+
+:where(input::placeholder, textarea::placeholder) {
+  color: #7b8a84;
+}
+
+/* Etiqueta de un campo: texto pequeño encima del campo. */
+:where(label) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  font-size: 0.875rem;
+  color: var(--mut);
+}
+
+/* Panel claro: la misma caja para la compra, la casa, los asistentes y la importación. */
+:where(.compra, .casa, .asistentes, .importar) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding: var(--relleno-panel);
+  background: var(--surf);
+  border-radius: var(--radio);
+}
+
+:where(.compra, .casa, .asistentes, .importar, .cuentas) h2 {
+  margin: 0;
+  font-size: 1.625rem;
+  line-height: 1.1;
+}
+
+/* Fila de campos y botones de un formulario en línea. */
+:where(.compra form[aria-label='Participantes'], .compra__nueva-comida) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  align-items: end;
+}
+
+/* Ritmo vertical entre secciones: una sola separación en toda la página. */
+.pagina,
+.inicio,
+.pestanas__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+}
+
+.pagina {
+  gap: var(--esp-4);
+}
+
+.pagina > *,
+.inicio > *,
+.pestanas__panel > * {
+  margin-block: 0;
+}
+
+/* Barra superior de una quedada: volver, «Este soy yo» y copiar enlace en una sola fila. */
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-3);
+  align-items: center;
+  /* deja sitio al botón de la cuenta, que va arriba a la derecha */
+  padding-top: var(--esp-2);
+}
+
+.barra > * {
+  margin: 0;
+}
