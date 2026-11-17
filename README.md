@@ -33,6 +33,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 70 | Con un filtro activo en «Mostrar», la lista de la compra no muestra botones de añadir, renombrar, editar ni borrar |
 | 72 | Botón de usuario: en pantallas estrechas se oculta el nombre y queda la foto |
 | 69 | App instalable (PWA): icono y favicon propios, manifiesto, funciona sin conexión (la interfaz) y avisa cuando hay una versión nueva con «Actualizar» |
+| 77 | Botón «Instalar» junto al icono del usuario cuando el navegador permite instalar la aplicación |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos

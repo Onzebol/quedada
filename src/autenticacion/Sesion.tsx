@@ -6,6 +6,7 @@ import type { Quedada } from '../dominio/tipos'
 import './sesion.css'
 import type { useSesion } from './useSesion'
 import { ordenarPorNombre } from '../dominio/asistentes'
+import { BotonInstalar } from '../pwa/BotonInstalar'
 
 interface Props {
   sesion: ReturnType<typeof useSesion>
@@ -64,7 +65,10 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
         </button>
       ) : (
         <>
-          <MenuUsuario nombre={usuario.nombre} foto={usuario.foto} salir={() => void salir()} />
+          <div className="sesion__esquina">
+            <BotonInstalar />
+            <MenuUsuario nombre={usuario.nombre} foto={usuario.foto} salir={() => void salir()} />
+          </div>
           {quedada !== null && quedada.participantes.length > 0 && (
             <label>
               Este soy yo

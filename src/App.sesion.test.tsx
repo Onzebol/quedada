@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
@@ -141,6 +141,26 @@ describe('Este soy yo', () => {
     expect(screen.getByRole('combobox', { name: 'Este soy yo' })).toHaveValue('u1')
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Este soy yo' }), 'Nadie')
     expect((await repositorio.obtener('q1'))?.participantes[0].cuentaId).toBeUndefined()
+  })
+})
+
+describe('Instalar la aplicación', () => {
+  function lanzarInstalable() {
+    const evento = new Event('beforeinstallprompt', { cancelable: true })
+    act(() => {
+      window.dispatchEvent(evento)
+    })
+  }
+
+  it('el botón «Instalar» sale junto al botón del usuario, antes que él', async () => {
+    await preparar(new AutenticacionMemoria(ana, ana))
+    expect(screen.queryByRole('button', { name: 'Instalar' })).not.toBeInTheDocument()
+    lanzarInstalable()
+    const sesion = screen.getByRole('region', { name: 'Sesión' })
+    const instalar = within(sesion).getByRole('button', { name: 'Instalar' })
+    const usuario = within(sesion).getByRole('button', { name: ana.nombre })
+    expect(instalar.compareDocumentPosition(usuario) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(instalar.parentElement).toBe(usuario.closest('.sesion__persona')?.parentElement)
   })
 })
 

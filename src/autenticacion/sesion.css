@@ -7,10 +7,18 @@
   align-items: center;
 }
 
-.sesion__persona {
+/* Arriba a la derecha: «Instalar» (si se puede) a la izquierda del botón del usuario. */
+.sesion__esquina {
   position: absolute;
   top: 0;
   right: 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sesion__persona {
+  position: relative;
   font-weight: 700;
 }
 
