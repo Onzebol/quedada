@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
@@ -40,6 +40,14 @@ afterEach(() => {
 })
 
 describe('Sesión con Google', () => {
+  it('el nombre del botón se puede ocultar si hay foto (no cabe en pantallas estrechas) y no si no la hay', async () => {
+    await preparar(new AutenticacionMemoria(ana, ana))
+    expect((await screen.findByText('Ana Pérez')).className).toBe('sesion__nombre')
+    cleanup()
+    await preparar(new AutenticacionMemoria({ ...ana, foto: null }, { ...ana, foto: null }))
+    expect((await screen.findByText('Ana Pérez')).className).toBe('')
+  })
+
   it('sin sesión ofrece entrar; al entrar muestra nombre y foto y permite salir', async () => {
     const { usuario } = await preparar(new AutenticacionMemoria(ana))
     expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()

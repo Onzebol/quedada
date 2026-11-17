@@ -15,11 +15,13 @@ interface Props {
   compradores: Comprador[]
   /** Con un filtro por persona todos los productos son suyos y el desplegable sobra. */
   conComprador?: boolean
+  /** Sin botones de editar ni borrar. */
+  soloLectura?: boolean
   onCambiar: (id: Id, cambios: CambiosProducto) => void
   onBorrar: (id: Id) => void
 }
 
-export function FilaProducto({ producto, compradores, conComprador = true, onCambiar, onBorrar }: Props) {
+export function FilaProducto({ producto, compradores, conComprador = true, soloLectura = false, onCambiar, onBorrar }: Props) {
   const [editando, setEditando] = useState(false)
 
   const cantidad = formatearCantidad(producto.cantidad, producto.unidad)
@@ -60,16 +62,20 @@ export function FilaProducto({ producto, compradores, conComprador = true, onCam
             ))}
           </select>
         )}
-        <button type="button" onClick={() => setEditando(true)} aria-label={`Editar ${producto.nombre}`}>
-          <ConIcono icono={Pencil}>Editar</ConIcono>
-        </button>
-        <BotonBorrar
-          texto="Borrar"
-          etiqueta={`Borrar ${producto.nombre}`}
-          titulo={`¿Borrar «${producto.nombre}»?`}
-          mensaje="Se quitará de la lista de la compra. No se puede deshacer."
-          onConfirmar={() => onBorrar(producto.id)}
-        />
+        {!soloLectura && (
+          <>
+            <button type="button" onClick={() => setEditando(true)} aria-label={`Editar ${producto.nombre}`}>
+              <ConIcono icono={Pencil}>Editar</ConIcono>
+            </button>
+            <BotonBorrar
+              texto="Borrar"
+              etiqueta={`Borrar ${producto.nombre}`}
+              titulo={`¿Borrar «${producto.nombre}»?`}
+              mensaje="Se quitará de la lista de la compra. No se puede deshacer."
+              onConfirmar={() => onBorrar(producto.id)}
+            />
+          </>
+        )}
       </span>
       {editando && (
         <FormularioProducto
