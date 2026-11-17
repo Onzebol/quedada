@@ -30,6 +30,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 44 | Página inicial (sin `#/<id>`): crear, elegir y eliminar quedadas e importar el Excel; «Todas las quedadas» vuelve a ella |
 | 57 | Iconos (`lucide-react`) en los botones; en móvil (< 40 rem) solo se ve el icono, el texto queda como nombre accesible |
 | 67 | Lista de la compra como «La casa»: secciones plegables y por orden alfabético, añadir y editar en ventanas modales, asignar también a familias sin personas, filtro «Mostrar» y totales; sin «Añadir participante» (se definen en «La casa») |
+| 72 | Botón de usuario: en pantallas estrechas se oculta el nombre y queda la foto |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
