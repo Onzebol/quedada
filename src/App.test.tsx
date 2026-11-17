@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
 import { producto, quedada } from './dominio/fabrica'
-import { quedadaInicial } from './dominio/operaciones'
+import { anadirParticipante, quedadaInicial } from './dominio/operaciones'
 import { AutenticacionMemoria } from './test/autenticacionMemoria'
 import { abrirPrimera } from './test/abrirPrimera'
 import { RepositorioMemoria } from './test/repositorioMemoria'
@@ -13,10 +13,15 @@ function contador() {
   return () => `id${++n}`
 }
 
-function preparar(repositorio = new RepositorioMemoria()) {
+// `participantes`: los que ya se habrían definido en «La casa»; la lista de la compra no los crea.
+function preparar(repositorio = new RepositorioMemoria(), participantes: string[] = []) {
   const usuario = userEvent.setup()
   const crearId = contador()
-  if (repositorio.quedadas.length === 0) repositorio.quedadas = [quedadaInicial(crearId)]
+  if (repositorio.quedadas.length === 0) {
+    repositorio.quedadas = [
+      participantes.reduce((q, nombre) => anadirParticipante(q, { id: `p-${nombre}`, nombre }), quedadaInicial(crearId)),
+    ]
+  }
   abrirPrimera(repositorio)
   const vista = render(<App repositorio={repositorio} crearId={crearId} />)
   return { usuario, repositorio, vista, crearId }
@@ -43,11 +48,6 @@ async function abrirPestana(nombre: string) {
 async function abrirCuentas() {
   await abrirPestana('Resumen')
   return screen.findByRole('region', { name: 'Cuentas' })
-}
-
-async function anadirParticipante(usuario: ReturnType<typeof userEvent.setup>, nombre: string) {
-  await usuario.type(screen.getByRole('textbox', { name: 'Nombre del participante' }), nombre)
-  await usuario.click(screen.getByRole('button', { name: 'Añadir participante' }))
 }
 
 describe('Lista de la compra', () => {
@@ -92,20 +92,25 @@ describe('Lista de la compra', () => {
     expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeChecked()
   })
 
-  it('asigna un comprador a un producto', async () => {
-    const { usuario } = preparar()
+  it('no ofrece añadir participantes: se definen en «La casa»', async () => {
+    preparar()
     await esperarCarga()
-    await anadirParticipante(usuario, 'Josu')
+    expect(screen.queryByRole('form', { name: 'Participantes' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Añadir participante' })).not.toBeInTheDocument()
+  })
+
+  it('asigna un comprador a un producto', async () => {
+    const { usuario } = preparar(undefined, ['Josu'])
+    await esperarCarga()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Josu')
     expect(screen.getByRole('option', { name: 'Josu', selected: true })).toBeInTheDocument()
   })
 
   it('avisa de cuántos productos no tienen comprador', async () => {
-    const { usuario } = preparar()
+    const { usuario } = preparar(undefined, ['Josu'])
     await esperarCarga()
     expect(screen.getByRole('status')).toHaveTextContent('No hay productos todavía')
-    await anadirParticipante(usuario, 'Josu')
     await anadirProducto(usuario, 'Bebida', 'Sidra')
     expect(screen.getByRole('status')).toHaveTextContent('1 producto sin comprador')
     await anadirProducto(usuario, 'Bebida', 'Vino')
@@ -206,9 +211,8 @@ describe('Lista de la compra', () => {
   })
 
   it('filtra por sin asignar, pendientes y comprador', async () => {
-    const { usuario } = preparar()
+    const { usuario } = preparar(undefined, ['Josu'])
     await esperarCarga()
-    await anadirParticipante(usuario, 'Josu')
     await anadirProducto(usuario, 'Bebida', 'Sidra')
     await anadirProducto(usuario, 'Bebida', 'Vino')
     await anadirProducto(usuario, 'Desayunos', 'Café')
@@ -244,9 +248,8 @@ describe('Lista de la compra', () => {
   })
 
   it('conserva los datos al recargar (nueva instancia con el mismo repositorio)', async () => {
-    const primera = preparar()
+    const primera = preparar(undefined, ['Josu'])
     await esperarCarga()
-    await anadirParticipante(primera.usuario, 'Josu')
     await anadirProducto(primera.usuario, 'Bebida', 'Sidra')
     await primera.usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
     await primera.usuario.selectOptions(

@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { contarSinAsignar, filtrarProductos, type Filtro } from '../dominio/filtros'
 import {
   anadirGrupo,
-  anadirParticipante,
   anadirProducto,
   borrarGrupo,
   borrarProducto,
@@ -39,7 +38,6 @@ function aFiltro(valor: string): Filtro {
 export function ListaCompra({ estado, crearId }: Props) {
   const { quedada, aplicar, error } = estado
   const [valorFiltro, setValorFiltro] = useState('todos')
-  const [participante, setParticipante] = useState('')
   const [comida, setComida] = useState('')
 
   if (quedada === null) {
@@ -86,20 +84,6 @@ export function ListaCompra({ estado, crearId }: Props) {
           </select>
         </label>
 
-        <form
-          aria-label="Participantes"
-          onSubmit={(e) => {
-            e.preventDefault()
-            aplicar((q) => anadirParticipante(q, { id: crearId(), nombre: participante }))
-            setParticipante('')
-          }}
-        >
-          <label>
-            Nombre del participante
-            <input type="text" value={participante} onChange={(e) => setParticipante(e.target.value)} />
-          </label>
-          <button type="submit"><ConIcono icono={Plus}>Añadir participante</ConIcono></button>
-        </form>
       </div>
 
       {grupos.map((grupo) => {

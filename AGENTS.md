@@ -65,7 +65,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   `operaciones.ts` (altas, ediciones y borrados de participantes, comidas y productos, siempre
   devolviendo una quedada nueva), `filtros.ts` (filtros de la lista) y `numeros.ts` (leer y
   mostrar cantidades y euros con coma decimal).
-- Interfaz de la compra (`src/compra/`): `ListaCompra` (filtro, participantes, comidas),
+- Interfaz de la compra (`src/compra/`): `ListaCompra` (filtro y comidas; no crea participantes: los compradores salen de los que se definen en «La casa», #67),
   `GrupoCompra`, `FilaProducto` y el hook `useQuedada`, que carga la primera quedada del
   repositorio (o crea una con las comidas habituales) y guarda cada cambio, de uno en uno y en orden (#27: con un
   repositorio remoto dos guardados a la vez podrían llegar desordenados; mientras hay uno en curso solo
