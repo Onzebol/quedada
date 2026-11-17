@@ -30,6 +30,7 @@
 
 /* Cada familia es una ficha de solo lectura: título y datos, sus personas y «Añadir persona». */
 .familia {
+  container: ficha / inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--esp-3);
