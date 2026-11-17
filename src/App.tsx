@@ -13,6 +13,7 @@ import type { Repositorio } from './dominio/repositorio'
 import { RepositorioLocalStorage } from './dominio/repositorioLocalStorage'
 import { quedadaInicial } from './dominio/operaciones'
 import type { Id, Quedada } from './dominio/tipos'
+import { Pestanas } from './ui/Pestanas'
 import { Inicio } from './inicio/Inicio'
 import { ImportarExcel } from './importacion/ImportarExcel'
 import type { InformeImportacion } from './importacion/importarHoja'
@@ -185,12 +186,31 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, irAlInic
       ) : (
         <>
           {estado.quedada !== null && <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />}
-          <div className="pagina__columnas">
+          {estado.quedada === null ? (
             <ListaCompra estado={estado} crearId={crearId} />
-            {estado.quedada !== null && <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />}
-          </div>
-          {estado.quedada !== null && (
-            <Asistentes quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />
+          ) : (
+            <Pestanas
+              etiqueta="Secciones de la quedada"
+              inicial="compra"
+              pestanas={[
+                {
+                  id: 'casa',
+                  titulo: 'La casa',
+                  contenido: <Asistentes quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />,
+                },
+                { id: 'compra', titulo: 'Lista de la compra', contenido: <ListaCompra estado={estado} crearId={crearId} /> },
+                {
+                  id: 'tickets',
+                  titulo: 'Tickets',
+                  contenido: <p role="note">Aquí irán los tiques de la compra de cada uno. Todavía no se pueden registrar.</p>,
+                },
+                {
+                  id: 'resumen',
+                  titulo: 'Resumen',
+                  contenido: <Cuentas quedada={estado.quedada} aplicar={estado.aplicar} />,
+                },
+              ]}
+            />
           )}
         </>
       )}

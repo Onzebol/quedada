@@ -1,0 +1,29 @@
+.pestanas__lista {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--linea);
+}
+
+.pestanas__tab {
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pestanas__tab:hover {
+  color: var(--moss);
+}
+
+.pestanas__tab[aria-selected='true'] {
+  border-bottom-color: var(--moss);
+  color: var(--moss);
+}
