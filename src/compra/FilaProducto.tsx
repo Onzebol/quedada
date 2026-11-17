@@ -1,3 +1,5 @@
+import { Pencil, Check, X } from 'lucide-react'
+import { ConIcono } from '../ui/ConIcono'
 import { useState } from 'react'
 import type { CambiosProducto } from '../dominio/operaciones'
 import { formatearCantidad, formatearEuros, parsearCantidad, parsearEuros } from '../dominio/numeros'
@@ -58,7 +60,7 @@ export function FilaProducto({ producto, participantes, onCambiar, onBorrar }: P
       </select>
       <span className="fila__acciones">
         <button type="button" onClick={() => setEditando(true)} aria-label={`Editar ${producto.nombre}`}>
-          Editar
+          <ConIcono icono={Pencil}>Editar</ConIcono>
         </button>
         <BotonBorrar
           texto="Borrar"
@@ -130,9 +132,9 @@ function FormularioEdicion({
         <input type="text" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} />
       </label>
       <span className="fila__acciones">
-        <button type="submit">Guardar</button>
+        <button type="submit"><ConIcono icono={Check}>Guardar</ConIcono></button>
         <button type="button" onClick={onCancelar}>
-          Cancelar
+          <ConIcono icono={X}>Cancelar</ConIcono>
         </button>
       </span>
     </form>

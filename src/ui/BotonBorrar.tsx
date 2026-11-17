@@ -1,3 +1,5 @@
+import { Trash2 } from 'lucide-react'
+import { ConIcono } from './ConIcono'
 import { useRef, useState, type ReactNode } from 'react'
 import { Modal } from './Modal'
 
@@ -49,7 +51,7 @@ export function BotonBorrar({ texto, etiqueta, titulo, mensaje, textoConfirmar =
   return (
     <>
       <button type="button" aria-label={etiqueta} onClick={() => setAbierta(true)}>
-        {texto}
+        <ConIcono icono={Trash2}>{texto}</ConIcono>
       </button>
       {abierta && (
         <Modal titulo={titulo} descripcion={mensaje} onCerrar={cerrar}>

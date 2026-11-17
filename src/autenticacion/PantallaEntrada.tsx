@@ -1,3 +1,5 @@
+import { LogIn } from 'lucide-react'
+import { ConIcono } from '../ui/ConIcono'
 import type { Autenticacion } from './tipos'
 import './sesion.css'
 import { useSesion } from './useSesion'
@@ -11,7 +13,7 @@ export function PantallaEntrada({ autenticacion }: { autenticacion: Autenticacio
       <h1>Quedada</h1>
       {disponible ? (
         <button type="button" onClick={() => void entrar()}>
-          Entrar con Google
+          <ConIcono icono={LogIn}>Entrar con Google</ConIcono>
         </button>
       ) : (
         <p role="alert">Falta la configuración de Supabase: no se puede iniciar sesión.</p>

@@ -162,7 +162,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   columna «total» de toda la hoja cuenta dos veces lo comprado (líneas más tickets).
 - **Página inicial** (#44, `src/inicio/Inicio.tsx`): `App` enruta por el hash. Sin `#/<id>` muestra `PaginaInicial`
   (lista de quedadas con crear, elegir y eliminar, más `ImportarExcel`); con él, `VistaQuedada` (con
-  «← Todas las quedadas», que pone el hash a vacío). Elegir una quedada pone `#/<id>`; crear usa
+  «Todas las quedadas», que pone el hash a vacío). Elegir una quedada pone `#/<id>`; crear usa
   `quedadaInicial(crearId, nombre)`, la guarda y la abre; importar un Excel con una sola quedada la abre y con
   varias deja la lista. **La app ya no crea una quedada sola al abrirse vacía** (solo `useQuedada` sin id, que
   usan los tests del hook). `useQuedada` con un id que no existe o al que no se tiene acceso devuelve
@@ -172,6 +172,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   controlar el estilo «Sierra» en `modal.css` y poder probarla: rol `dialog` + `aria-modal`, Esc, clic fuera, foco contenido y
   devuelto al botón, bloqueo del scroll, foco inicial en el elemento con `data-autofocus`) y `BotonBorrar` (botón + modal; si el
   borrado rechaza deja la ventana abierta con el aviso, y no se confirma dos veces). Se usa en los cinco borrados: quedada, comida, producto, asistente y básico.
+- **Iconos** (#57, `lucide-react`): los botones con texto usan `ui/ConIcono` (`icono` + texto; el SVG lleva `aria-hidden`). `ui/icono.css` oculta el texto visualmente por debajo de 40 rem (queda en el DOM como nombre accesible), así que en móvil solo se ve el icono. Los botones nuevos deben usarlo.
 - **Eliminar quedada** (#36, `src/compra/EliminarQuedada.tsx`, ahora en la página inicial, uno por quedada): `BotonBorrar` con la
   ventana modal de confirmación. `PaginaInicial.eliminar`
   llama a `Repositorio.borrar` y refresca la lista. Si falla, avisa y no cambia nada. En Supabase el borrado es en

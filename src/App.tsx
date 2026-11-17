@@ -1,3 +1,5 @@
+import { ArrowLeft } from 'lucide-react'
+import { ConIcono } from './ui/ConIcono'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CopiarEnlace } from './autenticacion/CopiarEnlace'
 import { AutenticacionGoogle } from './autenticacion/autenticacionGoogle'
@@ -173,7 +175,7 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, irAlInic
     <>
       <nav>
         <button type="button" className="volver" onClick={irAlInicio}>
-          ← Todas las quedadas
+          <ConIcono icono={ArrowLeft}>Todas las quedadas</ConIcono>
         </button>
       </nav>
       <Sesion sesion={sesion} quedada={estado.quedada} aplicar={estado.aplicar} />

@@ -1,3 +1,5 @@
+import { Check, X, Plus, Pencil } from 'lucide-react'
+import { ConIcono } from '../ui/ConIcono'
 import { useState } from 'react'
 import type { CambiosProducto } from '../dominio/operaciones'
 import type { Grupo, Id, Participante, Producto } from '../dominio/tipos'
@@ -52,9 +54,9 @@ export function GrupoCompra({
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
           />
-          <button type="submit">Guardar nombre</button>
+          <button type="submit"><ConIcono icono={Check}>Guardar nombre</ConIcono></button>
           <button type="button" onClick={() => setRenombrando(false)}>
-            Cancelar
+            <ConIcono icono={X}>Cancelar</ConIcono>
           </button>
         </form>
       ) : (
@@ -68,7 +70,7 @@ export function GrupoCompra({
               setRenombrando(true)
             }}
           >
-            Renombrar
+            <ConIcono icono={Pencil}>Renombrar</ConIcono>
           </button>
           <label className="grupo__casa">
             <input
@@ -112,7 +114,7 @@ export function GrupoCompra({
         }}
       >
         <input type="text" aria-label="Producto" value={nuevo} onChange={(e) => setNuevo(e.target.value)} />
-        <button type="submit">Añadir</button>
+        <button type="submit"><ConIcono icono={Plus}>Añadir</ConIcono></button>
       </form>
     </section>
   )

@@ -25,7 +25,8 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
 | 42 | Todos los borrados (quedada, comida, producto, asistente y básico) piden confirmación en una ventana modal con el estilo de la web |
 | 43 | Menú de usuario: arriba a la derecha solo nombre de pila y foto; al pulsar se abre un menú con «Cerrar sesión» |
-| 44 | Página inicial (sin `#/<id>`): crear, elegir y eliminar quedadas e importar el Excel; «← Todas las quedadas» vuelve a ella |
+| 44 | Página inicial (sin `#/<id>`): crear, elegir y eliminar quedadas e importar el Excel; «Todas las quedadas» vuelve a ella |
+| 57 | Iconos (`lucide-react`) en los botones; en móvil (< 40 rem) solo se ve el icono, el texto queda como nombre accesible |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos

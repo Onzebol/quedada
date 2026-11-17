@@ -1,0 +1,29 @@
+.icono {
+  flex: none;
+  vertical-align: -0.25em;
+}
+
+.icono + .icono-texto {
+  margin-left: 0.4rem;
+}
+
+/* Móvil: solo el icono; el texto queda para lectores de pantalla (nombre accesible). */
+@media (max-width: 39.99rem) {
+  .icono-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .icono + .icono-texto {
+    margin-left: 0;
+  }
+
+  button:has(> .icono-texto) {
+    min-width: 2.5rem;
+    padding-inline: 0.5rem !important;
+  }
+}
