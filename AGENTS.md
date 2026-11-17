@@ -89,7 +89,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   `casa` (como en el Excel), no pongas también el precio. Los porcentajes se editan en «La casa» (`FilaComponente`);
   `Cuentas` es de solo lectura. Al reimportar el Excel se conservan la casa, `familiaId` y `porcentajeCasa`.
   **Al desplegar**: ejecutar `0004_casa.sql` en el editor SQL de Supabase antes de fusionar (solo añade columnas).
-- Interfaz de cuentas (`src/cuentas/`): `Cuentas` muestra el total, lo pagado por persona, los
+- Interfaz de cuentas (`src/cuentas/`): `Cuentas` muestra el total, lo pagado por persona y
   las transferencias; los porcentajes de reparto se ajustan en «La casa» (#56) y el interruptor
   «Gasto de la casa» está en cada comida de la lista. `App` llama a
   `useQuedada` y reparte el estado entre `ListaCompra` y `Cuentas`. Los interruptores usan
