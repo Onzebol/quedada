@@ -81,7 +81,6 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
               </select>
             </label>
           )}
-          {yo !== null && <p>Eres {yo.nombre} en esta quedada</p>}
         </>
       )}
       {error === 'entrada' && <p role="alert">No se pudo iniciar sesión con Google. Inténtalo de nuevo.</p>}
