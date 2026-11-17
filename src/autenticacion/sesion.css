@@ -5,7 +5,6 @@
   flex-wrap: wrap;
   gap: 0.75rem 1rem;
   align-items: center;
-  margin: 0 0 1rem;
 }
 
 .sesion__persona {
@@ -65,26 +64,6 @@
   align-items: center;
   font-size: 0.875rem;
   color: var(--mut);
-}
-
-.sesion select {
-  min-height: 2.5rem;
-  padding: 0 0.75rem;
-  background: #fff;
-  border: 1px solid var(--linea);
-  border-radius: 12px;
-  color: var(--ink);
-}
-
-.sesion button,
-.copiar-enlace button {
-  min-height: 2.5rem;
-  padding: 0 1rem;
-  background: transparent;
-  border: 1px solid var(--linea);
-  border-radius: 40px;
-  color: var(--ink);
-  cursor: pointer;
 }
 
 /* Pantalla de entrada: lo único visible sin sesión. */

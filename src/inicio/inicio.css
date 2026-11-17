@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin: 0 0 1.5rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -46,59 +46,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: end;
-  gap: 0.5rem;
-  margin-block: 1rem;
+  gap: var(--esp-2);
 }
 
 .inicio__nueva label {
-  display: flex;
   flex: 1 1 14rem;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--mut);
-}
-
-.inicio__nueva input {
-  min-height: 2.5rem;
-  padding: 0 0.75rem;
-  background: #fff;
-  border: 1px solid var(--linea);
-  border-radius: 12px;
-  color: var(--ink);
-  font: inherit;
-}
-
-.inicio__nueva button {
-  min-height: 2.5rem;
-  padding: 0 1rem;
-  background: var(--moss);
-  border: 1px solid var(--moss);
-  border-radius: 40px;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.inicio :focus-visible {
-  outline: 3px solid Highlight;
-  outline-offset: 2px;
 }
 
 /* «← Todas las quedadas» en la vista de una quedada. */
-.volver {
-  min-height: 2.5rem;
-  margin-bottom: 0.75rem;
-  padding: 0 1rem;
-  background: transparent;
-  border: 1px solid var(--linea);
-  border-radius: 40px;
-  color: var(--ink);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.volver:hover {
-  border-color: var(--moss);
-}

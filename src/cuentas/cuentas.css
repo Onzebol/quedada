@@ -1,13 +1,13 @@
 /* Sierra: panel verde para las cuentas, con filas separadas por líneas translúcidas. */
 .cuentas {
-  padding: 1.5rem 1.625rem;
+  padding: var(--relleno-panel);
   background: var(--moss);
   color: #fff;
   border-radius: var(--radio);
 }
 
 .cuentas h2 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--esp-2);
   font-size: 1.625rem;
 }
 
