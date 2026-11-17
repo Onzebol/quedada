@@ -1,3 +1,5 @@
+import { Plus } from 'lucide-react'
+import { ConIcono } from '../ui/ConIcono'
 import { useState } from 'react'
 import {
   anadirAsistente,
@@ -62,7 +64,7 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
           Llegada
           <input type="time" value={llegada} onChange={(e) => setLlegada(e.target.value)} />
         </label>
-        <button type="submit">Añadir asistente</button>
+        <button type="submit"><ConIcono icono={Plus}>Añadir asistente</ConIcono></button>
       </form>
 
       <ul className="asistentes__lista">
@@ -114,7 +116,7 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
           Nombre del básico
           <input type="text" value={basico} onChange={(e) => setBasico(e.target.value)} />
         </label>
-        <button type="submit">Añadir básico</button>
+        <button type="submit"><ConIcono icono={Plus}>Añadir básico</ConIcono></button>
       </form>
 
       <ul className="asistentes__lista">

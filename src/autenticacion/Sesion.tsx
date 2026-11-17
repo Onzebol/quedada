@@ -1,3 +1,5 @@
+import { LogIn, LogOut } from 'lucide-react'
+import { ConIcono } from '../ui/ConIcono'
 import { useEffect, useRef, useState } from 'react'
 import { vincularCuenta, participanteDe } from '../dominio/vinculos'
 import type { Quedada } from '../dominio/tipos'
@@ -39,7 +41,7 @@ function MenuUsuario({ nombre, foto, salir }: { nombre: string; foto: string | n
       {abierto && (
         <div className="sesion__menu" role="menu">
           <button type="button" role="menuitem" onClick={salir}>
-            Cerrar sesión
+            <ConIcono icono={LogOut}>Cerrar sesión</ConIcono>
           </button>
         </div>
       )}
@@ -57,7 +59,7 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
     <section className="sesion" aria-label="Sesión">
       {usuario === null ? (
         <button type="button" onClick={() => void entrar()}>
-          Entrar con Google
+          <ConIcono icono={LogIn}>Entrar con Google</ConIcono>
         </button>
       ) : (
         <>

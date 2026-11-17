@@ -1,3 +1,5 @@
+import { Plus } from 'lucide-react'
+import { ConIcono } from '../ui/ConIcono'
 import { useState, type ReactNode } from 'react'
 import { EliminarQuedada } from '../compra/EliminarQuedada'
 import type { Id, Quedada } from '../dominio/tipos'
@@ -46,7 +48,7 @@ export function Inicio({ quedadas, alElegir, alCrear, alEliminar, children }: Pr
           Nombre de la nueva quedada
           <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
         </label>
-        <button type="submit">Crear quedada</button>
+        <button type="submit"><ConIcono icono={Plus}>Crear quedada</ConIcono></button>
       </form>
       {children}
     </section>

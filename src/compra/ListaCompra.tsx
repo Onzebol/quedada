@@ -1,3 +1,5 @@
+import { Plus } from 'lucide-react'
+import { ConIcono } from '../ui/ConIcono'
 import { useState } from 'react'
 import { contarSinAsignar, filtrarProductos, type Filtro } from '../dominio/filtros'
 import {
@@ -96,7 +98,7 @@ export function ListaCompra({ estado, crearId }: Props) {
             Nombre del participante
             <input type="text" value={participante} onChange={(e) => setParticipante(e.target.value)} />
           </label>
-          <button type="submit">Añadir participante</button>
+          <button type="submit"><ConIcono icono={Plus}>Añadir participante</ConIcono></button>
         </form>
       </div>
 
@@ -134,7 +136,7 @@ export function ListaCompra({ estado, crearId }: Props) {
           Nombre de la comida
           <input type="text" value={comida} onChange={(e) => setComida(e.target.value)} />
         </label>
-        <button type="submit">Añadir comida</button>
+        <button type="submit"><ConIcono icono={Plus}>Añadir comida</ConIcono></button>
       </form>
     </div>
   )
