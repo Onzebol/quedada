@@ -337,8 +337,8 @@ describe('La casa: familias y componentes', () => {
 
   it('quita un componente tras confirmar', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
-    await usuario.click(screen.getByRole('button', { name: 'Quitar a Ana' }))
-    expect(screen.getByRole('dialog', { name: '¿Quitar a «Ana»?' })).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Borrar persona Ana' }))
+    expect(screen.getByRole('dialog', { name: '¿Borrar a «Ana»?' })).toBeInTheDocument()
     await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect((await guardada(repositorio)).participantes.map((p) => p.id)).toEqual(['z'])
   })

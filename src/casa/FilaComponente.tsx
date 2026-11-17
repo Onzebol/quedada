@@ -41,8 +41,9 @@ export function FilaComponente({ participante: p, aplicar, children }: Props) {
       </label>
       {children}
       <BotonBorrar
-        texto={`Quitar a ${p.nombre}`}
-        titulo={`¿Quitar a «${p.nombre}»?`}
+        texto="Borrar"
+        etiqueta={`Borrar persona ${p.nombre}`}
+        titulo={`¿Borrar a «${p.nombre}»?`}
         mensaje="Dejará de repartir gastos, y lo que compraba o pagaba de la casa quedará sin asignar. No se puede deshacer."
         onConfirmar={() => aplicar((q) => quitarComponente(q, p.id))}
       />

@@ -91,7 +91,8 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
               onChange={(e) => aplicar((q) => editarAsistente(q, a.id, { llegada: e.target.value === '' ? null : e.target.value }))}
             />
             <BotonBorrar
-              texto={`Borrar ${a.familia}`}
+              texto="Borrar"
+              etiqueta={`Borrar ${a.familia}`}
               titulo={`¿Borrar la familia «${a.familia}»?`}
               mensaje="Dejará de contar entre quienes vienen; sus componentes quedarán como participantes sin familia. No se puede deshacer."
               onConfirmar={() => aplicar((q) => borrarAsistente(q, a.id))}
