@@ -35,7 +35,7 @@ _Pendiente: confirmar con el Excel la estructura exacta de datos y cómo se repa
 Comandos:
 
 - Instalar: `npm install`
-- Desarrollo: `npm run dev -- --port <puerto> --strictPort` (puerto aleatorio libre, ver preferencias globales)
+- Desarrollo: `npm run dev` escucha en el **puerto fijo 39726** (`strictPort`, en `vite.config.ts`, #60): es la URL de redirección que tiene Supabase Auth (`http://localhost:39726/quedada/`). Excepción decidida por el usuario a la preferencia global de puertos aleatorios; si está ocupado falla y hay que parar quien lo usa (un solo worktree a la vez)
 - Tests: `npm test` (una pasada) o `npm run test:watch`; cobertura con `npm run coverage`
 - Lint: `npm run lint`; tipos: `npm run typecheck`
 - Build: `npm run build`

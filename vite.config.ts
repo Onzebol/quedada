@@ -5,6 +5,8 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   base: '/quedada/',
   plugins: [react()],
+  // Puerto fijo: la URL de redirección de Supabase Auth necesita una dirección concreta (#60).
+  server: { port: 39726, strictPort: true },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
