@@ -103,13 +103,14 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   `pagaCasa: false` (niños). El resto (comida) se reparte según `porcentajeComida` de cada
   participante (100 por defecto; menos o 0 para niños). Los productos sin comprador no cuentan.
 - Asistentes (#7): `Quedada.asistentes` (familia, personas ≥ 1, llegada `HH:MM` o `null`) y
-  `Quedada.basicos` (nombre y familia que lo trae, o `null` si queda sin asignar). Lógica pura en
-  `dominio/asistentes.ts` (alta, edición, baja, total, orden por llegada, básicos); tablas
+  `Quedada.basicos` (**en desuso**: la sección de básicos se quitó en #56, lo que haya que llevar va en la lista de la compra; el
+  campo y las tablas se conservan para no borrar datos ni migrar). Lógica pura en
+  `dominio/asistentes.ts` (alta, edición, baja, total, orden por llegada); tablas
   `asistentes` y `basicos` en SQLite (`CREATE TABLE IF NOT EXISTS`, así que las bases antiguas se
   abren sin migrar). Interfaz en `src/asistentes/` (`Asistentes`, `CampoEntero`); el total
   («Vienen N personas») sale también en la lista de la compra. **Los asistentes no cambian el
   reparto de gastos**: sigue la regla de #4 (test en `liquidacion.test.ts`). Al reimportar el
-  Excel se conservan los asistentes y básicos de la quedada.
+  Excel se conservan los asistentes de la quedada.
 - Sesión con Google y enlace (#19, `src/autenticacion/`): la autenticación va detrás de la interfaz
   `Autenticacion` (`tipos.ts`; fake en `src/test/autenticacionMemoria.ts`). `autenticacionGoogle.ts`
   usa Google Identity Services (ventana OAuth con `initTokenClient`, scopes `openid profile email`) y

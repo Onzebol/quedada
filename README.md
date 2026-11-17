@@ -16,7 +16,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 4 | Gastos y liquidación (hecho): precio y descuento por producto, reparto (casa a partes iguales, comida por porcentaje) y quién paga a quién |
 | 5 | Despliegue continuo en GitHub Pages |
 | 6 | Importar el Excel (hecho): hojas «Compras 2023 a 2026» a quedadas, con la lista de quedadas |
-| 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes y básicos (leche, lavavajillas) asignados o sin asignar |
+| 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes (los básicos se quitaron en #56: van en la lista de la compra) |
 | 19 | Sesión con Google y enlace de la quedada (`#/<id>`): entrar/salir, nombre y foto, «Este soy yo» |
 | 25 | Supabase: login con Google y quedadas por usuario (primer trozo; compartir, conocidos e invitaciones, después). Configuración: ver abajo |
 | 30 | Supabase: una fila por cosa (participantes, comidas, productos…) y guardado por diferencias, para que varias personas editen sin pisarse (paso 1 de #29) |

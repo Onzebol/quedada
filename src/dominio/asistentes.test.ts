@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   anadirAsistente,
-  anadirBasico,
-  asignarBasico,
-  basicosSinAsignar,
-  borrarAsistente,
-  borrarBasico,
   editarAsistente,
   ordenarPorLlegada,
   totalAsistentes,
@@ -52,45 +47,5 @@ describe('asistentes', () => {
     q = anadirAsistente(q, { id: 'a2', familia: 'Tarde', personas: 1, llegada: '21:00' })
     q = anadirAsistente(q, { id: 'a3', familia: 'Pronto', personas: 1, llegada: '09:05' })
     expect(ordenarPorLlegada(q.asistentes).map((a) => a.familia)).toEqual(['Pronto', 'Tarde', 'Sin hora'])
-  })
-
-  it('al borrar una familia sus básicos quedan sin asignar', () => {
-    let q = anadirAsistente(quedada(), { id: 'a1', familia: 'Pérez', personas: 2, llegada: null })
-    q = anadirBasico(q, { id: 'b1', nombre: 'Leche' })
-    q = asignarBasico(q, 'b1', 'a1')
-    q = borrarAsistente(q, 'a1')
-    expect(q.asistentes).toEqual([])
-    expect(q.basicos).toEqual([{ id: 'b1', nombre: 'Leche', asistenteId: null }])
-  })
-})
-
-describe('básicos', () => {
-  it('añade básicos sin asignar y rechaza vacíos o repetidos', () => {
-    let q = anadirBasico(quedada(), { id: 'b1', nombre: ' Leche ' })
-    expect(q.basicos).toEqual([{ id: 'b1', nombre: 'Leche', asistenteId: null }])
-    expect(anadirBasico(q, { id: 'b2', nombre: ' ' })).toBe(q)
-    expect(anadirBasico(q, { id: 'b2', nombre: 'leche' })).toBe(q)
-    q = anadirBasico(q, { id: 'b3', nombre: 'Pastillas de lavavajillas' })
-    expect(basicosSinAsignar(q).map((b) => b.nombre)).toEqual(['Leche', 'Pastillas de lavavajillas'])
-  })
-
-  it('asigna un básico a una familia y lo puede soltar', () => {
-    let q = anadirAsistente(quedada(), { id: 'a1', familia: 'Pérez', personas: 2, llegada: null })
-    q = anadirBasico(q, { id: 'b1', nombre: 'Leche' })
-    q = asignarBasico(q, 'b1', 'a1')
-    expect(basicosSinAsignar(q)).toEqual([])
-    q = asignarBasico(q, 'b1', null)
-    expect(basicosSinAsignar(q)).toHaveLength(1)
-  })
-
-  it('no asigna a una familia que no existe', () => {
-    const q = anadirBasico(quedada(), { id: 'b1', nombre: 'Leche' })
-    expect(asignarBasico(q, 'b1', 'nadie')).toBe(q)
-  })
-
-  it('borra un básico', () => {
-    let q = anadirBasico(quedada(), { id: 'b1', nombre: 'Leche' })
-    q = borrarBasico(q, 'b1')
-    expect(q.basicos).toEqual([])
   })
 })
