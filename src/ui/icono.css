@@ -23,15 +23,17 @@
   }
 
   button:has(> .icono-texto) {
-    min-width: 2.5rem;
-    padding-inline: 0.5rem !important;
+    width: var(--alto-control);
+    min-width: 0;
+    padding: 0 !important;
+    border-radius: 50%;
   }
 }
 
-/* Fichas de familia (asistentes.css): si el texto no cabe, solo el icono, como en móvil.
-   Las acciones de cada persona comparten línea con su nombre y sus porcentajes, así que necesitan más sitio. */
+/* Fichas de familia (asistentes.css): si el texto no cabe en la ficha, solo el icono, como en móvil
+   (círculo del alto del botón). */
 @container ficha (max-width: 30rem) {
-  .familia__acciones .icono-texto {
+  :is(.familia__acciones, .persona__acciones) .icono-texto {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -40,32 +42,14 @@
     white-space: nowrap;
   }
 
-  .familia__acciones .icono + .icono-texto {
+  :is(.familia__acciones, .persona__acciones) .icono + .icono-texto {
     margin-left: 0;
   }
 
-  .familia__acciones button:has(> .icono-texto) {
-    min-width: 2.5rem;
-    padding-inline: 0.5rem !important;
-  }
-}
-
-@container ficha (max-width: 42rem) {
-  .persona__acciones .icono-texto {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .persona__acciones .icono + .icono-texto {
-    margin-left: 0;
-  }
-
-  .persona__acciones button:has(> .icono-texto) {
-    min-width: 2rem;
-    padding-inline: 0.5rem !important;
+  :is(.familia__acciones, .persona__acciones) button:has(> .icono-texto) {
+    width: var(--alto-control);
+    min-width: 0;
+    padding: 0 !important;
+    border-radius: 50%;
   }
 }

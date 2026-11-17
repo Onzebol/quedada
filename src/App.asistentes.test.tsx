@@ -43,6 +43,30 @@ async function anadir(usuario: ReturnType<typeof userEvent.setup>, familia: stri
 }
 
 describe('Asistentes', () => {
+  it('las fichas empiezan contraídas: nombre, datos y botones de la familia, y se expanden al pulsar el nombre', async () => {
+    const { usuario } = await preparar(
+      quedada({
+        id: 'q1',
+        asistentes: [{ id: 'f1', familia: 'Pérez', personas: 1, llegada: '18:30' }],
+        participantes: [{ id: 'a', nombre: 'Ana', familiaId: 'f1' }],
+      }),
+    )
+    const s = within(seccion())
+    expect(s.getByRole('heading', { level: 3, name: 'Pérez' })).toBeInTheDocument()
+    expect(s.getByText('1 persona')).toBeInTheDocument()
+    expect(s.getByText('Llega a las 18:30')).toBeInTheDocument()
+    expect(s.getByRole('button', { name: 'Editar familia Pérez' })).toBeInTheDocument()
+    expect(s.queryByRole('button', { name: 'Editar persona Ana' })).not.toBeInTheDocument()
+    expect(s.queryByRole('button', { name: 'Añadir persona a Pérez' })).not.toBeInTheDocument()
+
+    await usuario.click(s.getByRole('button', { name: 'Pérez', expanded: false }))
+    expect(s.getByRole('button', { name: 'Editar persona Ana' })).toBeInTheDocument()
+    expect(s.getByRole('button', { name: 'Añadir persona a Pérez' })).toBeInTheDocument()
+
+    await usuario.click(s.getByRole('button', { name: 'Pérez', expanded: true }))
+    expect(s.queryByRole('button', { name: 'Editar persona Ana' })).not.toBeInTheDocument()
+  })
+
   it('el botón de añadir abre una ventana y al añadir la cierra', async () => {
     const { usuario } = await preparar()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()

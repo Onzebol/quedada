@@ -1,5 +1,5 @@
-import { Pencil, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronDown, Pencil, Plus } from 'lucide-react'
+import { useId, useState } from 'react'
 import { FichaPersona } from '../casa/FichaPersona'
 import { anadirComponente } from '../dominio/casa'
 import {
@@ -79,10 +79,12 @@ interface PropsFamilia {
   crearId: () => Id
 }
 
-/** Ficha de una familia: solo lectura; sus acciones abren ventanas modales. */
+/** Ficha de una familia: solo lectura y contraída por defecto (nombre y datos); sus acciones abren ventanas modales. */
 function FichaFamilia({ quedada, asistente: a, aplicar, crearId }: PropsFamilia) {
   const [editando, setEditando] = useState(false)
   const [anadiendo, setAnadiendo] = useState(false)
+  const [abierta, setAbierta] = useState(false)
+  const idDetalle = useId()
   const componentes = quedada.participantes.filter((p) => p.familiaId === a.id)
   const personas = personasDe(quedada, a)
 
@@ -90,7 +92,18 @@ function FichaFamilia({ quedada, asistente: a, aplicar, crearId }: PropsFamilia)
     <li className="familia">
       <div className="familia__cabecera">
         <div className="familia__titulo">
-          <h3>{a.familia}</h3>
+          <h3>
+            <button
+              type="button"
+              className="familia__alternar"
+              aria-expanded={abierta}
+              aria-controls={abierta ? idDetalle : undefined}
+              onClick={() => setAbierta((v) => !v)}
+            >
+              {a.familia}
+              <ChevronDown className="icono familia__flecha" size={18} aria-hidden="true" />
+            </button>
+          </h3>
           <p className="familia__datos">
             <span>
               {personas} {personas === 1 ? 'persona' : 'personas'}
@@ -112,17 +125,21 @@ function FichaFamilia({ quedada, asistente: a, aplicar, crearId }: PropsFamilia)
         </div>
       </div>
 
-      {componentes.length > 0 && (
-        <ul className="asistentes__componentes" aria-label={`Personas de la familia ${a.familia}`}>
-          {componentes.map((p) => (
-            <FichaPersona key={p.id} participante={p} aplicar={aplicar} />
-          ))}
-        </ul>
-      )}
+      {abierta && (
+        <div id={idDetalle} className="familia__detalle">
+          {componentes.length > 0 && (
+            <ul className="asistentes__componentes" aria-label={`Personas de la familia ${a.familia}`}>
+              {componentes.map((p) => (
+                <FichaPersona key={p.id} participante={p} aplicar={aplicar} />
+              ))}
+            </ul>
+          )}
 
-      <button type="button" className="familia__anadir" aria-label={`Añadir persona a ${a.familia}`} onClick={() => setAnadiendo(true)}>
-        <ConIcono icono={Plus}>Añadir persona</ConIcono>
-      </button>
+          <button type="button" className="familia__anadir" aria-label={`Añadir persona a ${a.familia}`} onClick={() => setAnadiendo(true)}>
+            <ConIcono icono={Plus}>Añadir persona</ConIcono>
+          </button>
+        </div>
+      )}
 
       {editando && (
         <FormularioFamilia

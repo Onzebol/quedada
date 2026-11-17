@@ -291,6 +291,10 @@ describe('Pagos', () => {
 })
 
 describe('La casa: familias y componentes', () => {
+  /** Las fichas de familia empiezan contraídas: se expanden pulsando el nombre. */
+  const expandir = (usuario: Usuario, familia: string) =>
+    usuario.click(screen.getByRole('button', { name: familia, expanded: false }))
+
   const conFamilia = () =>
     quedada({
       id: 'q1',
@@ -303,6 +307,7 @@ describe('La casa: familias y componentes', () => {
 
   it('añade personas a una familia con «Añadir persona» y su número de personas las cuenta', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
+    await expandir(usuario, 'Pérez')
     await usuario.click(screen.getByRole('button', { name: 'Añadir persona a Pérez' }))
     const d = within(screen.getByRole('dialog', { name: 'Nueva persona' }))
     await usuario.type(d.getByRole('textbox', { name: 'Nombre' }), 'Beto')
@@ -320,6 +325,7 @@ describe('La casa: familias y componentes', () => {
 
   it('edita el nombre y lo que paga cada componente de casa y de los demás gastos', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
+    await expandir(usuario, 'Pérez')
     expect(screen.queryByRole('textbox', { name: /Nombre de Ana/ })).not.toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Editar persona Ana' }))
     const d = within(screen.getByRole('dialog', { name: 'Editar persona' }))
@@ -342,6 +348,7 @@ describe('La casa: familias y componentes', () => {
 
   it('quita un componente tras confirmar', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
+    await expandir(usuario, 'Pérez')
     await usuario.click(screen.getByRole('button', { name: 'Borrar persona Ana' }))
     expect(screen.getByRole('dialog', { name: '¿Borrar a «Ana»?' })).toBeInTheDocument()
     await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))

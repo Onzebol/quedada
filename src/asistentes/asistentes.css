@@ -73,11 +73,44 @@
   gap: var(--esp-2);
 }
 
+/* El nombre es el botón que expande o contrae la ficha: sin aspecto de botón, con una flecha que gira. */
+.familia h3 button.familia__alternar {
+  display: inline-flex;
+  gap: var(--esp-2);
+  align-items: center;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.familia__alternar:hover {
+  color: var(--moss);
+}
+
+.familia__flecha {
+  color: var(--mut);
+}
+
+.familia__alternar[aria-expanded='true'] .familia__flecha {
+  transform: rotate(180deg);
+}
+
+.familia__detalle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
 .familia__anadir {
   align-self: flex-start;
 }
 
-/* Personas de una familia (o sin familia): una línea por persona. */
+/* Personas de una familia (o sin familia): nombre y botones en la primera línea, porcentajes debajo en pequeño. */
 .asistentes__componentes {
   display: flex;
   flex-direction: column;
@@ -88,9 +121,9 @@
 }
 
 .persona {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--esp-1) var(--esp-3);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 var(--esp-3);
   align-items: center;
   padding: var(--esp-2) 0;
 }
@@ -100,33 +133,29 @@
 }
 
 .persona__nombre {
-  flex: 1 1 8rem;
+  grid-column: 1;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .persona__datos {
+  grid-column: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--esp-3);
   color: var(--mut);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
+}
+
+/* Los botones ocupan las dos líneas de la persona y quedan centrados en vertical. */
+.persona__acciones {
+  --alto-control: 2rem;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
 }
 
 .persona__acciones button {
-  min-height: 2rem;
   padding: 0 var(--esp-3);
   font-size: 0.875rem;
-}
-
-/* Móvil: nombre y botones en la primera línea, los porcentajes debajo. */
-@media (max-width: 39.99rem) {
-  .persona__acciones {
-    order: 2;
-  }
-
-  .persona__datos {
-    order: 3;
-    flex-basis: 100%;
-  }
 }
