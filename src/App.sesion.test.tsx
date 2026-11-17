@@ -130,7 +130,8 @@ describe('Este soy yo', () => {
     const { usuario, repositorio } = await preparar(new AutenticacionMemoria(ana, ana))
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Este soy yo' }), 'Luis')
     expect((await repositorio.obtener('q1'))?.participantes.find((p) => p.id === 'u2')?.cuentaId).toBe('g-ana')
-    expect(screen.getByText('Eres Luis en esta quedada')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Este soy yo' })).toHaveValue('u2')
+    expect(screen.queryByText(/en esta quedada/)).not.toBeInTheDocument()
   })
 
   it('muestra el vínculo ya guardado y permite soltarlo', async () => {
