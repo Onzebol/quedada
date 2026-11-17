@@ -36,6 +36,7 @@ export function borrarAsistente(q: Quedada, id: Id): Quedada {
       const { familiaId: _suelta, ...resto } = p
       return resto
     }),
+    productos: q.productos.map((p) => (p.compradorId === id ? { ...p, compradorId: null } : p)),
     asistentes: q.asistentes.filter((a) => a.id !== id),
   }
 }

@@ -1,4 +1,5 @@
 import { partesDeLaCasa } from '../dominio/casa'
+import { compradores } from '../dominio/compradores'
 import { liquidacion } from '../dominio/liquidacion'
 import { formatearEuros } from '../dominio/numeros'
 import type { Quedada } from '../dominio/tipos'
@@ -12,7 +13,8 @@ interface Props {
 export function Cuentas({ quedada }: Props) {
   const { total, pagado, transferencias } = liquidacion(quedada)
   const casa = partesDeLaCasa(quedada)
-  const nombre = (id: string) => quedada.participantes.find((p) => p.id === id)?.nombre ?? id
+  const quienes = compradores(quedada)
+  const nombre = (id: string) => quienes.find((c) => c.id === id)?.nombre ?? id
 
   return (
     <section className="cuentas" aria-labelledby="titulo-cuentas">
@@ -20,10 +22,10 @@ export function Cuentas({ quedada }: Props) {
       <p>Total de la quedada: {formatearEuros(total)}</p>
 
       <ul className="cuentas__personas">
-        {quedada.participantes.map((p) => (
-          <li key={p.id}>
+        {quienes.map((c) => (
+          <li key={c.id}>
             <span>
-              {p.nombre} ha pagado {formatearEuros(pagado[p.id] ?? 0)}
+              {c.nombre} ha pagado {formatearEuros(pagado[c.id] ?? 0)}
             </span>
           </li>
         ))}

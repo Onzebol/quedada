@@ -5,6 +5,7 @@ import { vincularCuenta, participanteDe } from '../dominio/vinculos'
 import type { Quedada } from '../dominio/tipos'
 import './sesion.css'
 import type { useSesion } from './useSesion'
+import { ordenarPorNombre } from '../dominio/asistentes'
 
 interface Props {
   sesion: ReturnType<typeof useSesion>
@@ -72,7 +73,7 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
                 onChange={(e) => aplicar((q) => vincularCuenta(q, e.target.value === '' ? null : e.target.value, usuario.id))}
               >
                 <option value="">Nadie</option>
-                {quedada.participantes.map((p) => (
+                {ordenarPorNombre(quedada.participantes, (p) => p.nombre).map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nombre}
                   </option>

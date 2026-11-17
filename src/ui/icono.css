@@ -24,16 +24,19 @@
 
   button:has(> .icono-texto) {
     width: var(--alto-control);
+    height: var(--alto-control);
     min-width: 0;
+    flex: none;
     padding: 0 !important;
+    aspect-ratio: 1;
     border-radius: 50%;
   }
 }
 
-/* Fichas de familia (asistentes.css): si el texto no cabe en la ficha, solo el icono, como en móvil
+/* Fichas de familia y de sección (asistentes.css, compra.css): si el texto no cabe en la ficha, solo el icono, como en móvil
    (círculo del alto del botón). */
 @container ficha (max-width: 30rem) {
-  :is(.familia__acciones, .persona__acciones) .icono-texto {
+  :is(.familia__acciones, .persona__acciones, .grupo__acciones, .fila__acciones) .icono-texto {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -42,14 +45,17 @@
     white-space: nowrap;
   }
 
-  :is(.familia__acciones, .persona__acciones) .icono + .icono-texto {
+  :is(.familia__acciones, .persona__acciones, .grupo__acciones, .fila__acciones) .icono + .icono-texto {
     margin-left: 0;
   }
 
-  :is(.familia__acciones, .persona__acciones) button:has(> .icono-texto) {
+  :is(.familia__acciones, .persona__acciones, .grupo__acciones, .fila__acciones) button:has(> .icono-texto) {
     width: var(--alto-control);
+    height: var(--alto-control);
     min-width: 0;
+    flex: none;
     padding: 0 !important;
+    aspect-ratio: 1;
     border-radius: 50%;
   }
 }

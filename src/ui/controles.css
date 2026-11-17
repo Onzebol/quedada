@@ -84,6 +84,23 @@
   color: #7b8a84;
 }
 
+/* Selector: píldora como los botones, con flecha propia en lugar de la del sistema. */
+:where(select) {
+  appearance: none;
+  padding-right: 2.25rem;
+  padding-left: var(--esp-4);
+  border-radius: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7a74' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  cursor: pointer;
+}
+
+:where(select):focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+}
+
 /* Etiqueta de un campo: texto pequeño encima del campo. */
 :where(label) {
   display: flex;
@@ -107,14 +124,6 @@
   margin: 0;
   font-size: 1.625rem;
   line-height: 1.1;
-}
-
-/* Fila de campos y botones de un formulario en línea. */
-:where(.compra form[aria-label='Participantes'], .compra__nueva-comida) {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--esp-2);
-  align-items: end;
 }
 
 /* Ritmo vertical entre secciones: una sola separación en toda la página. */
@@ -148,4 +157,16 @@
 
 .barra > * {
   margin: 0;
+}
+
+/* Líneas de datos («4 personas · Llega a las 19:30»): un círculo pequeño entre bloques. */
+:is(.familia__datos, .persona__datos, .grupo__datos, .compra__datos) > span + span::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin: 0 0.7em;
+  border-radius: 50%;
+  background: #9bb0a7;
+  vertical-align: 0.2em;
 }

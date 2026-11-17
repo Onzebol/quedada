@@ -1,18 +1,18 @@
 import { Plus } from 'lucide-react'
 import { ConIcono } from '../ui/ConIcono'
+import { FormularioModal } from '../ui/FormularioModal'
 import { useState } from 'react'
 import { contarSinAsignar, filtrarProductos, type Filtro } from '../dominio/filtros'
 import {
   anadirGrupo,
-  anadirParticipante,
   anadirProducto,
   borrarGrupo,
   borrarProducto,
-  cambiarReparto,
   editarProducto,
   renombrarGrupo,
 } from '../dominio/operaciones'
-import { totalAsistentes } from '../dominio/asistentes'
+import { compradores } from '../dominio/compradores'
+import { ordenarPorNombre } from '../dominio/asistentes'
 import type { Id } from '../dominio/tipos'
 import './compra.css'
 import { GrupoCompra } from './GrupoCompra'
@@ -21,12 +21,6 @@ import type { EstadoQuedada } from './useQuedada'
 interface Props {
   estado: EstadoQuedada
   crearId: () => Id
-}
-
-function resumen(sinAsignar: number, total: number): string {
-  if (total === 0) return 'No hay productos todavía'
-  if (sinAsignar === 0) return 'Todos los productos tienen comprador'
-  return `${sinAsignar} ${sinAsignar === 1 ? 'producto' : 'productos'} sin comprador`
 }
 
 function aFiltro(valor: string): Filtro {
@@ -39,8 +33,7 @@ function aFiltro(valor: string): Filtro {
 export function ListaCompra({ estado, crearId }: Props) {
   const { quedada, aplicar, error } = estado
   const [valorFiltro, setValorFiltro] = useState('todos')
-  const [participante, setParticipante] = useState('')
-  const [comida, setComida] = useState('')
+  const [anadiendo, setAnadiendo] = useState(false)
 
   if (quedada === null) {
     return error === 'carga' ? (
@@ -53,20 +46,31 @@ export function ListaCompra({ estado, crearId }: Props) {
     )
   }
 
-  const filtro = aFiltro(valorFiltro)
+  const todosCompradores = compradores(quedada)
+  // En «Mostrar» solo salen quienes tienen algo asignado; si el elegido se queda sin nada, vuelve a «Todos».
+  const conCompras = todosCompradores.filter((c) => quedada.productos.some((p) => p.compradorId === c.id))
+  const valorEfectivo =
+    valorFiltro.startsWith('comprador:') && !conCompras.some((c) => `comprador:${c.id}` === valorFiltro)
+      ? 'todos'
+      : valorFiltro
+  const filtro = aFiltro(valorEfectivo)
   const filtrando = filtro.tipo !== 'todos'
-  const grupos = [...quedada.grupos].sort((a, b) => a.orden - b.orden)
+  const grupos = ordenarPorNombre(quedada.grupos, (g) => g.nombre)
+  const totalProductos = quedada.productos.length
+  const visibles = filtrarProductos(quedada.productos, filtro)
+  const visiblesTotal = visibles.length
+  // Con filtro, los totales cuentan solo lo filtrado.
+  const porComprar = visibles.filter((p) => !p.comprado).length
+  const sinComprador = contarSinAsignar(quedada.productos)
 
   return (
     <div className="compra">
-      <h2>Lista de la compra</h2>
-      <p role="status" className="compra__resumen">
-        {resumen(contarSinAsignar(quedada.productos), quedada.productos.length)}
-      </p>
-      <p className="compra__resumen">
-        Vienen {totalAsistentes(quedada)} {totalAsistentes(quedada) === 1 ? 'persona' : 'personas'}
-      </p>
-
+      <div className="compra__cabecera">
+        <h2>Lista de la compra</h2>
+        <button type="button" onClick={() => setAnadiendo(true)}>
+          <ConIcono icono={Plus}>Añadir sección</ConIcono>
+        </button>
+      </div>
       {error === 'guardado' && (
         <p role="alert">No se pudo guardar el último cambio. Se ve en pantalla, pero se perderá al recargar.</p>
       )}
@@ -74,70 +78,75 @@ export function ListaCompra({ estado, crearId }: Props) {
       <div className="compra__herramientas">
         <label>
           Mostrar
-          <select value={valorFiltro} onChange={(e) => setValorFiltro(e.target.value)}>
+          <select value={valorEfectivo} onChange={(e) => setValorFiltro(e.target.value)}>
             <option value="todos">Todos</option>
             <option value="sinAsignar">Sin asignar</option>
             <option value="pendientes">Pendientes</option>
-            {quedada.participantes.map((p) => (
+            {conCompras.map((p) => (
               <option key={p.id} value={`comprador:${p.id}`}>
                 Compra {p.nombre}
               </option>
             ))}
           </select>
         </label>
-
-        <form
-          aria-label="Participantes"
-          onSubmit={(e) => {
-            e.preventDefault()
-            aplicar((q) => anadirParticipante(q, { id: crearId(), nombre: participante }))
-            setParticipante('')
-          }}
-        >
-          <label>
-            Nombre del participante
-            <input type="text" value={participante} onChange={(e) => setParticipante(e.target.value)} />
-          </label>
-          <button type="submit"><ConIcono icono={Plus}>Añadir participante</ConIcono></button>
-        </form>
+        <p className="compra__datos" aria-label="Totales de la lista">
+          <span>
+            {filtrando ? `${visiblesTotal} de ${totalProductos}` : totalProductos}{' '}
+            {totalProductos === 1 ? 'producto' : 'productos'}
+          </span>
+          {porComprar > 0 && <span>{porComprar} por comprar</span>}
+          {!filtrando && sinComprador > 0 && <span>{sinComprador} sin comprador</span>}
+        </p>
       </div>
 
+      <div className="compra__grupos">
       {grupos.map((grupo) => {
-        const delGrupo = quedada.productos.filter((p) => p.grupoId === grupo.id)
+        const delGrupo = ordenarPorNombre(
+          quedada.productos.filter((p) => p.grupoId === grupo.id),
+          (p) => p.nombre,
+        )
         const visibles = filtrarProductos(delGrupo, filtro)
-        if (filtrando && visibles.length === 0) return null
         return (
           <GrupoCompra
             key={grupo.id}
             grupo={grupo}
             productos={visibles}
             total={delGrupo.length}
-            participantes={quedada.participantes}
-            onAnadirProducto={(grupoId, nombre) => aplicar((q) => anadirProducto(q, { id: crearId(), grupoId, nombre }))}
+            forzarAbierta={filtrando}
+            conComprador={filtro.tipo !== 'comprador'}
+            oculta={filtrando && visibles.length === 0}
+            compradores={todosCompradores}
+            onAnadirProducto={(grupoId, valores) => {
+              const id = crearId()
+              aplicar((q) => editarProducto(anadirProducto(q, { id, grupoId, nombre: valores.nombre ?? '' }), id, valores))
+            }}
             onCambiarProducto={(id, cambios) => aplicar((q) => editarProducto(q, id, cambios))}
             onBorrarProducto={(id) => aplicar((q) => borrarProducto(q, id))}
             onRenombrar={(id, nombre) => aplicar((q) => renombrarGrupo(q, id, nombre))}
             onBorrar={(id) => aplicar((q) => borrarGrupo(q, id))}
-            onCambiarReparto={(id, reparto) => aplicar((q) => cambiarReparto(q, id, reparto))}
           />
         )
       })}
+      </div>
 
-      <form
-        className="compra__nueva-comida"
-        aria-label="Nueva comida"
-        onSubmit={(e) => {
-          e.preventDefault()
-          aplicar((q) => anadirGrupo(q, { id: crearId(), nombre: comida }))
-          setComida('')
-        }}
-      >
-        <label>
-          Nombre de la comida
-          <input type="text" value={comida} onChange={(e) => setComida(e.target.value)} />
-        </label>
-        <button type="submit"><ConIcono icono={Plus}>Añadir comida</ConIcono></button>
-      </form>
+      {anadiendo && (
+        <NuevaSeccion
+          alAnadir={(nombre) => aplicar((q) => anadirGrupo(q, { id: crearId(), nombre }))}
+          onCerrar={() => setAnadiendo(false)}
+        />
+      )}
     </div>
+  )
+}
+
+function NuevaSeccion({ alAnadir, onCerrar }: { alAnadir: (nombre: string) => void; onCerrar: () => void }) {
+  const [nombre, setNombre] = useState('')
+  return (
+    <FormularioModal titulo="Nueva sección" envio="Añadir" onEnviar={() => alAnadir(nombre)} onCerrar={onCerrar}>
+      <label>
+        Nombre
+        <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+      </label>
+    </FormularioModal>
   )
 }

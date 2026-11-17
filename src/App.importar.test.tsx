@@ -44,6 +44,14 @@ async function subir(usuario: ReturnType<typeof userEvent.setup>) {
   await usuario.upload(screen.getByLabelText('Archivo de Excel (.xlsx)'), archivo)
 }
 
+/** Las secciones de la compra empiezan contraídas: las despliega todas. */
+async function abrirSecciones(usuario: ReturnType<typeof userEvent.setup>) {
+  await screen.findAllByRole('heading', { level: 3 })
+  for (const alternar of screen.getAllByRole('button', { expanded: false })) {
+    if (alternar.closest('h3')) await usuario.click(alternar)
+  }
+}
+
 const importacion = () => screen.getByRole('region', { name: 'Importar Excel' })
 
 describe('Importar Excel', () => {
@@ -98,6 +106,7 @@ describe('Importar Excel', () => {
     ])
 
     await usuario.click(screen.getByRole('button', { name: 'Quedada 2025' }))
+    await abrirSecciones(usuario)
     expect(await screen.findByRole('checkbox', { name: 'Pizza 2025' })).toBeChecked()
     expect(screen.queryByRole('checkbox', { name: 'Pizza 2026' })).not.toBeInTheDocument()
   })
@@ -109,6 +118,7 @@ describe('Importar Excel', () => {
     })
     await esperarCarga()
     await subir(usuario)
+    await abrirSecciones(usuario)
     expect(await screen.findByRole('checkbox', { name: 'Pizza 2026' })).toBeInTheDocument()
   })
 

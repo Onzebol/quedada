@@ -103,18 +103,6 @@ describe('Asistentes', () => {
     expect(within(seccion()).getByText(/^\d+ asistentes?$/)).not.toHaveTextContent('1 asistentes')
   })
 
-  it('muestra el total de asistentes en la lista de la compra', async () => {
-    const { usuario } = await preparar(
-      quedada({ id: 'q1', asistentes: [{ id: 'a1', familia: 'Pérez', personas: 4, llegada: null }] }),
-    )
-    await usuario.click(screen.getByRole('tab', { name: 'Lista de la compra' }))
-    expect(screen.getByText('Vienen 4 personas')).toBeInTheDocument()
-    await usuario.click(screen.getByRole('tab', { name: 'La casa' }))
-    await anadir(usuario, 'Gil', '3')
-    await usuario.click(screen.getByRole('tab', { name: 'Lista de la compra' }))
-    expect(screen.getByText('Vienen 7 personas')).toBeInTheDocument()
-  })
-
   it('lista las familias por orden alfabético', async () => {
     const { usuario } = await preparar()
     await anadir(usuario, 'Zapata', '2', '09:15')
