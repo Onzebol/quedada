@@ -27,3 +27,13 @@
   border-bottom-color: var(--moss);
   color: var(--moss);
 }
+
+@media (max-width: 39.99rem) {
+  .pestanas__lista {
+    scrollbar-width: none;
+  }
+
+  .pestanas__tab {
+    padding: 0 0.75rem;
+  }
+}

@@ -135,3 +135,17 @@
 .pestanas__panel > * {
   margin-block: 0;
 }
+
+/* Barra superior de una quedada: volver, «Este soy yo» y copiar enlace en una sola fila. */
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-3);
+  align-items: center;
+  /* deja sitio al botón de la cuenta, que va arriba a la derecha */
+  padding-top: var(--esp-2);
+}
+
+.barra > * {
+  margin: 0;
+}

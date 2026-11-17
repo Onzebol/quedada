@@ -60,6 +60,7 @@
 
 .sesion label {
   display: flex;
+  flex-direction: row;
   gap: 0.5rem;
   align-items: center;
   font-size: 0.875rem;

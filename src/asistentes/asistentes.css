@@ -14,21 +14,73 @@
   width: 5rem;
 }
 
+
+.asistentes__total {
+  margin-top: calc(var(--esp-2) * -1);
+}
+
+.asistentes form[aria-label='Nuevo asistente'] input[type='text'] {
+  width: 12rem;
+}
+
+/* Cada familia es una tarjeta: cabecera (familia, personas, llegada, borrar) y debajo sus componentes. */
 .asistentes__lista {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
 }
 
-.asistentes__lista li {
+.asistentes__lista > li {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--esp-2) var(--esp-3);
   align-items: center;
-  padding: 0.625rem 0;
-  border-top: 1px solid var(--linea);
+  padding: var(--esp-3) var(--esp-4);
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 16px;
 }
 
-.asistentes__lista li > span {
-  flex: 1 1 8rem;
+.asistentes__lista > li > input[type='text'] {
+  flex: 1 1 10rem;
+  font-weight: 700;
+}
+
+.asistentes__lista > li > span {
+  flex: 0 0 auto;
+  color: var(--mut);
+}
+
+.asistentes__componentes {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  margin: var(--esp-1) 0 0;
+  padding: 0 0 0 var(--esp-3);
+  list-style: none;
+  border-left: 3px solid var(--linea);
+}
+
+.asistentes__componentes:empty {
+  display: none;
+}
+
+.asistentes__nuevo-componente {
+  flex: 1 1 100%;
+  padding-left: var(--esp-3);
+}
+
+.asistentes__nuevo-componente label {
+  flex: 1 1 10rem;
+}
+
+/* Móvil: el nombre de la familia ocupa su línea y debajo van personas, llegada y borrar. */
+@media (max-width: 39.99rem) {
+  .asistentes__lista > li > input[type='text'] {
+    flex-basis: 100%;
+  }
 }

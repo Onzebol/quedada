@@ -105,3 +105,22 @@
   border-color: var(--moss);
   color: var(--moss);
 }
+
+/* Una persona de una familia: nombre y sus dos porcentajes, alineados por abajo. */
+.componente > input[type='text'] {
+  flex: 1 1 9rem;
+}
+
+.componente label input {
+  width: 5.5rem;
+}
+
+.casa__mapa button {
+  align-self: flex-start;
+}
+
+@media (max-width: 39.99rem) {
+  .componente > input[type='text'] {
+    flex-basis: 100%;
+  }
+}

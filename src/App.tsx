@@ -181,12 +181,17 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
 
   return (
     <>
-      <nav>
-        <button type="button" className="volver" onClick={irAlInicio}>
-          <ConIcono icono={ArrowLeft}>Todas las quedadas</ConIcono>
-        </button>
-      </nav>
-      <Sesion sesion={sesion} quedada={estado.quedada} aplicar={estado.aplicar} />
+      <div className="barra">
+        <nav>
+          <button type="button" className="volver" onClick={irAlInicio}>
+            <ConIcono icono={ArrowLeft}>Todas las quedadas</ConIcono>
+          </button>
+        </nav>
+        <Sesion sesion={sesion} quedada={estado.quedada} aplicar={estado.aplicar} />
+        {estado.quedada !== null && estado.error !== 'noEncontrada' && (
+          <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />
+        )}
+      </div>
       {estado.error === 'noEncontrada' ? (
         <p role="note">
           No se encontró esta quedada: puede que no exista o que no tengas acceso. Los enlaces solo funcionan
@@ -194,7 +199,6 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
         </p>
       ) : (
         <>
-          {estado.quedada !== null && <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />}
           {estado.quedada === null ? (
             <ListaCompra estado={estado} crearId={crearId} />
           ) : (
