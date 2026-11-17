@@ -17,9 +17,11 @@
   color: var(--mut);
 }
 
+/* Las fichas se reparten en columnas: dos por fila en escritorio, una en móvil. */
 .asistentes__lista {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(26rem, 100%), 1fr));
+  align-items: start;
   gap: var(--esp-3);
   margin: 0;
   padding: 0;
