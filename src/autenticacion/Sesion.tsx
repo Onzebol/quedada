@@ -63,7 +63,7 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
         </button>
       ) : (
         <>
-          <MenuUsuario nombre={usuario.nombrePila ?? usuario.nombre.trim().split(/\s+/)[0]} foto={usuario.foto} salir={() => void salir()} />
+          <MenuUsuario nombre={usuario.nombre} foto={usuario.foto} salir={() => void salir()} />
           {quedada !== null && quedada.participantes.length > 0 && (
             <label>
               Este soy yo

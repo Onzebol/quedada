@@ -17,11 +17,6 @@ function clienteFalso(sesion: { user: typeof supabaseUser } | null, errorEntrada
 }
 
 describe('usuarioDeSupabase', () => {
-  it('guarda el nombre de pila que da Google (given_name) para los nombres compuestos', () => {
-    const u = usuarioDeSupabase({ id: 'u4', user_metadata: { full_name: 'Luis Miguel Arpón', given_name: 'Luis Miguel' } })
-    expect(u.nombrePila).toBe('Luis Miguel')
-  })
-
   it('usa nombre completo y foto', () => {
     expect(usuarioDeSupabase(supabaseUser)).toEqual({ id: 'u1', nombre: 'Ana Pérez', foto: 'https://foto/ana.png' })
   })
