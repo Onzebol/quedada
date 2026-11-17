@@ -2,6 +2,7 @@ import { editarCasa } from '../dominio/casa'
 import { formatearEuros } from '../dominio/numeros'
 import type { Quedada } from '../dominio/tipos'
 import './casa.css'
+import { ordenarPorNombre } from '../dominio/asistentes'
 
 interface Props {
   quedada: Quedada
@@ -29,7 +30,7 @@ export function Pagos({ quedada, aplicar }: Props) {
                 onChange={(e) => aplicar((q) => editarCasa(q, { pagadorId: e.target.value === '' ? null : e.target.value }))}
               >
                 <option value="">Nadie todavía</option>
-                {quedada.participantes.map((p) => (
+                {ordenarPorNombre(quedada.participantes, (p) => p.nombre).map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nombre}
                   </option>

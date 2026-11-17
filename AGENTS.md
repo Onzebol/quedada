@@ -65,7 +65,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   `operaciones.ts` (altas, ediciones y borrados de participantes, comidas y productos, siempre
   devolviendo una quedada nueva), `filtros.ts` (filtros de la lista) y `numeros.ts` (leer y
   mostrar cantidades y euros con coma decimal).
-- Interfaz de la compra (`src/compra/`): `ListaCompra` (filtro y comidas; no crea participantes: los compradores salen de los que se definen en «La casa», #67),
+- Interfaz de la compra (`src/compra/`, #67): `ListaCompra` (filtro «Mostrar» y secciones; **no crea participantes**: los compradores salen de los que se definen en «La casa»),
   `GrupoCompra`, `FilaProducto` y el hook `useQuedada`, que carga la primera quedada del
   repositorio (o crea una con las comidas habituales) y guarda cada cambio, de uno en uno y en orden (#27: con un
   repositorio remoto dos guardados a la vez podrían llegar desordenados; mientras hay uno en curso solo
@@ -74,6 +74,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   (`src/test/repositorioMemoria.ts`). Dirección visual «Sierra» (#11; maqueta en
   `docs/diseno/c-sierra.html`): tokens de color y tipografía Bricolage Grotesque en `index.css`,
   paneles en `compra.css` (claro) y `cuentas.css` (verde), dos columnas desde 60 rem.
+- **Lista de la compra** (#67), con el mismo estilo que «La casa»: cada **sección** (antes «comida»; el dominio sigue llamándola `Grupo`) es una ficha **plegable y contraída por defecto** (`GrupoCompra`, igual que `FichaFamilia`: el nombre es un botón con `aria-expanded`; mientras hay un filtro se despliegan solas) que muestra «N productos · X por comprar · Y sin comprador»; las secciones y los productos van **por orden alfabético** (`ordenarPorNombre`). **Todo se edita en ventanas modales**: «Añadir sección» (arriba), «Renombrar», «Añadir» producto y «Editar» producto, estos dos con el mismo formulario (`FormularioProducto`: nombre, cantidad, unidad, precio por unidad y observaciones; el descuento ya no se edita pero se conserva y cuenta en el total). Ya no hay interruptor «Gasto de la casa» (`Grupo.reparto` y `cambiarReparto` se conservan). La cantidad va delante del nombre («1 kg - Carne»). **Compradores** (`dominio/compradores.ts`): el desplegable de asignar ofrece los participantes y también las familias sin personas (`compradorId` puede ser el id de una familia; el Resumen las cuenta como pagadoras), por orden alfabético; borrar una familia suelta sus productos. Junto a «Mostrar» (que solo ofrece a quienes tienen algo asignado) salen los totales de la lista; con filtro cuentan solo lo filtrado, sin «sin comprador», y con un filtro por persona se oculta el desplegable de asignar de cada producto. Las líneas de datos (`.familia__datos`, `.persona__datos`, `.grupo__datos`, `.compra__datos`) separan sus bloques con un círculo pequeño (`ui/controles.css`), los `select` son píldoras con flecha propia y los botones sin texto son círculos perfectos.
 - **Pestañas** (#55, `src/ui/Pestanas.tsx`, accesible: `role="tablist"`, flechas/Inicio/Fin, solo se monta el panel activo): `VistaQuedada` divide la quedada en **La casa** (`DatosCasa` y `Asistentes`), **Lista de la compra** (`ListaCompra`, la que se abre al entrar), **Pagos** (`Pagos`: quién pagó la casa; los tiques de la compra aún no tienen modelo) y **Resumen** (`Cuentas`). Ya no hay dos columnas. La pestaña activa es estado local (no va en el hash). En los tests hay que pulsar la pestaña (`getByRole('tab', …)`) antes de buscar su contenido; un elemento de otra pestaña se desmonta al cambiar.
 - **La casa** (#56, `src/casa/`, `dominio/casa.ts`): `Quedada.casa` (título, descripción, dirección, coordenadas, `precio` en
   céntimos y `pagadorId`) vive en columnas `casa_*` de `quedadas` (`0004_casa.sql`; en SQLite, `ALTER` en bases antiguas).
@@ -94,8 +95,8 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   (más las de los compradores nuevos), `familiaId` y `porcentajeCasa`.
   **Al desplegar**: ejecutar `0004_casa.sql` en el editor SQL de Supabase antes de fusionar (solo añade columnas).
 - Interfaz de cuentas (`src/cuentas/`): `Cuentas` muestra el total, lo pagado por persona y
-  las transferencias; los porcentajes de reparto se ajustan en «La casa» (#56) y el interruptor
-  «Gasto de la casa» está en cada comida de la lista. `App` llama a
+  las transferencias; los porcentajes de reparto se ajustan en «La casa» (#56). La interfaz ya no ofrece marcar una
+  sección como «gasto de la casa» (#67; `Grupo.reparto` y `cambiarReparto` se conservan en el dominio y en los datos). `App` llama a
   `useQuedada` y reparte el estado entre `ListaCompra` y `Cuentas`. Los interruptores usan
   `role="switch"` para no mezclarse con las casillas «comprado» de los productos.
 - Reparto de gastos (decidido en #4): los grupos con `reparto: 'casa'` se dividen a partes

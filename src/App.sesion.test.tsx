@@ -110,6 +110,14 @@ describe('Este soy yo', () => {
     expect(screen.queryByRole('combobox', { name: 'Este soy yo' })).not.toBeInTheDocument()
   })
 
+  it('ofrece primero Nadie y luego los nombres por orden alfabético', async () => {
+    await preparar(new AutenticacionMemoria(ana, ana))
+    const selector = screen.getByRole('combobox', { name: 'Este soy yo' })
+    const opciones = Array.from((selector as HTMLSelectElement).options).map((o) => o.textContent)
+    expect(opciones[0]).toBe('Nadie')
+    expect(opciones.slice(1)).toEqual([...opciones.slice(1)].sort((a, b) => (a ?? '').localeCompare(b ?? '', 'es', { sensitivity: 'base' })))
+  })
+
   it('vincula la cuenta con un participante, lo guarda y lo recuerda al recargar', async () => {
     const { usuario, repositorio } = await preparar(new AutenticacionMemoria(ana, ana))
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Este soy yo' }), 'Luis')

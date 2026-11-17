@@ -1,64 +1,65 @@
-import { Pencil, Check, X } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { ConIcono } from '../ui/ConIcono'
 import { useState } from 'react'
 import type { CambiosProducto } from '../dominio/operaciones'
-import { formatearCantidad, formatearEuros, parsearCantidad, parsearEuros } from '../dominio/numeros'
+import { formatearCantidad, formatearEuros } from '../dominio/numeros'
 import { totalLinea } from '../dominio/totales'
-import type { Id, Participante, Producto } from '../dominio/tipos'
+import type { Comprador } from '../dominio/compradores'
+import type { Id, Producto } from '../dominio/tipos'
 import { BotonBorrar } from '../ui/BotonBorrar'
+import { FormularioProducto } from './FormularioProducto'
 
 interface Props {
   producto: Producto
-  participantes: Participante[]
+  /** A quién se puede asignar la compra: participantes y familias sin personas. */
+  compradores: Comprador[]
+  /** Con un filtro por persona todos los productos son suyos y el desplegable sobra. */
+  conComprador?: boolean
   onCambiar: (id: Id, cambios: CambiosProducto) => void
   onBorrar: (id: Id) => void
 }
 
-export function FilaProducto({ producto, participantes, onCambiar, onBorrar }: Props) {
+export function FilaProducto({ producto, compradores, conComprador = true, onCambiar, onBorrar }: Props) {
   const [editando, setEditando] = useState(false)
 
-  if (editando) {
-    return (
-      <li className="fila fila--edicion">
-        <FormularioEdicion
-          producto={producto}
-          onGuardar={(cambios) => {
-            onCambiar(producto.id, cambios)
-            setEditando(false)
-          }}
-          onCancelar={() => setEditando(false)}
-        />
-      </li>
-    )
-  }
-
   const cantidad = formatearCantidad(producto.cantidad, producto.unidad)
+  const hayDatos = producto.precioUnidad !== null || producto.observaciones !== ''
   return (
     <li className={producto.comprado ? 'fila fila--comprada' : 'fila'}>
       <label className="fila__nombre">
         <input
           type="checkbox"
+          aria-label={producto.nombre}
           checked={producto.comprado}
           onChange={(e) => onCambiar(producto.id, { comprado: e.target.checked })}
         />
-        <span>{producto.nombre}</span>
+        <span>
+          {cantidad !== '' && <span className="fila__cantidad">{cantidad}</span>}
+          {producto.nombre}
+        </span>
       </label>
-      {cantidad !== '' && <span className="fila__cantidad">{cantidad}</span>}
-      {producto.precioUnidad !== null && <span className="fila__total">{formatearEuros(totalLinea(producto))}</span>}
-      <select
-        aria-label={`Comprador de ${producto.nombre}`}
-        className={producto.compradorId === null ? 'fila__comprador fila__comprador--vacio' : 'fila__comprador'}
-        value={producto.compradorId ?? ''}
-        onChange={(e) => onCambiar(producto.id, { compradorId: e.target.value === '' ? null : e.target.value })}
-      >
-        <option value="">Sin asignar</option>
-        {participantes.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.nombre}
-          </option>
-        ))}
-      </select>
+      {hayDatos && (
+        <span className="fila__datos">
+          {producto.precioUnidad !== null && <span className="fila__total">{formatearEuros(totalLinea(producto))}</span>}
+          {producto.observaciones !== '' && <span className="fila__observaciones">{producto.observaciones}</span>}
+        </span>
+      )}
       <span className="fila__acciones">
+        {conComprador && (
+          <select
+            aria-label={`Comprador de ${producto.nombre}`}
+            className="fila__comprador"
+            value={producto.compradorId ?? ''}
+            onChange={(e) => onCambiar(producto.id, { compradorId: e.target.value === '' ? null : e.target.value })}
+          >
+            <option value="">Sin asignar</option>
+            {compradores.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nombre}
+              </option>
+            ))}
+          </select>
+        )}
         <button type="button" onClick={() => setEditando(true)} aria-label={`Editar ${producto.nombre}`}>
           <ConIcono icono={Pencil}>Editar</ConIcono>
         </button>
@@ -70,73 +71,15 @@ export function FilaProducto({ producto, participantes, onCambiar, onBorrar }: P
           onConfirmar={() => onBorrar(producto.id)}
         />
       </span>
-      {producto.observaciones !== '' && <p className="fila__observaciones">{producto.observaciones}</p>}
+      {editando && (
+        <FormularioProducto
+          titulo="Editar producto"
+          envio="Guardar"
+          inicial={producto}
+          onGuardar={(cambios) => onCambiar(producto.id, cambios)}
+          onCerrar={() => setEditando(false)}
+        />
+      )}
     </li>
-  )
-}
-
-function FormularioEdicion({
-  producto,
-  onGuardar,
-  onCancelar,
-}: {
-  producto: Producto
-  onGuardar: (cambios: CambiosProducto) => void
-  onCancelar: () => void
-}) {
-  const [nombre, setNombre] = useState(producto.nombre)
-  const [cantidad, setCantidad] = useState(producto.cantidad === null ? '' : String(producto.cantidad).replace('.', ','))
-  const [unidad, setUnidad] = useState(producto.unidad)
-  const [precio, setPrecio] = useState(producto.precioUnidad === null ? '' : String(producto.precioUnidad).replace('.', ','))
-  const [descuento, setDescuento] = useState(producto.descuento === 0 ? '' : String(producto.descuento).replace('.', ','))
-  const [observaciones, setObservaciones] = useState(producto.observaciones)
-
-  return (
-    <form
-      className="edicion"
-      aria-label={`Editar ${producto.nombre}`}
-      onSubmit={(e) => {
-        e.preventDefault()
-        onGuardar({
-          nombre,
-          cantidad: parsearCantidad(cantidad),
-          unidad: unidad.trim(),
-          precioUnidad: parsearEuros(precio),
-          descuento: parsearEuros(descuento) ?? 0,
-          observaciones: observaciones.trim(),
-        })
-      }}
-    >
-      <label>
-        Nombre
-        <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-      </label>
-      <label>
-        Cantidad
-        <input type="text" inputMode="decimal" value={cantidad} onChange={(e) => setCantidad(e.target.value)} />
-      </label>
-      <label>
-        Unidad
-        <input type="text" value={unidad} onChange={(e) => setUnidad(e.target.value)} />
-      </label>
-      <label>
-        Precio por unidad (€)
-        <input type="text" inputMode="decimal" value={precio} onChange={(e) => setPrecio(e.target.value)} />
-      </label>
-      <label>
-        Descuento (€)
-        <input type="text" inputMode="decimal" value={descuento} onChange={(e) => setDescuento(e.target.value)} />
-      </label>
-      <label>
-        Observaciones
-        <input type="text" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} />
-      </label>
-      <span className="fila__acciones">
-        <button type="submit"><ConIcono icono={Check}>Guardar</ConIcono></button>
-        <button type="button" onClick={onCancelar}>
-          <ConIcono icono={X}>Cancelar</ConIcono>
-        </button>
-      </span>
-    </form>
   )
 }

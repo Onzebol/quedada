@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
 import { producto, quedada } from './dominio/fabrica'
+import { anadirAsistente } from './dominio/asistentes'
 import { anadirParticipante, quedadaInicial } from './dominio/operaciones'
 import { AutenticacionMemoria } from './test/autenticacionMemoria'
 import { abrirPrimera } from './test/abrirPrimera'
@@ -31,14 +32,22 @@ async function esperarCarga() {
   await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
 }
 
+// Las secciones empiezan contraídas, como las familias de «La casa».
+async function abrirSeccion(grupo: string) {
+  const alternar = screen.getByRole('button', { name: grupo })
+  if (alternar.getAttribute('aria-expanded') === 'false') await userEvent.click(alternar)
+}
+
 async function anadirProducto(
   usuario: ReturnType<typeof userEvent.setup>,
   grupo: string,
   nombre: string,
 ) {
-  const formulario = screen.getByRole('form', { name: `Añadir producto a ${grupo}` })
-  await usuario.type(within(formulario).getByRole('textbox', { name: 'Producto' }), nombre)
-  await usuario.click(within(formulario).getByRole('button', { name: 'Añadir' }))
+  await abrirSeccion(grupo)
+  await usuario.click(screen.getByRole('button', { name: `Añadir algo para comprar a ${grupo}` }))
+  const ventana = screen.getByRole('dialog', { name: 'Nuevo producto' })
+  await usuario.type(within(ventana).getByRole('textbox', { name: 'Nombre' }), nombre)
+  await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
 }
 
 async function abrirPestana(nombre: string) {
@@ -57,13 +66,13 @@ describe('Lista de la compra', () => {
     await esperarCarga()
     const grupos = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
     expect(grupos).toEqual([
-      'Cena del viernes',
-      'Comida del sábado (asado)',
+      'Bebida',
       'Cena del sábado (sopa)',
+      'Cena del viernes',
       'Comida del domingo (pasta)',
+      'Comida del sábado (asado)',
       'Desayunos',
       'Picoteos y varios',
-      'Bebida',
     ])
   })
 
@@ -74,14 +83,124 @@ describe('Lista de la compra', () => {
     expect(screen.getByRole('checkbox', { name: 'Pizza BBQ' })).not.toBeChecked()
   })
 
-  it('vacía el campo tras añadir y no añade productos sin nombre', async () => {
+  it('añadir algo para comprar abre una ventana modal y no añade productos sin nombre', async () => {
     const { usuario } = preparar()
     await esperarCarga()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
-    const formulario = screen.getByRole('form', { name: 'Añadir producto a Bebida' })
-    expect(within(formulario).getByRole('textbox', { name: 'Producto' })).toHaveValue('')
-    await usuario.click(within(formulario).getByRole('button', { name: 'Añadir' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Añadir algo para comprar a Bebida' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Añadir' }))
     expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+  })
+
+  it('añadir usa el mismo formulario que editar y el botón solo dice «Añadir»', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await abrirSeccion('Bebida')
+    const boton = screen.getByRole('button', { name: 'Añadir algo para comprar a Bebida' })
+    expect(boton).toHaveTextContent(/^Añadir$/)
+    await usuario.click(boton)
+    const ventana = screen.getByRole('dialog', { name: 'Nuevo producto' })
+    for (const campo of ['Nombre', 'Cantidad', 'Unidad', 'Precio por unidad (€)', 'Observaciones']) {
+      expect(within(ventana).getByRole('textbox', { name: campo })).toBeInTheDocument()
+    }
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Nombre' }), 'Carne')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Cantidad' }), '2')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Unidad' }), 'kg')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Precio por unidad (€)' }), '8')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Observaciones' }), 'del carnicero')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
+    expect(screen.getByRole('checkbox', { name: 'Carne' })).toBeInTheDocument()
+    expect(screen.getByText('2 kg')).toBeInTheDocument()
+    expect(screen.getByText('16,00 €', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText('del carnicero')).toBeInTheDocument()
+  })
+
+  it('las secciones empiezan contraídas y se despliegan al pulsar su nombre', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    const alternar = screen.getByRole('button', { name: 'Bebida' })
+    expect(alternar).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: 'Añadir algo para comprar a Bebida' })).not.toBeInTheDocument()
+    await usuario.click(alternar)
+    expect(alternar).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Añadir algo para comprar a Bebida' })).toBeInTheDocument()
+    await usuario.click(alternar)
+    expect(alternar).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('cada sección indica cuántos productos faltan por comprar, sin abrirla', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    const seccion = () => screen.getByRole('region', { name: 'Bebida' })
+    expect(within(seccion()).queryByText(/por comprar/)).not.toBeInTheDocument()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await anadirProducto(usuario, 'Bebida', 'Vino')
+    expect(within(seccion()).getByText('2 por comprar')).toBeInTheDocument()
+    await usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+    expect(within(seccion()).getByText('1 por comprar')).toBeInTheDocument()
+    await usuario.click(screen.getByRole('checkbox', { name: 'Vino' }))
+    expect(within(seccion()).queryByText(/por comprar/)).not.toBeInTheDocument()
+  })
+
+  it('junto a «Mostrar» salen los totales de la lista, como en cada sección', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    const totales = () => screen.getByLabelText('Totales de la lista')
+    expect(within(totales()).getByText('0 productos')).toBeInTheDocument()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await anadirProducto(usuario, 'Desayunos', 'Café')
+    expect(within(totales()).getByText('2 productos')).toBeInTheDocument()
+    expect(within(totales()).getByText('2 por comprar')).toBeInTheDocument()
+    expect(within(totales()).getByText('2 sin comprador')).toBeInTheDocument()
+    await usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+    expect(within(totales()).getByText('1 por comprar')).toBeInTheDocument()
+  })
+
+  it('los desplegables de personas van por orden alfabético, con la opción especial primero', async () => {
+    const { usuario } = preparar(undefined, ['Zoe', 'Ana', 'Marta'])
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    const comprador = screen.getByRole<HTMLSelectElement>('combobox', { name: 'Comprador de Sidra' })
+    expect(Array.from(comprador.options).map((o) => o.textContent)).toEqual(['Sin asignar', 'Ana', 'Marta', 'Zoe'])
+  })
+
+  it('«Mostrar» solo ofrece a las personas que tienen algo asignado, por orden alfabético', async () => {
+    const { usuario } = preparar(undefined, ['Zoe', 'Ana', 'Marta'])
+    await esperarCarga()
+    const filtro = screen.getByRole<HTMLSelectElement>('combobox', { name: 'Mostrar' })
+    const opciones = () => Array.from(filtro.options).map((o) => o.textContent)
+    expect(opciones()).toEqual(['Todos', 'Sin asignar', 'Pendientes'])
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await anadirProducto(usuario, 'Bebida', 'Vino')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Zoe')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Vino' }), 'Ana')
+    expect(opciones()).toEqual(['Todos', 'Sin asignar', 'Pendientes', 'Compra Ana', 'Compra Zoe'])
+    await usuario.selectOptions(filtro, 'Compra Zoe')
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+    // si Zoe se queda sin nada, el filtro vuelve a «Todos» en vez de dejar un valor que ya no existe
+    await usuario.click(screen.getByRole('button', { name: 'Borrar Sidra' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
+    expect(filtro).toHaveValue('todos')
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+  })
+  it('filtrando, los totales cuentan solo lo filtrado y no dicen «sin comprador»', async () => {
+    const { usuario } = preparar(undefined, ['Josu'])
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await anadirProducto(usuario, 'Bebida', 'Vino')
+    await anadirProducto(usuario, 'Desayunos', 'Café')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Josu')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Vino' }), 'Josu')
+    await usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+    const totales = () => screen.getByLabelText('Totales de la lista')
+    expect(within(totales()).getByText('2 por comprar')).toBeInTheDocument()
+    expect(within(totales()).getByText('1 sin comprador')).toBeInTheDocument()
+
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Compra Josu')
+    expect(within(totales()).getByText('2 de 3 productos')).toBeInTheDocument()
+    expect(within(totales()).getByText('1 por comprar')).toBeInTheDocument()
+    expect(within(totales()).queryByText(/sin comprador/)).not.toBeInTheDocument()
   })
 
   it('marca un producto como comprado', async () => {
@@ -99,6 +218,13 @@ describe('Lista de la compra', () => {
     expect(screen.queryByRole('button', { name: 'Añadir participante' })).not.toBeInTheDocument()
   })
 
+  it('las secciones no tienen interruptor «Gasto de la casa»', async () => {
+    preparar()
+    await esperarCarga()
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument()
+    expect(screen.queryByText('Gasto de la casa')).not.toBeInTheDocument()
+  })
+
   it('asigna un comprador a un producto', async () => {
     const { usuario } = preparar(undefined, ['Josu'])
     await esperarCarga()
@@ -107,17 +233,31 @@ describe('Lista de la compra', () => {
     expect(screen.getByRole('option', { name: 'Josu', selected: true })).toBeInTheDocument()
   })
 
-  it('avisa de cuántos productos no tienen comprador', async () => {
+  it('se puede asignar una compra a una familia que no tiene personas, y filtrar por ella', async () => {
+    const q = anadirAsistente(quedadaInicial(contador()), { id: 'f1', familia: 'Gómez', personas: 3, llegada: null })
+    const { usuario } = preparar(new RepositorioMemoria([q]))
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Gómez')
+    expect(screen.getByRole('option', { name: 'Gómez', selected: true })).toBeInTheDocument()
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Compra Gómez')
+    expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
+  })
+
+  it('indica junto a «Mostrar» cuántos productos no tienen comprador, sin párrafos sueltos encima', async () => {
     const { usuario } = preparar(undefined, ['Josu'])
     await esperarCarga()
-    expect(screen.getByRole('status')).toHaveTextContent('No hay productos todavía')
+    const totales = () => screen.getByLabelText('Totales de la lista')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Vienen \d+ personas?$/)).not.toBeInTheDocument()
+    expect(within(totales()).getByText('0 productos')).toBeInTheDocument()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
-    expect(screen.getByRole('status')).toHaveTextContent('1 producto sin comprador')
+    expect(within(totales()).getByText('1 sin comprador')).toBeInTheDocument()
     await anadirProducto(usuario, 'Bebida', 'Vino')
-    expect(screen.getByRole('status')).toHaveTextContent('2 productos sin comprador')
+    expect(within(totales()).getByText('2 sin comprador')).toBeInTheDocument()
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Josu')
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Vino' }), 'Josu')
-    expect(screen.getByRole('status')).toHaveTextContent('Todos los productos tienen comprador')
+    expect(within(totales()).queryByText(/sin comprador/)).not.toBeInTheDocument()
   })
 
   it('edita cantidad, unidad y observaciones y las muestra en la fila', async () => {
@@ -174,23 +314,40 @@ describe('Lista de la compra', () => {
     expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
   })
 
-  it('añade una comida nueva', async () => {
+  it('añade una sección nueva con «Añadir sección», que abre una ventana como «Añadir familia»', async () => {
     const { usuario } = preparar()
     await esperarCarga()
-    await usuario.type(screen.getByRole('textbox', { name: 'Nombre de la comida' }), 'Merienda')
-    await usuario.click(screen.getByRole('button', { name: 'Añadir comida' }))
+    expect(screen.queryByRole('button', { name: 'Añadir comida' })).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Añadir sección' }))
+    const ventana = screen.getByRole('dialog', { name: 'Nueva sección' })
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Nombre' }), 'Merienda')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     const grupos = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
-    expect(grupos.at(-1)).toBe('Merienda')
+    expect(grupos).toEqual([...grupos].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' })))
+    expect(grupos).toContain('Merienda')
+  })
+
+  it('ordena alfabéticamente los productos de cada sección', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Vino')
+    await anadirProducto(usuario, 'Bebida', 'Agua')
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    const lista = within(screen.getByRole('region', { name: 'Bebida' }))
+    const nombres = lista.getAllByRole('checkbox').map((c) => (c as HTMLInputElement).labels?.[0]?.textContent)
+    expect(nombres).toEqual(['Agua', 'Sidra', 'Vino'])
   })
 
   it('renombra una comida', async () => {
     const { usuario } = preparar()
     await esperarCarga()
     await usuario.click(screen.getByRole('button', { name: 'Renombrar Bebida' }))
-    const campo = screen.getByRole('textbox', { name: 'Nuevo nombre de Bebida' })
+    const ventana = screen.getByRole('dialog', { name: 'Renombrar sección' })
+    const campo = within(ventana).getByRole('textbox', { name: 'Nombre' })
     await usuario.clear(campo)
     await usuario.type(campo, 'Bebidas')
-    await usuario.click(screen.getByRole('button', { name: 'Guardar nombre' }))
+    await usuario.click(within(ventana).getByRole('button', { name: 'Guardar' }))
     expect(screen.getByRole('heading', { level: 3, name: 'Bebidas' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 3, name: 'Bebida' })).not.toBeInTheDocument()
   })
@@ -199,12 +356,12 @@ describe('Lista de la compra', () => {
     const { usuario } = preparar()
     await esperarCarga()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
-    await usuario.click(screen.getByRole('button', { name: 'Borrar comida Bebida' }))
+    await usuario.click(screen.getByRole('button', { name: 'Borrar sección Bebida' }))
     const aviso = screen.getByRole('dialog', { name: '¿Borrar «Bebida»?' })
     expect(aviso).toHaveTextContent('su 1 producto')
     await usuario.click(within(aviso).getByRole('button', { name: 'Cancelar' }))
     expect(screen.getByRole('heading', { level: 3, name: 'Bebida' })).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Borrar comida Bebida' }))
+    await usuario.click(screen.getByRole('button', { name: 'Borrar sección Bebida' }))
     await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect(screen.queryByRole('heading', { level: 3, name: 'Bebida' })).not.toBeInTheDocument()
     expect(screen.queryByRole('checkbox', { name: 'Sidra' })).not.toBeInTheDocument()
@@ -232,10 +389,17 @@ describe('Lista de la compra', () => {
 
     await usuario.selectOptions(filtro, 'Compra Josu')
     expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+    // filtrando por una persona, el desplegable de asignar sobra: todos son suyos
+    expect(screen.queryByRole('combobox', { name: 'Comprador de Sidra' })).not.toBeInTheDocument()
+    // arriba, el total de la lista; en la sección, los suyos
+    expect(screen.getByText('1 de 3 productos')).toBeInTheDocument()
+    expect(screen.getByText('1 de 2 productos')).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
 
     await usuario.selectOptions(filtro, 'Todos')
     expect(screen.getAllByRole('checkbox')).toHaveLength(3)
+    expect(screen.getByRole('combobox', { name: 'Comprador de Sidra' })).toBeInTheDocument()
+    expect(screen.queryByText(/ de \d+ productos/)).not.toBeInTheDocument()
   })
 
   it('oculta las comidas vacías cuando hay un filtro activo', async () => {
@@ -259,7 +423,8 @@ describe('Lista de la compra', () => {
     primera.vista.unmount()
 
     preparar(primera.repositorio)
-    await screen.findByRole('checkbox', { name: 'Sidra' })
+    await esperarCarga()
+    await abrirSeccion('Bebida')
     expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeChecked()
     expect(screen.getByRole('option', { name: 'Josu', selected: true })).toBeInTheDocument()
     expect(primera.repositorio.quedadas).toHaveLength(1)
@@ -342,16 +507,16 @@ describe('Pestañas', () => {
 })
 
 describe('Gastos y liquidación', () => {
-  it('guarda precio por unidad y descuento y muestra el total de la línea', async () => {
+  it('guarda cantidad y precio por unidad, sin campo de descuento, y muestra el total de la línea', async () => {
     const { usuario } = preparar()
     await esperarCarga()
     await anadirProducto(usuario, 'Bebida', 'Sidra')
     await usuario.click(screen.getByRole('button', { name: 'Editar Sidra' }))
     await usuario.type(screen.getByRole('textbox', { name: 'Cantidad' }), '3')
     await usuario.type(screen.getByRole('textbox', { name: 'Precio por unidad (€)' }), '2,5')
-    await usuario.type(screen.getByRole('textbox', { name: 'Descuento (€)' }), '-1')
+    expect(screen.queryByRole('textbox', { name: /Descuento/ })).not.toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Guardar' }))
-    expect(screen.getByText('6,50 €', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText('7,50 €', { exact: false })).toBeInTheDocument()
   })
 
   it('muestra lo pagado por persona, el total y quién debe a quién', async () => {
@@ -404,14 +569,17 @@ describe('Gastos y liquidación', () => {
     expect(within(cuentas).queryByRole('switch')).not.toBeInTheDocument()
   })
 
-  it('marcar una comida como gasto de la casa cambia cómo se reparte', async () => {
-    const { usuario } = preparar(new RepositorioMemoria([quedadaConGastos()]))
-    await ajustar(usuario, 'Beto', 'casa', '0')
-    await abrirPestana('Lista de la compra')
-    await usuario.click(screen.getByRole('switch', { name: 'Gasto de la casa: Alquiler' }))
+  it('el Resumen cuenta lo que ha pagado una familia sin personas', async () => {
+    const q = quedada({
+      grupos: [{ id: 'g1', nombre: 'Cena', orden: 0, reparto: 'comida' }],
+      asistentes: [{ id: 'f1', familia: 'Gómez', personas: 3, llegada: null }],
+      participantes: [{ id: 'ana', nombre: 'Ana' }],
+      productos: [producto({ id: 'p1', grupoId: 'g1', nombre: 'Pizza', compradorId: 'f1', cantidad: 1, precioUnidad: 10 })],
+    })
+    preparar(new RepositorioMemoria([q]))
     const cuentas = await abrirCuentas()
-    // el alquiler pasa a ser comida: 116 € por porcentaje, Beto debe 58 € aunque no pague la casa
-    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 58,00 € a Ana')
+    expect(within(cuentas).getByText(/Gómez ha pagado/)).toHaveTextContent('Gómez ha pagado 10,00 €')
+    expect(normalizar(within(cuentas).getByText(/Ana paga/).textContent)).toBe('Ana paga 10,00 € a Gómez')
   })
 
   it('conserva los porcentajes al recargar', async () => {
@@ -487,6 +655,8 @@ describe('Página inicial', () => {
   it('elegir una quedada lleva a su URL y la muestra', async () => {
     const usuario = abrirInicio(new RepositorioMemoria([conLeche(), conPan()]))
     await usuario.click(await screen.findByRole('button', { name: 'Almunia 2025' }))
+    await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
+    await abrirSeccion('Cena del viernes')
     expect(await screen.findByText('Pan')).toBeInTheDocument()
     expect(window.location.hash).toBe('#/q2')
   })
@@ -538,7 +708,9 @@ describe('Página inicial', () => {
     window.location.hash = '#/q1'
     const usuario = userEvent.setup()
     render(<App repositorio={new RepositorioMemoria([conLeche(), conPan()])} crearId={contador()} />)
-    await screen.findByText('Leche')
+    await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
+    await abrirSeccion('Cena del viernes')
+    expect(screen.getByText('Leche')).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Todas las quedadas' }))
     expect(await screen.findByRole('button', { name: 'Almunia 2025' })).toBeInTheDocument()
     expect(window.location.hash).not.toContain('q1')

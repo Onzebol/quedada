@@ -276,6 +276,14 @@ describe('Pagos', () => {
     expect(within(panel).queryByText(/no entra en las cuentas/)).not.toBeInTheDocument()
   })
 
+  it('«Quién pagó la casa» ofrece primero Nadie todavía y luego los nombres por orden alfabético', async () => {
+    const { panel } = await abrirPagos()
+    const selector = within(panel).getByRole('combobox', { name: 'Quién pagó la casa' })
+    const opciones = Array.from((selector as HTMLSelectElement).options).map((o) => o.textContent)
+    expect(opciones[0]).toBe('Nadie todavía')
+    expect(opciones.slice(1)).toEqual([...opciones.slice(1)].sort((a, b) => (a ?? '').localeCompare(b ?? '', 'es', { sensitivity: 'base' })))
+  })
+
   it('muestra quién la pagó y permite quitarlo', async () => {
     const { usuario, repositorio, panel } = await abrirPagos(conPrecio('b'))
     expect(within(panel).getByRole('combobox', { name: 'Quién pagó la casa' })).toHaveValue('b')
