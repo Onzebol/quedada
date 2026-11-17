@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { vincularCuenta, participanteDe } from '../dominio/vinculos'
 import type { Quedada } from '../dominio/tipos'
-import { nombreCorto } from './nombreCorto'
 import './sesion.css'
 import type { useSesion } from './useSesion'
 
@@ -62,7 +61,7 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
         </button>
       ) : (
         <>
-          <MenuUsuario nombre={nombreCorto(usuario.nombre)} foto={usuario.foto} salir={() => void salir()} />
+          <MenuUsuario nombre={usuario.nombre} foto={usuario.foto} salir={() => void salir()} />
           {quedada !== null && quedada.participantes.length > 0 && (
             <label>
               Este soy yo

@@ -44,12 +44,11 @@ describe('Sesión con Google', () => {
     const { usuario } = await preparar(new AutenticacionMemoria(ana))
     expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Entrar con Google' }))
-    const boton = await screen.findByRole('button', { name: 'Ana' })
-    expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument()
-    expect(boton.textContent).toBe('Ana')
+    const boton = await screen.findByRole('button', { name: 'Ana Pérez' })
+    expect(boton.textContent).toBe('Ana Pérez')
     expect(boton.lastElementChild).toHaveAttribute('src', 'https://fotos/ana.png')
     expect(screen.queryByRole('menuitem', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Ana' }))
+    await usuario.click(screen.getByRole('button', { name: 'Ana Pérez' }))
     await usuario.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
     expect(screen.getByRole('button', { name: 'Entrar con Google' })).toBeInTheDocument()
     expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument()
@@ -57,7 +56,7 @@ describe('Sesión con Google', () => {
 
   it('el menú del usuario se abre al pulsar y se cierra con Escape o al pulsar fuera', async () => {
     const { usuario } = await preparar(new AutenticacionMemoria(ana, ana))
-    const boton = screen.getByRole('button', { name: 'Ana' })
+    const boton = screen.getByRole('button', { name: 'Ana Pérez' })
     expect(boton).toHaveAttribute('aria-expanded', 'false')
     await usuario.click(boton)
     expect(boton).toHaveAttribute('aria-expanded', 'true')
@@ -74,20 +73,20 @@ describe('Sesión con Google', () => {
     const { usuario } = await preparar(new AutenticacionMemoria(ana, ana), [q1()], undefined, () => {
       avisos++
     })
-    await usuario.click(screen.getByRole('button', { name: 'Ana' }))
+    await usuario.click(screen.getByRole('button', { name: 'Ana Pérez' }))
     await usuario.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
     await waitFor(() => expect(avisos).toBe(1))
   })
 
-  it('muestra el nombre sin apellidos, también si el nombre es compuesto', async () => {
+  it('muestra el nombre completo de la cuenta en el menú de usuario', async () => {
     const luis = { ...ana, nombre: 'Luis Miguel Arpón Izquierdo' }
     await preparar(new AutenticacionMemoria(luis, luis))
-    expect(screen.getByRole('button', { name: 'Luis Miguel' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Luis Miguel Arpón Izquierdo' })).toBeInTheDocument()
   })
 
   it('mantiene la sesión que ya existía al cargar la página', async () => {
     await preparar(new AutenticacionMemoria(ana, ana))
-    expect(screen.getByRole('button', { name: 'Ana' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ana Pérez' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Entrar con Google' })).not.toBeInTheDocument()
   })
 
