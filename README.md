@@ -34,6 +34,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 72 | Botón de usuario: en pantallas estrechas se oculta el nombre y queda la foto |
 | 69 | App instalable (PWA): icono y favicon propios, manifiesto, funciona sin conexión (la interfaz) y avisa cuando hay una versión nueva con «Actualizar» |
 | 77 | Botón «Instalar» junto al icono del usuario cuando el navegador permite instalar la aplicación |
+| 79 | Pista para instalar en iOS: el botón «Instalar» abre los pasos «Compartir → Añadir a pantalla de inicio» |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos

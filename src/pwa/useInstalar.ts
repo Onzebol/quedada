@@ -7,12 +7,21 @@ interface EventoInstalacion extends Event {
 }
 
 function yaInstalada(): boolean {
+  // `navigator.standalone` es el aviso propio de iOS; `display-mode` el del resto.
+  if ((navigator as Navigator & { standalone?: boolean }).standalone === true) return true
   return typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches
+}
+
+/** iPhone, iPod y iPad (los iPad recientes se presentan como un Mac: los delata la pantalla táctil). */
+function esIos(): boolean {
+  const { userAgent, platform, maxTouchPoints } = navigator
+  return /iPhone|iPad|iPod/.test(userAgent) || (platform === 'MacIntel' && maxTouchPoints > 1)
 }
 
 /**
  * Permite instalar la aplicación desde un botón propio. `puedeInstalar` solo es verdadero cuando el
- * navegador lo ofrece y la aplicación no está ya abierta como instalada. Un evento solo sirve una vez:
+ * navegador lo ofrece y la aplicación no está ya abierta como instalada; `pistaIos`, en iOS (que no lo ofrece)
+ * y sin instalar, para mostrar los pasos a mano. Un evento solo sirve una vez:
  * tras usarlo (se acepte o no) el botón desaparece.
  */
 export function useInstalar() {
@@ -40,5 +49,8 @@ export function useInstalar() {
     await evento.userChoice
   }, [evento])
 
-  return { puedeInstalar: evento !== null, instalar }
+  // iOS no tiene `beforeinstallprompt`: allí solo se puede explicar cómo hacerlo a mano.
+  const pistaIos = evento === null && esIos() && !yaInstalada()
+
+  return { puedeInstalar: evento !== null, instalar, pistaIos }
 }
