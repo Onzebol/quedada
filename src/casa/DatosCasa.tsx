@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react'
+import { MapPin, Pencil } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { editarCasa, partesDeLaCasa } from '../dominio/casa'
 import { formatearEuros, parsearEuros } from '../dominio/numeros'
@@ -13,8 +13,6 @@ interface Props {
   aplicar: (cambio: (q: Quedada) => Quedada) => void
   geocodificar?: Geocodificador
 }
-
-type Aviso = 'noEncontrada' | 'fallo' | null
 
 const aEuros = (centimos: number | null) => (centimos === null ? '' : String(centimos / 100).replace('.', ','))
 
@@ -35,112 +33,69 @@ function ConEnlaces({ texto }: { texto: string }) {
   )
 }
 
-export function DatosCasa({ quedada, aplicar, geocodificar = geocodificarNominatim }: Props) {
-  const { casa } = quedada
-  const [buscando, setBuscando] = useState(false)
-  const [aviso, setAviso] = useState<Aviso>(null)
-  const partes = partesDeLaCasa(quedada)
+function Mapa({ latitud, longitud }: { latitud: number; longitud: number }) {
+  return (
+    <div className="casa__mapa">
+      <iframe title="Mapa de la casa" src={urlMapaIncrustado(latitud, longitud)} loading="lazy" />
+      <a href={urlAbrirMapa(latitud, longitud)} target="_blank" rel="noopener noreferrer">
+        Abrir en OpenStreetMap
+      </a>
+    </div>
+  )
+}
 
-  async function situar() {
-    setBuscando(true)
-    setAviso(null)
-    try {
-      const sitio = await geocodificar(casa.direccion)
-      if (sitio === null) setAviso('noEncontrada')
-      else aplicar((q) => editarCasa(q, { latitud: sitio.latitud, longitud: sitio.longitud }))
-    } catch {
-      setAviso('fallo')
-    } finally {
-      setBuscando(false)
-    }
-  }
+/** La casa: se ve como una ficha y, con «Editar», cambia al formulario; al guardar vuelve a la ficha. */
+export function DatosCasa({ quedada, aplicar, geocodificar }: Props) {
+  const [editando, setEditando] = useState(false)
+  return editando ? (
+    <FormularioCasa
+      quedada={quedada}
+      aplicar={aplicar}
+      geocodificar={geocodificar}
+      alTerminar={() => setEditando(false)}
+    />
+  ) : (
+    <FichaCasa quedada={quedada} alEditar={() => setEditando(true)} />
+  )
+}
+
+function FichaCasa({ quedada, alEditar }: { quedada: Quedada; alEditar: () => void }) {
+  const { casa } = quedada
+  const partes = partesDeLaCasa(quedada)
+  const pagador = quedada.participantes.find((p) => p.id === casa.pagadorId)
+  const vacia = casa.titulo === '' && casa.descripcion === '' && casa.direccion === '' && casa.precio === null
 
   return (
     <section className="casa" aria-label="Datos de la casa">
-      <h2>{casa.titulo === '' ? 'La casa' : casa.titulo}</h2>
+      <div className="casa__cabecera">
+        <h2>{casa.titulo === '' ? 'La casa' : casa.titulo}</h2>
+        <button type="button" onClick={alEditar}>
+          <ConIcono icono={Pencil}>Editar la casa</ConIcono>
+        </button>
+      </div>
 
-      <label>
-        Título de la casa
-        <input
-          key={casa.titulo}
-          type="text"
-          defaultValue={casa.titulo}
-          onBlur={(e) => aplicar((q) => editarCasa(q, { titulo: e.target.value }))}
-        />
-      </label>
+      {vacia && <p className="casa__nota">Todavía no hay datos de la casa. Pulsa «Editar la casa» para añadirlos.</p>}
 
-      <label>
-        Descripción de la casa
-        <textarea
-          key={casa.descripcion}
-          rows={4}
-          defaultValue={casa.descripcion}
-          onBlur={(e) => aplicar((q) => editarCasa(q, { descripcion: e.target.value }))}
-        />
-      </label>
       {casa.descripcion !== '' && (
         <p className="casa__descripcion">
           <ConEnlaces texto={casa.descripcion} />
         </p>
       )}
 
-      <label>
-        Dirección de la casa
-        <input
-          key={casa.direccion}
-          type="text"
-          defaultValue={casa.direccion}
-          onBlur={(e) => aplicar((q) => editarCasa(q, { direccion: e.target.value }))}
-        />
-      </label>
-      <div className="casa__acciones">
-        <button type="button" disabled={casa.direccion.trim() === '' || buscando} onClick={() => void situar()}>
-          <ConIcono icono={MapPin}>Situar en el mapa</ConIcono>
-        </button>
-        {aviso === 'noEncontrada' && <p role="alert">No se encontró esa dirección. Prueba con otra más completa.</p>}
-        {aviso === 'fallo' && <p role="alert">No se pudo buscar la dirección. Inténtalo de nuevo.</p>}
-      </div>
-      {casa.latitud !== null && casa.longitud !== null && (
-        <div className="casa__mapa">
-          <iframe title="Mapa de la casa" src={urlMapaIncrustado(casa.latitud, casa.longitud)} loading="lazy" />
-          <a href={urlAbrirMapa(casa.latitud, casa.longitud)} target="_blank" rel="noopener noreferrer">
-            Abrir en OpenStreetMap
-          </a>
-        </div>
+      {casa.direccion !== '' && (
+        <p>
+          <strong>Dirección:</strong> {casa.direccion}
+        </p>
       )}
+      {casa.latitud !== null && casa.longitud !== null && <Mapa latitud={casa.latitud} longitud={casa.longitud} />}
 
-      <label>
-        Precio de la casa (€)
-        <input
-          key={casa.precio ?? 'sin'}
-          type="text"
-          inputMode="decimal"
-          defaultValue={aEuros(casa.precio)}
-          onBlur={(e) => {
-            const texto = e.target.value.trim()
-            const euros = parsearEuros(texto)
-            if (texto === '') aplicar((q) => editarCasa(q, { precio: null }))
-            else if (euros !== null) aplicar((q) => editarCasa(q, { precio: Math.round(euros * 100) }))
-            else e.target.value = aEuros(casa.precio)
-          }}
-        />
-      </label>
-
-      <label>
-        Quién pagó la casa
-        <select
-          value={casa.pagadorId ?? ''}
-          onChange={(e) => aplicar((q) => editarCasa(q, { pagadorId: e.target.value === '' ? null : e.target.value }))}
-        >
-          <option value="">Nadie todavía</option>
-          {quedada.participantes.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nombre}
-            </option>
-          ))}
-        </select>
-      </label>
-      {casa.precio !== null && casa.pagadorId === null && (
+      {casa.precio !== null && (
+        <p>
+          <strong>Precio:</strong> {formatearEuros(casa.precio)}
+          {pagador !== undefined && <> · pagado por {pagador.nombre}</>}
+        </p>
+      )}
+      {casa.precio !== null && pagador === undefined && (
         <p className="casa__nota">Mientras nadie figure como pagador, el precio no entra en las cuentas.</p>
       )}
 
@@ -152,6 +107,136 @@ export function DatosCasa({ quedada, aplicar, geocodificar = geocodificarNominat
           </li>
         ))}
       </ul>
+    </section>
+  )
+}
+
+type Aviso = 'noEncontrada' | 'fallo' | 'precio' | null
+
+function FormularioCasa({
+  quedada,
+  aplicar,
+  geocodificar = geocodificarNominatim,
+  alTerminar,
+}: Props & { alTerminar: () => void }) {
+  const { casa } = quedada
+  const [titulo, setTitulo] = useState(casa.titulo)
+  const [descripcion, setDescripcion] = useState(casa.descripcion)
+  const [direccion, setDireccion] = useState(casa.direccion)
+  const [precio, setPrecio] = useState(aEuros(casa.precio))
+  const [pagadorId, setPagadorId] = useState(casa.pagadorId ?? '')
+  const [sitio, setSitio] = useState({ latitud: casa.latitud, longitud: casa.longitud })
+  const [buscando, setBuscando] = useState(false)
+  const [aviso, setAviso] = useState<Aviso>(null)
+
+  async function situar() {
+    setBuscando(true)
+    setAviso(null)
+    try {
+      const encontrado = await geocodificar(direccion.trim())
+      if (encontrado === null) setAviso('noEncontrada')
+      else setSitio(encontrado)
+    } catch {
+      setAviso('fallo')
+    } finally {
+      setBuscando(false)
+    }
+  }
+
+  function guardar() {
+    const texto = precio.trim()
+    const euros = parsearEuros(texto)
+    if (texto !== '' && euros === null) {
+      setAviso('precio')
+      return
+    }
+    const cambios = {
+      titulo,
+      descripcion,
+      direccion,
+      precio: texto === '' ? null : Math.round((euros ?? 0) * 100),
+      pagadorId: pagadorId === '' ? null : pagadorId,
+    }
+    // Cambiar la dirección borra las coordenadas; después se ponen las del formulario.
+    aplicar((q) => editarCasa(editarCasa(q, cambios), sitio))
+    alTerminar()
+  }
+
+  return (
+    <section className="casa" aria-label="Datos de la casa">
+      <h2>Editar la casa</h2>
+      <form
+        aria-label="Editar la casa"
+        className="casa__formulario"
+        onSubmit={(e) => {
+          e.preventDefault()
+          guardar()
+        }}
+      >
+        <label>
+          Título de la casa
+          <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+        </label>
+
+        <label>
+          Descripción de la casa
+          <textarea
+            rows={4}
+            aria-describedby="casa-ayuda-enlaces"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+          />
+        </label>
+        <p id="casa-ayuda-enlaces" className="casa__ayuda">
+          Los enlaces que empiecen por http:// o https:// se mostrarán como enlaces.
+        </p>
+
+        <label>
+          Dirección de la casa
+          <input
+            type="text"
+            value={direccion}
+            onChange={(e) => {
+              setDireccion(e.target.value)
+              // Las coordenadas eran de la dirección anterior.
+              setSitio({ latitud: null, longitud: null })
+            }}
+          />
+        </label>
+        <div className="casa__acciones">
+          <button type="button" disabled={direccion.trim() === '' || buscando} onClick={() => void situar()}>
+            <ConIcono icono={MapPin}>Situar en el mapa</ConIcono>
+          </button>
+          {aviso === 'noEncontrada' && <p role="alert">No se encontró esa dirección. Prueba con otra más completa.</p>}
+          {aviso === 'fallo' && <p role="alert">No se pudo buscar la dirección. Inténtalo de nuevo.</p>}
+        </div>
+        {sitio.latitud !== null && sitio.longitud !== null && <Mapa latitud={sitio.latitud} longitud={sitio.longitud} />}
+
+        <label>
+          Precio de la casa (€)
+          <input type="text" inputMode="decimal" value={precio} onChange={(e) => setPrecio(e.target.value)} />
+        </label>
+        {aviso === 'precio' && <p role="alert">El precio no es válido: escribe un número, por ejemplo 1250,50.</p>}
+
+        <label>
+          Quién pagó la casa
+          <select value={pagadorId} onChange={(e) => setPagadorId(e.target.value)}>
+            <option value="">Nadie todavía</option>
+            {quedada.participantes.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nombre}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="casa__acciones">
+          <button type="submit">Guardar</button>
+          <button type="button" onClick={alTerminar}>
+            Cancelar
+          </button>
+        </div>
+      </form>
     </section>
   )
 }

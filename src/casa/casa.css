@@ -102,3 +102,25 @@
   gap: 0.5rem;
   align-items: end;
 }
+
+.casa__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.casa__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.casa__ayuda {
+  font-size: 0.8125rem;
+}
+
+.casa p {
+  margin: 0;
+}

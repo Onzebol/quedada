@@ -77,7 +77,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
 - **Pestañas** (#55, `src/ui/Pestanas.tsx`, accesible: `role="tablist"`, flechas/Inicio/Fin, solo se monta el panel activo): `VistaQuedada` divide la quedada en **La casa** (`DatosCasa` y `Asistentes`), **Lista de la compra** (`ListaCompra`, la que se abre al entrar), **Tickets** (marcador: aún no hay modelo de tiques) y **Resumen** (`Cuentas`). Ya no hay dos columnas. La pestaña activa es estado local (no va en el hash). En los tests hay que pulsar la pestaña (`getByRole('tab', …)`) antes de buscar su contenido; un elemento de otra pestaña se desmonta al cambiar.
 - **La casa** (#56, `src/casa/`, `dominio/casa.ts`): `Quedada.casa` (título, descripción, dirección, coordenadas, `precio` en
   céntimos y `pagadorId`) vive en columnas `casa_*` de `quedadas` (`0004_casa.sql`; en SQLite, `ALTER` en bases antiguas).
-  `DatosCasa` edita la ficha al salir de cada campo; los enlaces `http(s)` de la descripción se muestran como enlaces
+  `DatosCasa` muestra la ficha y, con «Editar la casa», cambia a un formulario que guarda todo a la vez con «Guardar» (o descarta con «Cancelar») y vuelve a la ficha; los enlaces `http(s)` de la descripción se muestran como enlaces
   (`enlaces.ts`, nunca HTML) y el mapa es un `iframe` de OpenStreetMap (`mapa.ts`) a partir de coordenadas que se obtienen
   **solo al pulsar «Situar en el mapa»** (Nominatim, inyectable con la prop `geocodificar` de `App`; cambiar la dirección
   borra las coordenadas). **Familias y componentes**: un componente es un `Participante` con `familiaId` (id de un

@@ -29,59 +29,126 @@ afterEach(() => {
 const ficha = () => screen.getByRole('region', { name: 'Datos de la casa' })
 const guardada = async (r: RepositorioMemoria) => (await r.obtener('q1'))!
 
+type Usuario = ReturnType<typeof userEvent.setup>
+
+async function editar(usuario: Usuario) {
+  await usuario.click(within(ficha()).getByRole('button', { name: 'Editar la casa' }))
+  return screen.getByRole('form', { name: 'Editar la casa' })
+}
+
+const casaCon = (parcial: Partial<ReturnType<typeof quedada>['casa']>) => ({ ...quedada().casa, ...parcial })
+
 describe('La casa: ficha', () => {
-  it('guarda título, descripción, dirección y precio', async () => {
+  it('se ve como información, sin campos para editar, y con un botón de edición', async () => {
+    await preparar(
+      quedada({
+        id: 'q1',
+        casa: casaCon({ titulo: 'Casa Almunia', descripcion: 'Piscina', direccion: 'Calle Mayor 1', precio: 125050, pagadorId: 'a' }),
+        participantes: [{ id: 'a', nombre: 'Ana' }],
+      }),
+    )
+    expect(within(ficha()).getByRole('heading', { name: 'Casa Almunia' })).toBeInTheDocument()
+    expect(within(ficha()).getByText('Piscina')).toBeInTheDocument()
+    expect(within(ficha()).getByText(/Calle Mayor 1/)).toBeInTheDocument()
+    expect(within(ficha()).getByText(/Precio:/).parentElement).toHaveTextContent(/1\.250,50\s€ · pagado por Ana/)
+    expect(within(ficha()).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(within(ficha()).queryByRole('combobox')).not.toBeInTheDocument()
+    expect(within(ficha()).getByRole('button', { name: 'Editar la casa' })).toBeInTheDocument()
+  })
+
+  it('Editar cambia al formulario y Guardar guarda todo y vuelve a la información', async () => {
     const { usuario, repositorio } = await preparar()
-    await usuario.type(within(ficha()).getByRole('textbox', { name: 'Título de la casa' }), 'Casa Almunia')
-    await usuario.type(within(ficha()).getByRole('textbox', { name: 'Descripción de la casa' }), 'Piscina')
-    await usuario.type(within(ficha()).getByRole('textbox', { name: 'Dirección de la casa' }), 'Calle Mayor 1')
-    await usuario.type(within(ficha()).getByRole('textbox', { name: 'Precio de la casa (€)' }), '1250,5')
-    await usuario.tab()
-    const { casa } = await guardada(repositorio)
-    expect(casa).toMatchObject({ titulo: 'Casa Almunia', descripcion: 'Piscina', direccion: 'Calle Mayor 1', precio: 125050 })
+    const form = await editar(usuario)
+    expect(within(ficha()).queryByRole('button', { name: 'Editar la casa' })).not.toBeInTheDocument()
+    await usuario.type(within(form).getByRole('textbox', { name: 'Título de la casa' }), 'Casa Almunia')
+    await usuario.type(within(form).getByRole('textbox', { name: 'Descripción de la casa' }), 'Piscina')
+    await usuario.type(within(form).getByRole('textbox', { name: 'Dirección de la casa' }), 'Calle Mayor 1')
+    await usuario.type(within(form).getByRole('textbox', { name: 'Precio de la casa (€)' }), '1250,5')
+    expect((await guardada(repositorio)).casa.titulo).toBe('')
+    await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
+    expect((await guardada(repositorio)).casa).toMatchObject({
+      titulo: 'Casa Almunia',
+      descripcion: 'Piscina',
+      direccion: 'Calle Mayor 1',
+      precio: 125050,
+    })
+    expect(screen.queryByRole('form', { name: 'Editar la casa' })).not.toBeInTheDocument()
+    expect(within(ficha()).getByRole('heading', { name: 'Casa Almunia' })).toBeInTheDocument()
+    expect(within(ficha()).getByRole('button', { name: 'Editar la casa' })).toBeInTheDocument()
+  })
+
+  it('Cancelar vuelve a la información sin guardar', async () => {
+    const { usuario, repositorio } = await preparar(quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa' }) }))
+    const form = await editar(usuario)
+    await usuario.type(within(form).getByRole('textbox', { name: 'Título de la casa' }), ' nueva')
+    await usuario.click(within(form).getByRole('button', { name: 'Cancelar' }))
+    expect((await guardada(repositorio)).casa.titulo).toBe('Casa')
+    expect(within(ficha()).getByRole('heading', { name: 'Casa' })).toBeInTheDocument()
+  })
+
+  it('un precio que no es un número no se guarda y avisa', async () => {
+    const { usuario, repositorio } = await preparar()
+    const form = await editar(usuario)
+    await usuario.type(within(form).getByRole('textbox', { name: 'Precio de la casa (€)' }), 'mucho')
+    await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
+    expect(within(form).getByRole('alert')).toHaveTextContent('El precio no es válido')
+    expect((await guardada(repositorio)).casa.precio).toBeNull()
   })
 
   it('muestra los enlaces de la descripción como enlaces que abren en otra pestaña', async () => {
-    await preparar(quedada({ id: 'q1', casa: { ...quedada().casa, descripcion: 'Fotos en https://casa.es/fotos, gracias' } }))
+    await preparar(quedada({ id: 'q1', casa: casaCon({ descripcion: 'Fotos en https://casa.es/fotos, gracias' }) }))
     const enlace = within(ficha()).getByRole('link', { name: 'https://casa.es/fotos' })
     expect(enlace).toHaveAttribute('href', 'https://casa.es/fotos')
     expect(enlace).toHaveAttribute('target', '_blank')
     expect(enlace).toHaveAttribute('rel', expect.stringContaining('noopener'))
   })
 
-  it('sitúa la dirección en el mapa y muestra el mapa', async () => {
+  it('sitúa la dirección en el mapa; el mapa se ve en la información al guardar', async () => {
     const geocodificar = vi.fn<Geocodificador>().mockResolvedValue({ latitud: 41.6, longitud: -1.2 })
-    const { usuario, repositorio } = await preparar(
-      quedada({ id: 'q1', casa: { ...quedada().casa, direccion: 'Calle Mayor 1' } }),
-      geocodificar,
-    )
+    const { usuario, repositorio } = await preparar(quedada({ id: 'q1', casa: casaCon({ direccion: 'Calle Mayor 1' }) }), geocodificar)
     expect(within(ficha()).queryByTitle('Mapa de la casa')).not.toBeInTheDocument()
-    await usuario.click(within(ficha()).getByRole('button', { name: 'Situar en el mapa' }))
+    const form = await editar(usuario)
+    await usuario.click(within(form).getByRole('button', { name: 'Situar en el mapa' }))
     expect(geocodificar).toHaveBeenCalledWith('Calle Mayor 1')
-    const mapa = await within(ficha()).findByTitle('Mapa de la casa')
-    expect(mapa).toHaveAttribute('src', expect.stringContaining('marker=41.6,-1.2'))
-    expect((await guardada(repositorio)).casa).toMatchObject({ latitud: 41.6, longitud: -1.2 })
+    expect(await within(form).findByTitle('Mapa de la casa')).toHaveAttribute('src', expect.stringContaining('marker=41.6,-1.2'))
+    await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
+    expect((await guardada(repositorio)).casa).toMatchObject({ direccion: 'Calle Mayor 1', latitud: 41.6, longitud: -1.2 })
+    expect(within(ficha()).getByTitle('Mapa de la casa')).toBeInTheDocument()
+  })
+
+  it('si se cambia la dirección, el mapa anterior desaparece hasta volver a situarla', async () => {
+    const { usuario, repositorio } = await preparar(
+      quedada({ id: 'q1', casa: casaCon({ direccion: 'A', latitud: 1, longitud: 2 }) }),
+    )
+    const form = await editar(usuario)
+    expect(within(form).getByTitle('Mapa de la casa')).toBeInTheDocument()
+    await usuario.type(within(form).getByRole('textbox', { name: 'Dirección de la casa' }), 'B')
+    expect(within(form).queryByTitle('Mapa de la casa')).not.toBeInTheDocument()
+    await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
+    expect((await guardada(repositorio)).casa).toMatchObject({ direccion: 'AB', latitud: null, longitud: null })
   })
 
   it('avisa si no encuentra la dirección o falla la búsqueda', async () => {
     const geocodificar = vi.fn<Geocodificador>().mockResolvedValueOnce(null).mockRejectedValueOnce(new Error('red'))
-    const { usuario } = await preparar(quedada({ id: 'q1', casa: { ...quedada().casa, direccion: 'Nowhere' } }), geocodificar)
-    await usuario.click(within(ficha()).getByRole('button', { name: 'Situar en el mapa' }))
-    expect(await within(ficha()).findByRole('alert')).toHaveTextContent('No se encontró esa dirección')
-    await usuario.click(within(ficha()).getByRole('button', { name: 'Situar en el mapa' }))
-    expect(await within(ficha()).findByText('No se pudo buscar la dirección. Inténtalo de nuevo.')).toBeInTheDocument()
+    const { usuario } = await preparar(quedada({ id: 'q1', casa: casaCon({ direccion: 'Nowhere' }) }), geocodificar)
+    const form = await editar(usuario)
+    await usuario.click(within(form).getByRole('button', { name: 'Situar en el mapa' }))
+    expect(await within(form).findByRole('alert')).toHaveTextContent('No se encontró esa dirección')
+    await usuario.click(within(form).getByRole('button', { name: 'Situar en el mapa' }))
+    expect(await within(form).findByText('No se pudo buscar la dirección. Inténtalo de nuevo.')).toBeInTheDocument()
   })
 
   it('no ofrece situar en el mapa sin dirección', async () => {
-    await preparar()
-    expect(within(ficha()).getByRole('button', { name: 'Situar en el mapa' })).toBeDisabled()
+    const { usuario } = await preparar()
+    const form = await editar(usuario)
+    expect(within(form).getByRole('button', { name: 'Situar en el mapa' })).toBeDisabled()
   })
 
   it('indica quién pagó la casa y cuánto paga cada participante', async () => {
     const { usuario, repositorio } = await preparar(
       quedada({
         id: 'q1',
-        casa: { ...quedada().casa, precio: 90000 },
+        casa: casaCon({ precio: 90000 }),
         participantes: [
           { id: 'a', nombre: 'Ana' },
           { id: 'b', nombre: 'Beto', porcentajeCasa: 50 },
@@ -91,8 +158,12 @@ describe('La casa: ficha', () => {
     const partes = within(ficha()).getByRole('list', { name: 'Lo que paga cada uno de la casa' })
     expect(within(partes).getByText(/Ana/)).toHaveTextContent(/600,00\s€/)
     expect(within(partes).getByText(/Beto/)).toHaveTextContent(/300,00\s€/)
-    await usuario.selectOptions(within(ficha()).getByRole('combobox', { name: 'Quién pagó la casa' }), 'Ana')
+    expect(within(ficha()).getByText(/no entra en las cuentas/)).toBeInTheDocument()
+    const form = await editar(usuario)
+    await usuario.selectOptions(within(form).getByRole('combobox', { name: 'Quién pagó la casa' }), 'Ana')
+    await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
     expect((await guardada(repositorio)).casa.pagadorId).toBe('a')
+    expect(within(ficha()).getByText(/pagado por Ana/)).toBeInTheDocument()
   })
 })
 
