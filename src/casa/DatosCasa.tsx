@@ -1,4 +1,4 @@
-import { MapPin, Navigation, Pencil } from 'lucide-react'
+import { LocateFixed, MapPin, Navigation, Pencil } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { editarCasa } from '../dominio/casa'
 import { formatearEuros, parsearEuros } from '../dominio/numeros'
@@ -37,9 +37,14 @@ function ConEnlaces({ texto }: { texto: string }) {
 /** Mapa incrustado; con `nombre` ofrece, solo en el móvil, abrir la casa en su aplicación de mapas. */
 function Mapa({ latitud, longitud, nombre }: { latitud: number; longitud: number; nombre?: string }) {
   const enlaceApp = nombre === undefined ? null : urlAppMapas(latitud, longitud, nombre)
+  // Volver a montar el mapa lo devuelve a la casa, aunque se haya desplazado o ampliado.
+  const [vez, setVez] = useState(0)
   return (
     <div className="casa__mapa">
-      <iframe title="Mapa de la casa" src={urlMapaIncrustado(latitud, longitud)} loading="lazy" />
+      <iframe key={vez} title="Mapa de la casa" src={urlMapaIncrustado(latitud, longitud)} loading="lazy" />
+      <button type="button" onClick={() => setVez((v) => v + 1)}>
+        <ConIcono icono={LocateFixed}>Centrar en la casa</ConIcono>
+      </button>
       {enlaceApp !== null && (
         <a className="casa__boton" href={enlaceApp}>
           <ConIcono icono={Navigation}>Abrir en la app de mapas</ConIcono>

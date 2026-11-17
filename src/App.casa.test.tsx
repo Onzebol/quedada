@@ -142,6 +142,15 @@ describe('La casa: ficha', () => {
     }
   })
 
+  it('la ficha tiene «Centrar en la casa», que devuelve el mapa a la casa', async () => {
+    await preparar(quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }))
+    const antes = within(ficha()).getByTitle('Mapa de la casa')
+    await userEvent.click(within(ficha()).getByRole('button', { name: 'Centrar en la casa' }))
+    const despues = within(ficha()).getByTitle('Mapa de la casa')
+    expect(despues).not.toBe(antes)
+    expect(despues).toHaveAttribute('src', antes.getAttribute('src'))
+  })
+
   it('el marcador se puede mover solo al editar, y la nueva posición se guarda', async () => {
     const { usuario, repositorio } = await preparar(
       quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }),
