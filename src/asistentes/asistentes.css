@@ -41,19 +41,24 @@
 }
 
 .familia__cabecera {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--esp-2) var(--esp-3);
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 var(--esp-3);
+  align-items: center;
 }
 
+/* El contenedor del título no pinta nada: su h3 y sus datos son celdas de la rejilla de la cabecera. */
 .familia__titulo {
-  flex: 1 1 10rem;
-  min-width: 0;
+  display: contents;
 }
 
+/* Primera fila: el nombre mide lo mismo que los botones; los detalles siempre van en la segunda. */
 .familia h3 {
+  display: flex;
+  grid-column: 1;
+  grid-row: 1;
+  align-items: center;
+  min-height: var(--alto-control);
   margin: 0;
   font-size: 1.25rem;
   overflow-wrap: anywhere;
@@ -62,8 +67,10 @@
 .familia__datos {
   display: flex;
   flex-wrap: wrap;
+  grid-column: 1 / -1;
+  grid-row: 2;
   gap: 0 var(--esp-4);
-  margin: var(--esp-1) 0 0;
+  margin: 0;
   color: var(--mut);
 }
 
@@ -71,6 +78,11 @@
 .persona__acciones {
   display: flex;
   gap: var(--esp-2);
+}
+
+.familia__acciones {
+  grid-column: 2;
+  grid-row: 1;
 }
 
 /* El nombre es el botón que expande o contrae la ficha: sin aspecto de botón, con una flecha que gira. */
