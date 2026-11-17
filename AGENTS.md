@@ -105,7 +105,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
 - Asistentes (#7): `Quedada.asistentes` (familia, personas ≥ 1, llegada `HH:MM` o `null`) y
   `Quedada.basicos` (**en desuso**: la sección de básicos se quitó en #56, lo que haya que llevar va en la lista de la compra; el
   campo y las tablas se conservan para no borrar datos ni migrar). Lógica pura en
-  `dominio/asistentes.ts` (alta, edición, baja, total, orden por llegada); tablas
+  `dominio/asistentes.ts` (alta, edición, baja, total, orden alfabético con `ordenarPorNombre`, #65: familias y personas); tablas
   `asistentes` y `basicos` en SQLite (`CREATE TABLE IF NOT EXISTS`, así que las bases antiguas se
   abren sin migrar). Interfaz en `src/asistentes/` (`Asistentes`, `CampoEntero`); el total
   («Vienen N personas») sale también en la lista de la compra. **Los asistentes no cambian el

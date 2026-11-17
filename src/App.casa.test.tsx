@@ -305,6 +305,28 @@ describe('La casa: familias y componentes', () => {
       ],
     })
 
+  it('ordena alfabéticamente las personas de la familia y las que no tienen familia', async () => {
+    const { usuario } = await preparar(
+      quedada({
+        id: 'q1',
+        asistentes: [{ id: 'f1', familia: 'Pérez', personas: 2, llegada: null }],
+        participantes: [
+          { id: 'z', nombre: 'Zoe', familiaId: 'f1' },
+          { id: 'a', nombre: 'Álex', familiaId: 'f1' },
+          { id: 'p', nombre: 'Pablo' },
+          { id: 'b', nombre: 'Berta' },
+        ],
+      }),
+    )
+    await expandir(usuario, 'Pérez')
+    const nombres = (lista: string) =>
+      within(screen.getByRole('list', { name: lista }))
+        .getAllByRole('listitem')
+        .map((li) => li.querySelector('strong, .persona__nombre')?.textContent)
+    expect(nombres('Personas de la familia Pérez')).toEqual(['Álex', 'Zoe'])
+    expect(nombres('Participantes sin familia')).toEqual(['Berta', 'Pablo'])
+  })
+
   it('añade personas a una familia con «Añadir persona» y su número de personas las cuenta', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
     await expandir(usuario, 'Pérez')

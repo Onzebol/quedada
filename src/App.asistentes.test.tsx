@@ -115,14 +115,14 @@ describe('Asistentes', () => {
     expect(screen.getByText('Vienen 7 personas')).toBeInTheDocument()
   })
 
-  it('lista las familias por hora de llegada', async () => {
+  it('lista las familias por orden alfabético', async () => {
     const { usuario } = await preparar()
-    await anadir(usuario, 'Tarde', '2', '21:00')
-    await anadir(usuario, 'Pronto', '2', '09:15')
+    await anadir(usuario, 'Zapata', '2', '09:15')
+    await anadir(usuario, 'Álvarez', '2', '21:00')
     const nombres = within(seccion())
       .getAllByRole('heading', { level: 3 })
       .map((h) => h.textContent)
-    expect(nombres).toEqual(['Pronto', 'Tarde'])
+    expect(nombres).toEqual(['Álvarez', 'Zapata'])
   })
 
   it('edita personas y hora de llegada de una familia', async () => {
