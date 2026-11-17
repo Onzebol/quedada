@@ -67,9 +67,11 @@ export function ListaCompra({ estado, crearId }: Props) {
     <div className="compra">
       <div className="compra__cabecera">
         <h2>Lista de la compra</h2>
-        <button type="button" onClick={() => setAnadiendo(true)}>
-          <ConIcono icono={Plus}>Añadir sección</ConIcono>
-        </button>
+        {!filtrando && (
+          <button type="button" onClick={() => setAnadiendo(true)}>
+            <ConIcono icono={Plus}>Añadir sección</ConIcono>
+          </button>
+        )}
       </div>
       {error === 'guardado' && (
         <p role="alert">No se pudo guardar el último cambio. Se ve en pantalla, pero se perderá al recargar.</p>
@@ -115,6 +117,7 @@ export function ListaCompra({ estado, crearId }: Props) {
             forzarAbierta={filtrando}
             conComprador={filtro.tipo !== 'comprador'}
             oculta={filtrando && visibles.length === 0}
+            soloLectura={filtrando}
             compradores={todosCompradores}
             onAnadirProducto={(grupoId, valores) => {
               const id = crearId()

@@ -179,10 +179,24 @@ describe('Lista de la compra', () => {
     await usuario.selectOptions(filtro, 'Compra Zoe')
     expect(screen.getAllByRole('checkbox')).toHaveLength(1)
     // si Zoe se queda sin nada, el filtro vuelve a «Todos» en vez de dejar un valor que ya no existe
+    await usuario.selectOptions(filtro, 'Todos')
     await usuario.click(screen.getByRole('button', { name: 'Borrar Sidra' }))
     await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect(filtro).toHaveValue('todos')
     expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+  })
+
+  it('con un filtro activo en «Mostrar» no hay botones de añadir, renombrar, editar ni borrar', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    const botones = () =>
+      screen.queryAllByRole('button', { name: /^(Añadir|Renombrar|Editar|Borrar)/ }).map((b) => b.getAttribute('aria-label') ?? b.textContent)
+    expect(botones()).toEqual(expect.arrayContaining(['Añadir sección', 'Renombrar Bebida', 'Editar Sidra', 'Borrar Sidra']))
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Sin asignar')
+    expect(botones()).toEqual([])
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Todos')
+    expect(botones()).toContain('Editar Sidra')
   })
   it('filtrando, los totales cuentan solo lo filtrado y no dicen «sin comprador»', async () => {
     const { usuario } = preparar(undefined, ['Josu'])
