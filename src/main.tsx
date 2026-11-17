@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { PantallaEntrada } from './autenticacion/PantallaEntrada'
+import { ActualizacionPwa } from './pwa/ActualizacionPwa'
 import { AutenticacionSupabase } from './supabase/autenticacionSupabase'
 import { crearCliente } from './supabase/cliente'
 import { RepositorioSupabase } from './supabase/repositorioSupabase'
@@ -25,7 +26,13 @@ async function iniciar() {
 }
 
 iniciar().then(
-  (vista) => raiz.render(<StrictMode>{vista}</StrictMode>),
+  (vista) =>
+    raiz.render(
+      <StrictMode>
+        {vista}
+        <ActualizacionPwa />
+      </StrictMode>,
+    ),
   (error: unknown) => {
     console.error(error)
     raiz.render(<p role="alert">No se pudo iniciar la aplicación.</p>)

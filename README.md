@@ -32,6 +32,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 67 | Lista de la compra como «La casa»: secciones plegables y por orden alfabético, añadir y editar en ventanas modales, asignar también a familias sin personas, filtro «Mostrar» y totales; sin «Añadir participante» (se definen en «La casa») |
 | 70 | Con un filtro activo en «Mostrar», la lista de la compra no muestra botones de añadir, renombrar, editar ni borrar |
 | 72 | Botón de usuario: en pantallas estrechas se oculta el nombre y queda la foto |
+| 69 | App instalable (PWA): icono y favicon propios, manifiesto, funciona sin conexión (la interfaz) y avisa cuando hay una versión nueva con «Actualizar» |
 | 8 y 9 | Memoria entre años y tickets |
 
 ## Requisitos
