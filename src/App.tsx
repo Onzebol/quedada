@@ -12,6 +12,7 @@ import { ListaCompra } from './compra/ListaCompra'
 import { useQuedada } from './compra/useQuedada'
 import { DatosCasa } from './casa/DatosCasa'
 import type { Geocodificador } from './casa/mapa'
+import { Pagos } from './casa/Pagos'
 import { Cuentas } from './cuentas/Cuentas'
 import type { Repositorio } from './dominio/repositorio'
 import { RepositorioLocalStorage } from './dominio/repositorioLocalStorage'
@@ -213,9 +214,9 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
                 },
                 { id: 'compra', titulo: 'Lista de la compra', contenido: <ListaCompra estado={estado} crearId={crearId} /> },
                 {
-                  id: 'tickets',
-                  titulo: 'Tickets',
-                  contenido: <p role="note">Aquí irán los tiques de la compra de cada uno. Todavía no se pueden registrar.</p>,
+                  id: 'pagos',
+                  titulo: 'Pagos',
+                  contenido: <Pagos quedada={estado.quedada} aplicar={estado.aplicar} />,
                 },
                 {
                   id: 'resumen',

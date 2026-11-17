@@ -6,7 +6,7 @@ import { RepositorioMemoria } from '../test/repositorioMemoria'
 import { ImportarExcel } from './ImportarExcel'
 import type { InformeImportacion } from './importarHoja'
 
-const importada = (id = 'import-compras-2026', nombre = 'Quedada 2026') => quedada({ id, nombre, participantes: [{ id: 'p1', nombre: 'Ana' }, { id: 'p2', nombre: 'Beto' }], productos: [producto({ id: `${id}-producto-1` })] })
+const importada = (id = 'import-compras-2026', nombre = 'Quedada 2026') => quedada({ id, nombre, participantes: [{ id: 'p1', nombre: 'Ana', familiaId: 'fa' }, { id: 'p2', nombre: 'Beto', familiaId: 'fb' }], asistentes: [{ id: 'fa', familia: 'Ana', personas: 1, llegada: null }, { id: 'fb', familia: 'Beto', personas: 1, llegada: null }], productos: [producto({ id: `${id}-producto-1` })] })
 const informe = (...ids: string[]): InformeImportacion => ({
   importadas: ids.map((id) => ({ hoja: 'Compras 2026', quedada: importada(id), avisos: [] })),
   ignoradas: [],
@@ -75,7 +75,8 @@ describe('ImportarExcel: id de la quedada importada', () => {
     await importar({ repo, espacio: 'ana' })
     const q = repo.quedadas[0]
     expect(q.id).toBe('ana-import-compras-2026')
-    expect(q.asistentes).toHaveLength(1)
+    // La familia que ya tenía se conserva; las de los compradores nuevos se añaden.
+    expect(q.asistentes.map((a) => a.id)).toEqual(['a1', 'fa', 'fb'])
     expect(q.basicos).toHaveLength(1)
   })
 
@@ -92,7 +93,17 @@ describe('ImportarExcel: id de la quedada importada', () => {
     const q = repo.quedadas[0]
     expect(q.casa).toMatchObject({ titulo: 'Casa Almunia', precio: 90000, pagadorId: 'p1' })
     expect(q.participantes.find((p) => p.id === 'p1')).toMatchObject({ familiaId: 'f1', porcentajeCasa: 50 })
-    expect(q.participantes.find((p) => p.id === 'p2')).toEqual({ id: 'p2', nombre: 'Beto' })
+    expect(q.participantes.find((p) => p.id === 'p2')).toEqual({ id: 'p2', nombre: 'Beto', familiaId: 'fb' })
+    // Conserva su familia y añade la de quien no la tenía, sin duplicar.
+    expect(q.asistentes.map((a) => a.id)).toEqual(['f1', 'fb'])
+  })
+
+  it('al importar por primera vez, cada comprador queda como una familia', async () => {
+    const repo = new RepositorioMemoria()
+    await importar({ repo })
+    const q = repo.quedadas[0]
+    expect(q.asistentes.map((a) => a.familia)).toEqual(['Ana', 'Beto'])
+    expect(q.participantes.map((p) => p.familiaId)).toEqual(['fa', 'fb'])
   })
 
   it('con varias hojas, cada quedada recibe su id con la cuenta', async () => {

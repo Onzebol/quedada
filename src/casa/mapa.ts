@@ -15,8 +15,22 @@ export function urlMapaIncrustado(latitud: number, longitud: number): string {
   return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latitud},${longitud}`
 }
 
-export function urlAbrirMapa(latitud: number, longitud: number): string {
-  return `https://www.openstreetmap.org/?mlat=${latitud}&mlon=${longitud}#map=16/${latitud}/${longitud}`
+/**
+ * Enlace que abre la aplicación de mapas del móvil: `geo:` en Android y Apple Maps en iPhone/iPad.
+ * En el ordenador devuelve `null` (no hay aplicación de mapas a la que enviar). Un iPad moderno se
+ * presenta como Mac, así que se distingue por la pantalla táctil.
+ */
+export function urlAppMapas(
+  latitud: number,
+  longitud: number,
+  nombre: string,
+  agente: string = navigator.userAgent,
+  puntosTactiles: number = navigator.maxTouchPoints,
+): string | null {
+  const etiqueta = nombre.trim() === '' ? 'La casa' : nombre.trim()
+  if (/Android/i.test(agente)) return `geo:${latitud},${longitud}?q=${latitud},${longitud}(${encodeURIComponent(etiqueta)})`
+  const apple = /iPhone|iPad|iPod/i.test(agente) || (/Macintosh/i.test(agente) && puntosTactiles > 1)
+  return apple ? `https://maps.apple.com/?ll=${latitud},${longitud}&q=${encodeURIComponent(etiqueta)}` : null
 }
 
 /** Busca la dirección en Nominatim (OpenStreetMap). Solo se llama al pulsar el botón, nunca al escribir. */

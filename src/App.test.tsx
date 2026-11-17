@@ -316,10 +316,10 @@ function quedadaConGastos() {
 }
 
 describe('Pestañas', () => {
-  it('divide la quedada en La casa, Lista de la compra, Tickets y Resumen, y abre la lista de la compra', async () => {
+  it('divide la quedada en La casa, Lista de la compra, Pagos y Resumen, y abre la lista de la compra', async () => {
     preparar()
     await esperarCarga()
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['La casa', 'Lista de la compra', 'Tickets', 'Resumen'])
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['La casa', 'Lista de la compra', 'Pagos', 'Resumen'])
     expect(screen.getByRole('tab', { name: 'Lista de la compra' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.queryByRole('region', { name: 'Asistentes' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Cuentas' })).not.toBeInTheDocument()
@@ -331,8 +331,8 @@ describe('Pestañas', () => {
     await abrirPestana('La casa')
     expect(screen.getByRole('region', { name: 'Asistentes' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 3, name: 'Cena del viernes' })).not.toBeInTheDocument()
-    await abrirPestana('Tickets')
-    expect(screen.getByRole('tabpanel', { name: 'Tickets' })).toBeInTheDocument()
+    await abrirPestana('Pagos')
+    expect(screen.getByRole('tabpanel', { name: 'Pagos' })).toBeInTheDocument()
     await abrirPestana('Resumen')
     expect(screen.getByRole('region', { name: 'Cuentas' })).toBeInTheDocument()
   })

@@ -1,11 +1,15 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import type { Geocodificador } from './casa/mapa'
 import { quedada } from './dominio/fabrica'
+import { leaflet } from './test/leafletFalso'
 import { abrirPrimera } from './test/abrirPrimera'
 import { RepositorioMemoria } from './test/repositorioMemoria'
+
+vi.mock('leaflet', async () => (await import('./test/leafletFalso')).leafletFalso)
+vi.mock('leaflet/dist/leaflet.css', () => ({}))
 
 function contador() {
   let n = 0
@@ -24,6 +28,8 @@ async function preparar(inicial = quedada({ id: 'q1' }), geocodificar?: Geocodif
 
 afterEach(() => {
   window.location.hash = ''
+  leaflet.mapa = null
+  leaflet.marcador = null
 })
 
 const ficha = () => screen.getByRole('region', { name: 'Datos de la casa' })
@@ -43,14 +49,14 @@ describe('La casa: ficha', () => {
     await preparar(
       quedada({
         id: 'q1',
-        casa: casaCon({ titulo: 'Casa Almunia', descripcion: 'Piscina', direccion: 'Calle Mayor 1', precio: 125050, pagadorId: 'a' }),
-        participantes: [{ id: 'a', nombre: 'Ana' }],
+        casa: casaCon({ titulo: 'Casa Almunia', descripcion: 'Piscina', direccion: 'Calle Mayor 1', precio: 125050 }),
       }),
     )
     expect(within(ficha()).getByRole('heading', { name: 'Casa Almunia' })).toBeInTheDocument()
     expect(within(ficha()).getByText('Piscina')).toBeInTheDocument()
     expect(within(ficha()).getByText(/Calle Mayor 1/)).toBeInTheDocument()
-    expect(within(ficha()).getByText(/Precio:/).parentElement).toHaveTextContent(/1\.250,50\s€ · pagado por Ana/)
+    expect(within(ficha()).getByText(/Precio:/).parentElement).toHaveTextContent(/1\.250,50\s€/)
+    expect(within(ficha()).queryByText(/pagado por/)).not.toBeInTheDocument()
     expect(within(ficha()).queryByRole('textbox')).not.toBeInTheDocument()
     expect(within(ficha()).queryByRole('combobox')).not.toBeInTheDocument()
     expect(within(ficha()).getByRole('button', { name: 'Editar la casa' })).toBeInTheDocument()
@@ -110,10 +116,56 @@ describe('La casa: ficha', () => {
     const form = await editar(usuario)
     await usuario.click(within(form).getByRole('button', { name: 'Situar en el mapa' }))
     expect(geocodificar).toHaveBeenCalledWith('Calle Mayor 1')
-    expect(await within(form).findByTitle('Mapa de la casa')).toHaveAttribute('src', expect.stringContaining('marker=41.6,-1.2'))
+    expect(await within(form).findByLabelText(/Mapa de la casa/)).toBeInTheDocument()
+    await waitFor(() => expect(leaflet.marcador?.posicion).toEqual({ lat: 41.6, lng: -1.2 }))
     await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
     expect((await guardada(repositorio)).casa).toMatchObject({ direccion: 'Calle Mayor 1', latitud: 41.6, longitud: -1.2 })
     expect(within(ficha()).getByTitle('Mapa de la casa')).toBeInTheDocument()
+  })
+
+  it('el botón de la app de mapas solo aparece en el móvil, y no el enlace a OpenStreetMap', async () => {
+    const q = () => quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) })
+    await preparar(q())
+    expect(within(ficha()).getByTitle('Mapa de la casa')).toBeInTheDocument()
+    expect(within(ficha()).queryByRole('link', { name: /app de mapas/ })).not.toBeInTheDocument()
+    expect(within(ficha()).queryByRole('link', { name: /OpenStreetMap/ })).not.toBeInTheDocument()
+  })
+
+  it('en un móvil Android ofrece abrir la casa en la app de mapas', async () => {
+    const agente = vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36')
+    try {
+      await preparar(quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }))
+      expect(within(ficha()).getByRole('link', { name: 'Abrir en la app de mapas' })).toHaveAttribute('href', 'geo:41.6,-1.2?q=41.6,-1.2(Casa)')
+      expect(within(ficha()).queryByRole('link', { name: /OpenStreetMap/ })).not.toBeInTheDocument()
+    } finally {
+      agente.mockRestore()
+    }
+  })
+
+  it('el marcador se puede mover solo al editar, y la nueva posición se guarda', async () => {
+    const { usuario, repositorio } = await preparar(
+      quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }),
+    )
+    // En la ficha el mapa es de solo lectura: no hay marcador que mover.
+    expect(within(ficha()).getByTitle('Mapa de la casa')).toBeInTheDocument()
+    expect(leaflet.marcador).toBeNull()
+    const form = await editar(usuario)
+    await waitFor(() => expect(leaflet.marcador).not.toBeNull())
+    act(() => leaflet.arrastrar(41.65, -1.25))
+    await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
+    expect((await guardada(repositorio)).casa).toMatchObject({ direccion: 'A', latitud: 41.65, longitud: -1.25 })
+    expect(within(ficha()).getByTitle('Mapa de la casa')).toHaveAttribute('src', expect.stringContaining('marker=41.65,-1.25'))
+  })
+
+  it('si se cancela, la posición del marcador no se guarda', async () => {
+    const { usuario, repositorio } = await preparar(
+      quedada({ id: 'q1', casa: casaCon({ direccion: 'A', latitud: 41.6, longitud: -1.2 }) }),
+    )
+    const form = await editar(usuario)
+    await waitFor(() => expect(leaflet.marcador).not.toBeNull())
+    act(() => leaflet.arrastrar(10, 10))
+    await usuario.click(within(form).getByRole('button', { name: 'Cancelar' }))
+    expect((await guardada(repositorio)).casa).toMatchObject({ latitud: 41.6, longitud: -1.2 })
   })
 
   it('si se cambia la dirección, el mapa anterior desaparece hasta volver a situarla', async () => {
@@ -121,9 +173,9 @@ describe('La casa: ficha', () => {
       quedada({ id: 'q1', casa: casaCon({ direccion: 'A', latitud: 1, longitud: 2 }) }),
     )
     const form = await editar(usuario)
-    expect(within(form).getByTitle('Mapa de la casa')).toBeInTheDocument()
+    expect(within(form).getByLabelText(/Mapa de la casa/)).toBeInTheDocument()
     await usuario.type(within(form).getByRole('textbox', { name: 'Dirección de la casa' }), 'B')
-    expect(within(form).queryByTitle('Mapa de la casa')).not.toBeInTheDocument()
+    expect(within(form).queryByLabelText(/Mapa de la casa/)).not.toBeInTheDocument()
     await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
     expect((await guardada(repositorio)).casa).toMatchObject({ direccion: 'AB', latitud: null, longitud: null })
   })
@@ -144,11 +196,11 @@ describe('La casa: ficha', () => {
     expect(within(form).getByRole('button', { name: 'Situar en el mapa' })).toBeDisabled()
   })
 
-  it('indica quién pagó la casa y cuánto paga cada participante', async () => {
-    const { usuario, repositorio } = await preparar(
+  it('indica cuánto paga cada participante de la casa, sin decir quién la pagó', async () => {
+    const { usuario } = await preparar(
       quedada({
         id: 'q1',
-        casa: casaCon({ precio: 90000 }),
+        casa: casaCon({ precio: 90000, pagadorId: 'a' }),
         participantes: [
           { id: 'a', nombre: 'Ana' },
           { id: 'b', nombre: 'Beto', porcentajeCasa: 50 },
@@ -158,12 +210,49 @@ describe('La casa: ficha', () => {
     const partes = within(ficha()).getByRole('list', { name: 'Lo que paga cada uno de la casa' })
     expect(within(partes).getByText(/Ana/)).toHaveTextContent(/600,00\s€/)
     expect(within(partes).getByText(/Beto/)).toHaveTextContent(/300,00\s€/)
-    expect(within(ficha()).getByText(/no entra en las cuentas/)).toBeInTheDocument()
+    expect(within(ficha()).queryByText(/pagado por|no entra en las cuentas/)).not.toBeInTheDocument()
     const form = await editar(usuario)
-    await usuario.selectOptions(within(form).getByRole('combobox', { name: 'Quién pagó la casa' }), 'Ana')
-    await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
+    expect(within(form).queryByRole('combobox', { name: 'Quién pagó la casa' })).not.toBeInTheDocument()
+  })
+})
+
+describe('Pagos', () => {
+  const conPrecio = (pagadorId: string | null) =>
+    quedada({
+      id: 'q1',
+      casa: casaCon({ precio: 90000, pagadorId }),
+      participantes: [
+        { id: 'a', nombre: 'Ana' },
+        { id: 'b', nombre: 'Beto' },
+      ],
+    })
+
+  async function abrirPagos(inicial = conPrecio(null)) {
+    const { usuario, repositorio } = await preparar(inicial)
+    await usuario.click(screen.getByRole('tab', { name: 'Pagos' }))
+    return { usuario, repositorio, panel: screen.getByRole('region', { name: 'Pago de la casa' }) }
+  }
+
+  it('indica quién pagó la casa y lo guarda', async () => {
+    const { usuario, repositorio, panel } = await abrirPagos()
+    expect(within(panel).getByText(/900,00\s€/)).toBeInTheDocument()
+    expect(within(panel).getByText(/no entra en las cuentas/)).toBeInTheDocument()
+    await usuario.selectOptions(within(panel).getByRole('combobox', { name: 'Quién pagó la casa' }), 'Ana')
     expect((await guardada(repositorio)).casa.pagadorId).toBe('a')
-    expect(within(ficha()).getByText(/pagado por Ana/)).toBeInTheDocument()
+    expect(within(panel).queryByText(/no entra en las cuentas/)).not.toBeInTheDocument()
+  })
+
+  it('muestra quién la pagó y permite quitarlo', async () => {
+    const { usuario, repositorio, panel } = await abrirPagos(conPrecio('b'))
+    expect(within(panel).getByRole('combobox', { name: 'Quién pagó la casa' })).toHaveValue('b')
+    await usuario.selectOptions(within(panel).getByRole('combobox', { name: 'Quién pagó la casa' }), 'Nadie todavía')
+    expect((await guardada(repositorio)).casa.pagadorId).toBeNull()
+  })
+
+  it('sin precio avisa de que hay que ponerlo en La casa', async () => {
+    const { panel } = await abrirPagos(quedada({ id: 'q1' }))
+    expect(within(panel).getByText(/Todavía no hay precio de la casa/)).toBeInTheDocument()
+    expect(within(panel).queryByRole('combobox')).not.toBeInTheDocument()
   })
 })
 

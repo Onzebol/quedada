@@ -124,3 +124,34 @@
 .casa p {
   margin: 0;
 }
+
+.casa__boton {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border: 1px solid var(--linea);
+  border-radius: 40px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.casa__mapa-ajustable {
+  width: 100%;
+  height: 18rem;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  z-index: 0;
+}
+
+/* Marcador del mapa ajustable: una gota hecha con CSS, sin imágenes. */
+.casa__pin {
+  background: var(--moss);
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+  transform: rotate(-45deg);
+  cursor: grab;
+}

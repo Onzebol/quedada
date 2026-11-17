@@ -95,6 +95,14 @@ describe('importarHoja: formato 2026 (sin precios)', () => {
     expect(r.quedada.productos[0].compradorId).toBeNull()
   })
 
+  it('cada comprador es una familia, con él como primer componente', () => {
+    const [ana] = r.quedada.participantes
+    expect(r.quedada.asistentes).toEqual([
+      { id: 'import-compras-2026-familia-ana', familia: 'Ana', personas: 1, llegada: null },
+    ])
+    expect(ana.familiaId).toBe('import-compras-2026-familia-ana')
+  })
+
   it('no inventa precios', () => {
     expect(r.quedada.productos.every((p) => p.precioUnidad === null && p.descuento === 0)).toBe(true)
   })

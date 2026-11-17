@@ -50,6 +50,7 @@ export function ImportarExcel({ leer, repositorio, espacio, onImportado }: Props
         const previa = await repositorio.obtener(id)
         guardadas.push(id)
         const casa = previa?.casa ?? quedada.casa
+        // La familia que ya tenía el participante manda; si no tenía, vale la que crea el importador.
         const participantes = quedada.participantes.map((p) => {
           const antes = previa?.participantes.find((x) => x.id === p.id)
           return {
@@ -58,12 +59,16 @@ export function ImportarExcel({ leer, repositorio, espacio, onImportado }: Props
             ...(antes?.porcentajeCasa !== undefined && { porcentajeCasa: antes.porcentajeCasa }),
           }
         })
+        const familiasPrevias = previa?.asistentes ?? []
+        const familiasNuevas = quedada.asistentes.filter(
+          (f) => !familiasPrevias.some((x) => x.id === f.id) && participantes.some((p) => p.familiaId === f.id),
+        )
         await repositorio.guardar({
           ...quedada,
           id,
           casa: participantes.some((p) => p.id === casa.pagadorId) ? casa : { ...casa, pagadorId: null },
           participantes,
-          asistentes: previa?.asistentes ?? [],
+          asistentes: [...familiasPrevias, ...familiasNuevas],
           basicos: previa?.basicos ?? [],
         })
       }

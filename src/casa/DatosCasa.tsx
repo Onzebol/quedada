@@ -1,11 +1,12 @@
-import { MapPin, Pencil } from 'lucide-react'
+import { MapPin, Navigation, Pencil } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { editarCasa, partesDeLaCasa } from '../dominio/casa'
 import { formatearEuros, parsearEuros } from '../dominio/numeros'
 import type { Quedada } from '../dominio/tipos'
 import { ConIcono } from '../ui/ConIcono'
 import { partirEnlaces } from './enlaces'
-import { geocodificarNominatim, urlAbrirMapa, urlMapaIncrustado, type Geocodificador } from './mapa'
+import { MapaAjustable } from './MapaAjustable'
+import { geocodificarNominatim, urlAppMapas, urlMapaIncrustado, type Geocodificador } from './mapa'
 import './casa.css'
 
 interface Props {
@@ -33,13 +34,17 @@ function ConEnlaces({ texto }: { texto: string }) {
   )
 }
 
-function Mapa({ latitud, longitud }: { latitud: number; longitud: number }) {
+/** Mapa incrustado; con `nombre` ofrece, solo en el móvil, abrir la casa en su aplicación de mapas. */
+function Mapa({ latitud, longitud, nombre }: { latitud: number; longitud: number; nombre?: string }) {
+  const enlaceApp = nombre === undefined ? null : urlAppMapas(latitud, longitud, nombre)
   return (
     <div className="casa__mapa">
       <iframe title="Mapa de la casa" src={urlMapaIncrustado(latitud, longitud)} loading="lazy" />
-      <a href={urlAbrirMapa(latitud, longitud)} target="_blank" rel="noopener noreferrer">
-        Abrir en OpenStreetMap
-      </a>
+      {enlaceApp !== null && (
+        <a className="casa__boton" href={enlaceApp}>
+          <ConIcono icono={Navigation}>Abrir en la app de mapas</ConIcono>
+        </a>
+      )}
     </div>
   )
 }
@@ -62,7 +67,6 @@ export function DatosCasa({ quedada, aplicar, geocodificar }: Props) {
 function FichaCasa({ quedada, alEditar }: { quedada: Quedada; alEditar: () => void }) {
   const { casa } = quedada
   const partes = partesDeLaCasa(quedada)
-  const pagador = quedada.participantes.find((p) => p.id === casa.pagadorId)
   const vacia = casa.titulo === '' && casa.descripcion === '' && casa.direccion === '' && casa.precio === null
 
   return (
@@ -87,16 +91,14 @@ function FichaCasa({ quedada, alEditar }: { quedada: Quedada; alEditar: () => vo
           <strong>Dirección:</strong> {casa.direccion}
         </p>
       )}
-      {casa.latitud !== null && casa.longitud !== null && <Mapa latitud={casa.latitud} longitud={casa.longitud} />}
+      {casa.latitud !== null && casa.longitud !== null && (
+        <Mapa latitud={casa.latitud} longitud={casa.longitud} nombre={casa.titulo} />
+      )}
 
       {casa.precio !== null && (
         <p>
           <strong>Precio:</strong> {formatearEuros(casa.precio)}
-          {pagador !== undefined && <> · pagado por {pagador.nombre}</>}
         </p>
-      )}
-      {casa.precio !== null && pagador === undefined && (
-        <p className="casa__nota">Mientras nadie figure como pagador, el precio no entra en las cuentas.</p>
       )}
 
       <h4>Lo que paga cada uno</h4>
@@ -124,7 +126,6 @@ function FormularioCasa({
   const [descripcion, setDescripcion] = useState(casa.descripcion)
   const [direccion, setDireccion] = useState(casa.direccion)
   const [precio, setPrecio] = useState(aEuros(casa.precio))
-  const [pagadorId, setPagadorId] = useState(casa.pagadorId ?? '')
   const [sitio, setSitio] = useState({ latitud: casa.latitud, longitud: casa.longitud })
   const [buscando, setBuscando] = useState(false)
   const [aviso, setAviso] = useState<Aviso>(null)
@@ -155,7 +156,6 @@ function FormularioCasa({
       descripcion,
       direccion,
       precio: texto === '' ? null : Math.round((euros ?? 0) * 100),
-      pagadorId: pagadorId === '' ? null : pagadorId,
     }
     // Cambiar la dirección borra las coordenadas; después se ponen las del formulario.
     aplicar((q) => editarCasa(editarCasa(q, cambios), sitio))
@@ -210,25 +210,19 @@ function FormularioCasa({
           {aviso === 'noEncontrada' && <p role="alert">No se encontró esa dirección. Prueba con otra más completa.</p>}
           {aviso === 'fallo' && <p role="alert">No se pudo buscar la dirección. Inténtalo de nuevo.</p>}
         </div>
-        {sitio.latitud !== null && sitio.longitud !== null && <Mapa latitud={sitio.latitud} longitud={sitio.longitud} />}
+        {sitio.latitud !== null && sitio.longitud !== null && (
+          <MapaAjustable
+            latitud={sitio.latitud}
+            longitud={sitio.longitud}
+            onMover={(latitud, longitud) => setSitio({ latitud, longitud })}
+          />
+        )}
 
         <label>
           Precio de la casa (€)
           <input type="text" inputMode="decimal" value={precio} onChange={(e) => setPrecio(e.target.value)} />
         </label>
         {aviso === 'precio' && <p role="alert">El precio no es válido: escribe un número, por ejemplo 1250,50.</p>}
-
-        <label>
-          Quién pagó la casa
-          <select value={pagadorId} onChange={(e) => setPagadorId(e.target.value)}>
-            <option value="">Nadie todavía</option>
-            {quedada.participantes.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nombre}
-              </option>
-            ))}
-          </select>
-        </label>
 
         <div className="casa__acciones">
           <button type="submit">Guardar</button>
