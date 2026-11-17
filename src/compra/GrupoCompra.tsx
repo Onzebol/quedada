@@ -22,6 +22,8 @@ interface Props {
   conComprador?: boolean
   /** Sin productos que mostrar con el filtro: no se pinta, pero conserva si estaba desplegada. */
   oculta?: boolean
+  /** Sin botones de añadir, renombrar, editar ni borrar (mientras hay un filtro activo). */
+  soloLectura?: boolean
   /** A quién se puede asignar la compra: participantes y familias sin personas. */
   compradores: Comprador[]
   onAnadirProducto: (grupoId: Id, valores: CambiosProducto) => void
@@ -39,6 +41,7 @@ export function GrupoCompra({
   forzarAbierta = false,
   conComprador = true,
   oculta = false,
+  soloLectura = false,
   compradores,
   onAnadirProducto,
   onCambiarProducto,
@@ -80,6 +83,7 @@ export function GrupoCompra({
             {sinComprador > 0 && <span>{sinComprador} sin comprador</span>}
           </p>
         </div>
+        {!soloLectura && (
         <div className="grupo__acciones">
           <button type="button" aria-label={`Renombrar ${grupo.nombre}`} onClick={() => setRenombrando(true)}>
             <ConIcono icono={Pencil}>Renombrar</ConIcono>
@@ -92,6 +96,7 @@ export function GrupoCompra({
             onConfirmar={() => onBorrar(grupo.id)}
           />
         </div>
+        )}
       </div>
 
       {abierta && (
@@ -103,11 +108,13 @@ export function GrupoCompra({
                 producto={p}
                 compradores={compradores}
                 conComprador={conComprador}
+                soloLectura={soloLectura}
                 onCambiar={onCambiarProducto}
                 onBorrar={onBorrarProducto}
               />
             ))}
           </ul>
+          {!soloLectura && (
           <button
             type="button"
             className="grupo__anadir"
@@ -116,6 +123,7 @@ export function GrupoCompra({
           >
             <ConIcono icono={Plus}>Añadir</ConIcono>
           </button>
+          )}
         </div>
       )}
 
