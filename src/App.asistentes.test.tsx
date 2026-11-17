@@ -16,6 +16,7 @@ async function preparar(inicial = quedada({ id: 'q1', grupos: [{ id: 'g1', nombr
   const repositorio = new RepositorioMemoria([inicial])
   abrirPrimera(repositorio)
   render(<App repositorio={repositorio} crearId={contador()} />)
+  await usuario.click(await screen.findByRole('tab', { name: 'La casa' }))
   await screen.findByRole('region', { name: 'Asistentes' })
   return { usuario, repositorio }
 }
@@ -60,8 +61,11 @@ describe('Asistentes', () => {
     const { usuario } = await preparar(
       quedada({ id: 'q1', asistentes: [{ id: 'a1', familia: 'Pérez', personas: 4, llegada: null }] }),
     )
+    await usuario.click(screen.getByRole('tab', { name: 'Lista de la compra' }))
     expect(screen.getByText('Vienen 4 personas')).toBeInTheDocument()
+    await usuario.click(screen.getByRole('tab', { name: 'La casa' }))
     await anadir(usuario, 'Gil', '3')
+    await usuario.click(screen.getByRole('tab', { name: 'Lista de la compra' }))
     expect(screen.getByText('Vienen 7 personas')).toBeInTheDocument()
   })
 

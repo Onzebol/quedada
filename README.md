@@ -22,6 +22,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 30 | Supabase: una fila por cosa (participantes, comidas, productos…) y guardado por diferencias, para que varias personas editen sin pisarse (paso 1 de #29) |
 | 32 | Tiempo real: los cambios de otra persona aparecen sin recargar (Broadcast desde la base de datos, canal privado por quedada; paso 2 de #29) |
 | 36 | Eliminar quedadas, con confirmación |
+| 55 | Pestañas en la quedada: La casa, Lista de la compra, Tickets (marcador) y Resumen |
 | 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
 | 42 | Todos los borrados (quedada, comida, producto, asistente y básico) piden confirmación en una ventana modal con el estilo de la web |
 | 43 | Menú de usuario: arriba a la derecha solo nombre de pila y foto; al pulsar se abre un menú con «Cerrar sesión» |

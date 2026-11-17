@@ -74,6 +74,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   (`src/test/repositorioMemoria.ts`). Dirección visual «Sierra» (#11; maqueta en
   `docs/diseno/c-sierra.html`): tokens de color y tipografía Bricolage Grotesque en `index.css`,
   paneles en `compra.css` (claro) y `cuentas.css` (verde), dos columnas desde 60 rem.
+- **Pestañas** (#55, `src/ui/Pestanas.tsx`, accesible: `role="tablist"`, flechas/Inicio/Fin, solo se monta el panel activo): `VistaQuedada` divide la quedada en **La casa** (`Asistentes`), **Lista de la compra** (`ListaCompra`, la que se abre al entrar), **Tickets** (marcador: aún no hay modelo de tiques) y **Resumen** (`Cuentas`). Ya no hay dos columnas. La pestaña activa es estado local (no va en el hash). En los tests hay que pulsar la pestaña (`getByRole('tab', …)`) antes de buscar su contenido; un elemento de otra pestaña se desmonta al cambiar.
 - Interfaz de cuentas (`src/cuentas/`): `Cuentas` muestra el total, lo pagado por persona, los
   ajustes de reparto (porcentaje de comida y «paga la casa» por participante; el interruptor
   «Gasto de la casa» está en cada comida de la lista) y las transferencias. `App` llama a
