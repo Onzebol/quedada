@@ -55,19 +55,6 @@ export function anadirComponente(q: Quedada, nuevo: { id: Id; familiaId: Id; nom
   return sincronizarPersonas({ ...q, participantes: [...q.participantes, participante] })
 }
 
-/** Pasa un participante a una familia existente, o lo deja sin familia (`null`). */
-export function asignarFamilia(q: Quedada, id: Id, familiaId: Id | null): Quedada {
-  if (familiaId !== null && !q.asistentes.some((a) => a.id === familiaId)) return q
-  return sincronizarPersonas({
-    ...q,
-    participantes: q.participantes.map((p) => {
-      if (p.id !== id) return p
-      const { familiaId: _antes, ...resto } = p
-      return familiaId === null ? resto : { ...resto, familiaId }
-    }),
-  })
-}
-
 /** Borra al participante: lo suelta como comprador y como pagador de la casa. */
 export function quitarComponente(q: Quedada, id: Id): Quedada {
   return sincronizarPersonas({

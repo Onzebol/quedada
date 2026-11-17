@@ -1,3 +1,4 @@
+import { partesDeLaCasa } from '../dominio/casa'
 import { liquidacion } from '../dominio/liquidacion'
 import { formatearEuros } from '../dominio/numeros'
 import type { Quedada } from '../dominio/tipos'
@@ -10,6 +11,7 @@ interface Props {
 /** Resumen de las cuentas, de solo lectura: lo que cada uno paga de casa y gastos se ajusta en «La casa». */
 export function Cuentas({ quedada }: Props) {
   const { total, pagado, transferencias } = liquidacion(quedada)
+  const casa = partesDeLaCasa(quedada)
   const nombre = (id: string) => quedada.participantes.find((p) => p.id === id)?.nombre ?? id
 
   return (
@@ -26,6 +28,21 @@ export function Cuentas({ quedada }: Props) {
           </li>
         ))}
       </ul>
+
+      {quedada.casa.precio !== null && (
+        <>
+          <h4>Lo que paga cada uno de la casa</h4>
+          <ul className="cuentas__personas" aria-label="Lo que paga cada uno de la casa">
+            {quedada.participantes.map((p) => (
+              <li key={p.id}>
+                <span>
+                  {p.nombre}: {formatearEuros(casa[p.id] ?? 0)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <h4>Quién paga a quién</h4>
       {transferencias.length === 0 ? (

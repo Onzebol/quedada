@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { leaflet } from '../test/leafletFalso'
 import { MapaAjustable } from './MapaAjustable'
@@ -44,6 +45,24 @@ describe('MapaAjustable', () => {
     rerender(<MapaAjustable latitud={40} longitud={-3} onMover={() => {}} />)
     expect(leaflet.marcador!.posicion).toEqual({ lat: 40, lng: -3 })
     expect(leaflet.mapa!.centro).toEqual([40, -3])
+  })
+
+  it('el botón «Centrar en la casa» devuelve el mapa a la posición del marcador', async () => {
+    render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
+    await waitFor(() => expect(leaflet.marcador).not.toBeNull())
+    // El usuario ha desplazado el mapa a otro sitio.
+    leaflet.mapa!.centro = [10, 10]
+    await userEvent.click(screen.getByRole('button', { name: 'Centrar en la casa' }))
+    expect(leaflet.mapa!.centro).toEqual([41.6, -1.2])
+  })
+
+  it('centra en donde está ahora el marcador, no donde estaba al abrir', async () => {
+    render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
+    await waitFor(() => expect(leaflet.marcador).not.toBeNull())
+    leaflet.arrastrar(41.7, -1.3)
+    leaflet.mapa!.centro = [10, 10]
+    await userEvent.click(screen.getByRole('button', { name: 'Centrar en la casa' }))
+    expect(leaflet.mapa!.centro).toEqual([41.7, -1.3])
   })
 
   it('al desmontarse libera el mapa', async () => {

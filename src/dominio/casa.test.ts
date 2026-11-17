@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { borrarAsistente, totalAsistentes } from './asistentes'
-import { anadirComponente, asignarFamilia, casaVacia, editarCasa, partesDeLaCasa, quitarComponente } from './casa'
+import { anadirComponente, casaVacia, editarCasa, partesDeLaCasa, quitarComponente } from './casa'
 import { quedada } from './fabrica'
 import { editarParticipante } from './operaciones'
 
@@ -93,28 +93,6 @@ describe('componentes de una familia', () => {
     expect(editarParticipante(q, 'b', { nombre: ' ' }).participantes[1].nombre).toBe('Humberto')
     expect(editarParticipante(q, 'b', { nombre: 'Ana' }).participantes[1].nombre).toBe('Humberto')
     expect(editarParticipante(q, 'b', { porcentajeCasa: Number.NaN })).toBe(q)
-  })
-})
-
-describe('asignarFamilia', () => {
-  it('pasa un participante a otra familia, o lo deja sin familia, y recalcula las personas', () => {
-    let q = quedada({
-      asistentes: [
-        { id: 'f1', familia: 'Pérez', personas: 1, llegada: null },
-        { id: 'f2', familia: 'Gil', personas: 1, llegada: null },
-      ],
-      participantes: [{ id: 'a', nombre: 'Ana', familiaId: 'f1' }, { id: 'b', nombre: 'Beto', familiaId: 'f1' }],
-    })
-    q = asignarFamilia(q, 'b', 'f2')
-    expect(q.participantes[1].familiaId).toBe('f2')
-    expect(q.asistentes.map((a) => a.personas)).toEqual([1, 1])
-    q = asignarFamilia(q, 'a', null)
-    expect(q.participantes[0]).toEqual({ id: 'a', nombre: 'Ana' })
-  })
-
-  it('ignora familias que no existen', () => {
-    const q = base()
-    expect(asignarFamilia(q, 'a', 'nope')).toBe(q)
   })
 })
 

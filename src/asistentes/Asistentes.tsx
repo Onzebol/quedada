@@ -2,7 +2,7 @@ import { Plus } from 'lucide-react'
 import { ConIcono } from '../ui/ConIcono'
 import { useState } from 'react'
 import { FilaComponente } from '../casa/FilaComponente'
-import { anadirComponente, asignarFamilia } from '../dominio/casa'
+import { anadirComponente } from '../dominio/casa'
 import {
   anadirAsistente,
   borrarAsistente,
@@ -96,26 +96,11 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
               mensaje="Dejará de contar entre quienes vienen; sus componentes quedarán como participantes sin familia. No se puede deshacer."
               onConfirmar={() => aplicar((q) => borrarAsistente(q, a.id))}
             />
-            <ul className="asistentes__componentes" aria-label={`Componentes de ${a.familia}`}>
+            <ul className="asistentes__componentes" aria-label={`Personas de la familia ${a.familia}`}>
               {quedada.participantes
                 .filter((p) => p.familiaId === a.id)
                 .map((p) => (
-                  <FilaComponente key={p.id} participante={p} aplicar={aplicar}>
-                    <label>
-                      Familia de {p.nombre}
-                      <select
-                        value={a.id}
-                        onChange={(e) => aplicar((q) => asignarFamilia(q, p.id, e.target.value === '' ? null : e.target.value))}
-                      >
-                        <option value="">Sin familia</option>
-                        {quedada.asistentes.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.familia}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </FilaComponente>
+                  <FilaComponente key={p.id} participante={p} aplicar={aplicar} />
                 ))}
             </ul>
             <NuevoComponente familia={a.familia} alAnadir={(nombre) => aplicar((q) => anadirComponente(q, { id: crearId(), familiaId: a.id, nombre }))} />
@@ -130,23 +115,7 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
             {quedada.participantes
               .filter((p) => p.familiaId === undefined)
               .map((p) => (
-                <FilaComponente key={p.id} participante={p} aplicar={aplicar}>
-                  <label>
-                    Familia de {p.nombre}
-                    <select
-                      value=""
-                      disabled={quedada.asistentes.length === 0}
-                      onChange={(e) => aplicar((q) => asignarFamilia(q, p.id, e.target.value === '' ? null : e.target.value))}
-                    >
-                      <option value="">Sin familia</option>
-                      {quedada.asistentes.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.familia}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </FilaComponente>
+                <FilaComponente key={p.id} participante={p} aplicar={aplicar} />
               ))}
           </ul>
         </>
@@ -159,7 +128,7 @@ function NuevoComponente({ familia, alAnadir }: { familia: string; alAnadir: (no
   const [nombre, setNombre] = useState('')
   return (
     <form
-      aria-label={`Nuevo componente de ${familia}`}
+      aria-label={`Nueva persona de ${familia}`}
       className="asistentes__nuevo-componente"
       onSubmit={(e) => {
         e.preventDefault()
@@ -171,8 +140,8 @@ function NuevoComponente({ familia, alAnadir }: { familia: string; alAnadir: (no
         Nombre
         <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
       </label>
-      <button type="submit" aria-label={`Añadir componente a ${familia}`}>
-        <ConIcono icono={Plus}>Añadir componente</ConIcono>
+      <button type="submit" aria-label={`Añadir persona a ${familia}`}>
+        <ConIcono icono={Plus}>Añadir persona</ConIcono>
       </button>
     </form>
   )

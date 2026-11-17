@@ -1,6 +1,6 @@
 import { MapPin, Navigation, Pencil } from 'lucide-react'
 import { Fragment, useState } from 'react'
-import { editarCasa, partesDeLaCasa } from '../dominio/casa'
+import { editarCasa } from '../dominio/casa'
 import { formatearEuros, parsearEuros } from '../dominio/numeros'
 import type { Quedada } from '../dominio/tipos'
 import { ConIcono } from '../ui/ConIcono'
@@ -66,7 +66,6 @@ export function DatosCasa({ quedada, aplicar, geocodificar }: Props) {
 
 function FichaCasa({ quedada, alEditar }: { quedada: Quedada; alEditar: () => void }) {
   const { casa } = quedada
-  const partes = partesDeLaCasa(quedada)
   const vacia = casa.titulo === '' && casa.descripcion === '' && casa.direccion === '' && casa.precio === null
 
   return (
@@ -100,15 +99,6 @@ function FichaCasa({ quedada, alEditar }: { quedada: Quedada; alEditar: () => vo
           <strong>Precio:</strong> {formatearEuros(casa.precio)}
         </p>
       )}
-
-      <h4>Lo que paga cada uno</h4>
-      <ul className="casa__partes" aria-label="Lo que paga cada uno de la casa">
-        {quedada.participantes.map((p) => (
-          <li key={p.id}>
-            {p.nombre}: {formatearEuros(partes[p.id] ?? 0)}
-          </li>
-        ))}
-      </ul>
     </section>
   )
 }

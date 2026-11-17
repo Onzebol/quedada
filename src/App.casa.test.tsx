@@ -196,23 +196,48 @@ describe('La casa: ficha', () => {
     expect(within(form).getByRole('button', { name: 'Situar en el mapa' })).toBeDisabled()
   })
 
-  it('indica cuánto paga cada participante de la casa, sin decir quién la pagó', async () => {
+  it('no muestra aquí lo que paga cada uno ni quién la pagó: eso va en el Resumen y en Pagos', async () => {
     const { usuario } = await preparar(
       quedada({
         id: 'q1',
         casa: casaCon({ precio: 90000, pagadorId: 'a' }),
+        participantes: [{ id: 'a', nombre: 'Ana' }],
+      }),
+    )
+    expect(within(ficha()).queryByRole('list', { name: 'Lo que paga cada uno de la casa' })).not.toBeInTheDocument()
+    expect(within(ficha()).queryByText(/Lo que paga cada uno/)).not.toBeInTheDocument()
+    expect(within(ficha()).queryByText(/pagado por|no entra en las cuentas/)).not.toBeInTheDocument()
+    const form = await editar(usuario)
+    expect(within(form).queryByRole('combobox', { name: 'Quién pagó la casa' })).not.toBeInTheDocument()
+  })
+})
+
+describe('Resumen: lo que paga cada uno de la casa', () => {
+  async function abrirResumen(inicial: ReturnType<typeof quedada>) {
+    const { usuario } = await preparar(inicial)
+    await usuario.click(screen.getByRole('tab', { name: 'Resumen' }))
+    return screen.getByRole('region', { name: 'Cuentas' })
+  }
+
+  it('lista lo que le toca a cada participante del precio de la casa, según su % de casa', async () => {
+    const cuentas = await abrirResumen(
+      quedada({
+        id: 'q1',
+        casa: casaCon({ precio: 90000 }),
         participantes: [
           { id: 'a', nombre: 'Ana' },
           { id: 'b', nombre: 'Beto', porcentajeCasa: 50 },
         ],
       }),
     )
-    const partes = within(ficha()).getByRole('list', { name: 'Lo que paga cada uno de la casa' })
+    const partes = within(cuentas).getByRole('list', { name: 'Lo que paga cada uno de la casa' })
     expect(within(partes).getByText(/Ana/)).toHaveTextContent(/600,00\s€/)
     expect(within(partes).getByText(/Beto/)).toHaveTextContent(/300,00\s€/)
-    expect(within(ficha()).queryByText(/pagado por|no entra en las cuentas/)).not.toBeInTheDocument()
-    const form = await editar(usuario)
-    expect(within(form).queryByRole('combobox', { name: 'Quién pagó la casa' })).not.toBeInTheDocument()
+  })
+
+  it('sin precio de la casa no aparece la sección', async () => {
+    const cuentas = await abrirResumen(quedada({ id: 'q1', participantes: [{ id: 'a', nombre: 'Ana' }] }))
+    expect(within(cuentas).queryByText(/Lo que paga cada uno de la casa/)).not.toBeInTheDocument()
   })
 })
 
@@ -267,11 +292,11 @@ describe('La casa: familias y componentes', () => {
       ],
     })
 
-  it('añade componentes a una familia y su número de personas los cuenta', async () => {
+  it('añade personas a una familia con «Añadir persona» y su número de personas las cuenta', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
-    const form = screen.getByRole('form', { name: 'Nuevo componente de Pérez' })
+    const form = screen.getByRole('form', { name: 'Nueva persona de Pérez' })
     await usuario.type(within(form).getByRole('textbox', { name: 'Nombre' }), 'Beto')
-    await usuario.click(within(form).getByRole('button', { name: 'Añadir componente a Pérez' }))
+    await usuario.click(within(form).getByRole('button', { name: 'Añadir persona a Pérez' }))
     const q = await guardada(repositorio)
     expect(q.participantes.map((p) => [p.nombre, p.familiaId])).toEqual([
       ['Ana', 'f1'],
@@ -309,13 +334,9 @@ describe('La casa: familias y componentes', () => {
     expect((await guardada(repositorio)).participantes.map((p) => p.id)).toEqual(['z'])
   })
 
-  it('los participantes sin familia se pueden asignar a una', async () => {
-    const { usuario, repositorio } = await preparar(conFamilia())
-    const sin = screen.getByRole('list', { name: 'Participantes sin familia' })
-    expect(within(sin).getByRole('textbox', { name: 'Nombre de Zoe' })).toBeInTheDocument()
-    await usuario.selectOptions(within(sin).getByRole('combobox', { name: 'Familia de Zoe' }), 'Pérez')
-    const q = await guardada(repositorio)
-    expect(q.participantes.find((p) => p.id === 'z')?.familiaId).toBe('f1')
-    expect(q.asistentes[0].personas).toBe(2)
+  it('no hay desplegable para cambiar de familia: las personas se añaden en su familia', async () => {
+    await preparar(conFamilia())
+    expect(screen.queryByRole('combobox', { name: /^Familia de/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Añadir componente/ })).not.toBeInTheDocument()
   })
 })

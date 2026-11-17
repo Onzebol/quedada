@@ -1,4 +1,6 @@
+import { LocateFixed } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { ConIcono } from '../ui/ConIcono'
 import type { Map as MapaLeaflet, Marker } from 'leaflet'
 import './casa.css'
 
@@ -71,6 +73,11 @@ export function MapaAjustable({ latitud, longitud, onMover }: Props) {
     }
   }, [latitud, longitud])
 
+  function centrar() {
+    const p = marcador.current?.getLatLng()
+    if (p !== undefined) mapa.current?.panTo(p)
+  }
+
   return (
     <div className="casa__mapa">
       <div
@@ -79,6 +86,9 @@ export function MapaAjustable({ latitud, longitud, onMover }: Props) {
         role="application"
         aria-label="Mapa de la casa: arrastra el marcador o pulsa en el mapa para ajustar su posición"
       />
+      <button type="button" className="casa__boton" onClick={centrar}>
+        <ConIcono icono={LocateFixed}>Centrar en la casa</ConIcono>
+      </button>
       <p className="casa__ayuda">Arrastra el marcador o pulsa en el mapa para ajustar la posición.</p>
     </div>
   )
