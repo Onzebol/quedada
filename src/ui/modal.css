@@ -64,3 +64,10 @@
   border-color: #7f2239;
   color: #fff;
 }
+
+/* Formulario dentro de una ventana: campos apilados y los botones al final. */
+.modal__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}

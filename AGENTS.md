@@ -84,11 +84,11 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   gota CSS, sin imágenes): se arrastra el marcador o se pulsa en el mapa para ajustar la posición (en los tests, `src/test/leafletFalso.ts`).
   En el móvil, la ficha ofrece «Abrir en la app de mapas» (`urlAppMapas`: `geo:` en Android, Apple Maps en iOS; oculto en el ordenador). **Familias y personas** (en la interfaz «Añadir persona»; en el código, componentes; sin desplegable para cambiar de familia): un componente es un `Participante` con `familiaId` (id de un
   `Asistente`); `Asistente.personas` se mantiene igual al número de componentes y `personasDe` cuenta los componentes si los
-  hay. Borrar una familia deja a sus componentes sin familia; quitar un componente lo suelta como comprador y pagador.
+  hay. **Asistentes** (`src/asistentes/`): cada familia es una ficha de solo lectura (`FichaFamilia`) y todo se edita en ventanas modales con `ui/FormularioModal` (Guardar/Cancelar; se cierra al enviar): «Añadir familia» (arriba, alineado con el título), «Editar familia», «Añadir persona» y, por cada persona, `casa/FichaPersona` con «Editar» (nombre, % casa, % demás gastos). Con componentes, el número de personas no se edita (sale de ellos). Los botones de borrar muestran siempre «Borrar»; el nombre de lo que borran va solo en `aria-label` (`BotonBorrar.etiqueta`). Borrar una familia deja a sus componentes sin familia; quitar un componente lo suelta como comprador y pagador.
   **Reparto**: `Participante.porcentajeCasa` (100 por defecto; si falta, `pagaCasa: false` = 0) da el peso en el reparto de
   la casa y `porcentajeComida` el de los demás gastos. El precio entra en las cuentas **solo si tiene pagador**
   (`casa.pagadorId`, que se indica en la pestaña «Pagos», no en «La casa»): se suma a lo que pagó y al gasto «casa». Ojo con duplicar: si ya hay un producto «Alquiler» en una comida
-  `casa` (como en el Excel), no pongas también el precio. Los porcentajes se editan en «La casa» (`FilaComponente`);
+  `casa` (como en el Excel), no pongas también el precio. Los porcentajes se editan en «La casa» (ventana «Editar persona» de `FichaPersona`);
   `Cuentas` es de solo lectura y lista lo que paga cada uno del precio de la casa (`partesDeLaCasa`). **Importación**: cada comprador del Excel entra como una familia (`asistentes`, id `<hoja>-familia-<nombre>`) con él como primer
   componente; luego se añaden a mano los demás componentes de la unidad familiar. Al reimportar se conservan la casa, las familias
   (más las de los compradores nuevos), `familiaId` y `porcentajeCasa`.

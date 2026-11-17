@@ -110,7 +110,7 @@
 }
 
 /* Fila de campos y botones de un formulario en línea. */
-:where(.compra form[aria-label='Participantes'], .compra__nueva-comida, .asistentes form, .componente) {
+:where(.compra form[aria-label='Participantes'], .compra__nueva-comida) {
   display: flex;
   flex-wrap: wrap;
   gap: var(--esp-2);

@@ -303,9 +303,11 @@ describe('La casa: familias y componentes', () => {
 
   it('añade personas a una familia con «Añadir persona» y su número de personas las cuenta', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
-    const form = screen.getByRole('form', { name: 'Nueva persona de Pérez' })
-    await usuario.type(within(form).getByRole('textbox', { name: 'Nombre' }), 'Beto')
-    await usuario.click(within(form).getByRole('button', { name: 'Añadir persona a Pérez' }))
+    await usuario.click(screen.getByRole('button', { name: 'Añadir persona a Pérez' }))
+    const d = within(screen.getByRole('dialog', { name: 'Nueva persona' }))
+    await usuario.type(d.getByRole('textbox', { name: 'Nombre' }), 'Beto')
+    await usuario.click(d.getByRole('button', { name: 'Añadir' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     const q = await guardada(repositorio)
     expect(q.participantes.map((p) => [p.nombre, p.familiaId])).toEqual([
       ['Ana', 'f1'],
@@ -318,16 +320,19 @@ describe('La casa: familias y componentes', () => {
 
   it('edita el nombre y lo que paga cada componente de casa y de los demás gastos', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
-    const nombre = screen.getByRole('textbox', { name: 'Nombre de Ana' })
+    expect(screen.queryByRole('textbox', { name: /Nombre de Ana/ })).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Editar persona Ana' }))
+    const d = within(screen.getByRole('dialog', { name: 'Editar persona' }))
+    const nombre = d.getByRole('textbox', { name: 'Nombre' })
     await usuario.clear(nombre)
     await usuario.type(nombre, 'Anita')
-    await usuario.tab()
-    const casa = screen.getByRole('spinbutton', { name: '% de la casa de Anita' })
+    const casa = d.getByRole('spinbutton', { name: '% casa' })
     await usuario.clear(casa)
     await usuario.type(casa, '50')
-    const gastos = screen.getByRole('spinbutton', { name: '% de los demás gastos de Anita' })
+    const gastos = d.getByRole('spinbutton', { name: '% demás gastos' })
     await usuario.clear(gastos)
     await usuario.type(gastos, '25')
+    await usuario.click(d.getByRole('button', { name: 'Guardar' }))
     expect((await guardada(repositorio)).participantes[0]).toMatchObject({
       nombre: 'Anita',
       porcentajeCasa: 50,

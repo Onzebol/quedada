@@ -1,86 +1,129 @@
-/* Sierra: panel claro, igual que la compra, con filas separadas por líneas finas. */
+/* Sierra: el panel, los botones y los campos vienen de ui/controles.css. */
 .asistentes h2,
 .asistentes h4 {
   margin: 0;
 }
 
-.asistentes__total,
-.asistentes__resumen {
-  margin: 0;
+.asistentes__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.asistentes__total {
+  margin: calc(var(--esp-2) * -1) 0 0;
   color: var(--mut);
 }
 
-.asistentes input[type='number'] {
-  width: 5rem;
-}
-
-
-.asistentes__total {
-  margin-top: calc(var(--esp-2) * -1);
-}
-
-.asistentes form[aria-label='Nuevo asistente'] input[type='text'] {
-  width: 12rem;
-}
-
-/* Cada familia es una tarjeta: cabecera (familia, personas, llegada, borrar) y debajo sus componentes. */
 .asistentes__lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: var(--esp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.asistentes__lista > li {
+/* Cada familia es una ficha de solo lectura: título y datos, sus personas y «Añadir persona». */
+.familia {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--esp-2) var(--esp-3);
-  align-items: center;
-  padding: var(--esp-3) var(--esp-4);
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
   background: #fff;
   border: 1px solid var(--linea);
   border-radius: 16px;
 }
 
-.asistentes__lista > li > input[type='text'] {
-  flex: 1 1 10rem;
-  font-weight: 700;
+.familia__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-3);
+  align-items: flex-start;
+  justify-content: space-between;
 }
 
-.asistentes__lista > li > span {
-  flex: 0 0 auto;
+.familia__titulo {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.familia h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.familia__datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--esp-4);
+  margin: var(--esp-1) 0 0;
   color: var(--mut);
 }
 
+.familia__acciones,
+.persona__acciones {
+  display: flex;
+  gap: var(--esp-2);
+}
+
+.familia__anadir {
+  align-self: flex-start;
+}
+
+/* Personas de una familia (o sin familia): una línea por persona. */
 .asistentes__componentes {
-  flex: 1 1 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--esp-2);
-  margin: var(--esp-1) 0 0;
+  margin: 0;
   padding: 0 0 0 var(--esp-3);
   list-style: none;
   border-left: 3px solid var(--linea);
 }
 
-.asistentes__componentes:empty {
-  display: none;
+.persona {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1) var(--esp-3);
+  align-items: center;
+  padding: var(--esp-2) 0;
 }
 
-.asistentes__nuevo-componente {
-  flex: 1 1 100%;
-  padding-left: var(--esp-3);
+.persona + .persona {
+  border-top: 1px solid var(--linea);
 }
 
-.asistentes__nuevo-componente label {
-  flex: 1 1 10rem;
+.persona__nombre {
+  flex: 1 1 8rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
-/* Móvil: el nombre de la familia ocupa su línea y debajo van personas, llegada y borrar. */
+.persona__datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--esp-3);
+  color: var(--mut);
+  font-size: 0.875rem;
+}
+
+.persona__acciones button {
+  min-height: 2rem;
+  padding: 0 var(--esp-3);
+  font-size: 0.875rem;
+}
+
+/* Móvil: nombre y botones en la primera línea, los porcentajes debajo. */
 @media (max-width: 39.99rem) {
-  .asistentes__lista > li > input[type='text'] {
+  .persona__acciones {
+    order: 2;
+  }
+
+  .persona__datos {
+    order: 3;
     flex-basis: 100%;
   }
 }
