@@ -4,6 +4,7 @@ import { ordenarPorNombre } from '../dominio/asistentes'
 import { formatearEuros, parsearEuros } from '../dominio/numeros'
 import { anadirPago, borrarPago, editarPago, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from '../dominio/pagos'
 import type { Asistente, Id, Pago, Quedada } from '../dominio/tipos'
+import type { Imagenes } from '../tiques/almacenImagenes'
 import { BotonBorrar } from '../ui/BotonBorrar'
 import { ConIcono } from '../ui/ConIcono'
 import { FormularioModal } from '../ui/FormularioModal'
@@ -14,6 +15,7 @@ interface Props {
   quedada: Quedada
   aplicar: (cambio: (q: Quedada) => Quedada) => void
   crearId: () => Id
+  imagenes?: Imagenes
 }
 
 /** Céntimos como texto editable en euros, con coma decimal: «200,00». */
@@ -25,7 +27,7 @@ const aCentimos = (texto: string) => {
 }
 
 /** Pestaña «Pagos»: lo que ha pagado cada familia de la casa (reserva, resto…) y lo que falta. */
-export function Pagos({ quedada, aplicar, crearId }: Props) {
+export function Pagos({ quedada, aplicar, crearId, imagenes }: Props) {
   const { precio } = quedada.casa
   const familias = ordenarPorNombre(quedada.asistentes, (a) => a.familia)
   const pendiente = pendienteDeLaCasa(quedada)
@@ -102,7 +104,7 @@ export function Pagos({ quedada, aplicar, crearId }: Props) {
         )}
       </section>
 
-      <Gastos quedada={quedada} aplicar={aplicar} crearId={crearId} />
+      <Gastos quedada={quedada} aplicar={aplicar} crearId={crearId} imagenes={imagenes} />
 
       {ventana === 'anadir' && (
         <FormularioPago

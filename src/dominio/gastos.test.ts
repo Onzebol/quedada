@@ -55,4 +55,12 @@ describe('gastos', () => {
     })
     expect(compradores(q).map((c) => c.id)).toEqual(['a', 'f'])
   })
+
+  it('guarda la imagen del tique y la conserva o cambia al editar', () => {
+    const q = anadirGasto(base, { id: 'p1', pagadorId: 'a', concepto: 'Tique', importe: 1200, imagen: 'q/p1.jpg' })
+    expect(q.gastos[0].imagen).toBe('q/p1.jpg')
+    expect(editarGasto(q, 'p1', { importe: 1300 }).gastos[0].imagen).toBe('q/p1.jpg')
+    expect(editarGasto(q, 'p1', { imagen: 'q/otra.jpg' }).gastos[0].imagen).toBe('q/otra.jpg')
+    expect(editarGasto(q, 'p1', { imagen: null }).gastos[0]).not.toHaveProperty('imagen')
+  })
 })

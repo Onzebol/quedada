@@ -38,6 +38,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 79 | Pista para instalar en iOS: el botón «Instalar» abre los pasos «Compartir → Añadir a pantalla de inicio» |
 | 8 y 9 | Memoria entre años y tickets |
 | 95 | Las cuentas salen de lo que ha pagado cada uno (sección «Gastos» de «Pagos», aunque no esté en la lista) y de los pagos de la casa; los precios de la lista de la compra son solo orientativos |
+| 118 | Tiques por foto: un gasto puede llevar la foto del tique (cámara o galería, reducida y guardada en Supabase Storage), con el total y el pagador escritos a mano |
 
 ## Requisitos
 

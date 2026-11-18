@@ -10,15 +10,18 @@ export function anadirGasto(q: Quedada, nuevo: Gasto): Quedada {
   return valido(q, gasto) ? { ...q, gastos: [...q.gastos, gasto] } : q
 }
 
-/** Cambia pagador, concepto o importe; si el resultado no es válido no cambia nada. */
+/** Cambia pagador, concepto, importe o imagen (`null` la quita); si el resultado no es válido no cambia nada. */
 export function editarGasto(
   q: Quedada,
   id: Id,
-  cambios: Partial<{ pagadorId: Id; concepto: string; importe: Centimos }>,
+  cambios: Partial<{ pagadorId: Id; concepto: string; importe: Centimos; imagen: string | null }>,
 ): Quedada {
   const actual = q.gastos.find((p) => p.id === id)
   if (!actual) return q
-  const nuevo = { ...actual, ...cambios }
+  const { imagen, ...resto } = cambios
+  const nuevo: Gasto = { ...actual, ...resto }
+  if (imagen === null) delete nuevo.imagen
+  else if (imagen !== undefined) nuevo.imagen = imagen
   nuevo.concepto = nuevo.concepto.trim()
   return valido(q, nuevo) ? { ...q, gastos: q.gastos.map((p) => (p.id === id ? nuevo : p)) } : q
 }
