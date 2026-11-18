@@ -71,7 +71,11 @@ export function ImportarExcel({ leer, repositorio, espacio, onImportado }: Props
           participantes,
           asistentes: asistentesFinales,
           basicos: previa?.basicos ?? [],
-          gastos: previa?.gastos ?? [],
+          // Los gastos del Excel se sustituyen; los que se apuntaron a mano se conservan.
+          gastos: [
+            ...(previa?.gastos ?? []).filter((g) => !g.id.startsWith(`${quedada.id}-gasto-`)),
+            ...quedada.gastos,
+          ],
           pagos: (previa?.pagos ?? []).filter((p) => asistentesFinales.some((f) => f.id === p.familiaId)),
         })
       }

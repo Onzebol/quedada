@@ -16,12 +16,13 @@ describe('leerExcel', () => {
     expect(informe.ignoradas).toEqual(['TICKETS 2025', 'NOMBRES'])
   })
 
-  it('trae los productos, los precios y no cuenta el bloque de tickets', async () => {
+  it('trae los productos y los precios, y los tickets como gastos aparte', async () => {
     const informe = await leerExcel(await ejemplo())
     const q2025 = informe.importadas[0].quedada
     expect(q2025.productos.map((p) => p.nombre)).toEqual(['Pizza BBQ', 'Alitas pollo', 'Sidra'])
     expect(totalQuedada(q2025)).toBe(5570)
-    expect(informe.importadas[0].avisos).toContain('Bloque de tickets no importado (desde la fila 7)')
+    expect(q2025.gastos).toMatchObject([{ concepto: 'Tienda', importe: 5570 }])
+    expect(q2025.gastos[0].pagadorId).toBe(q2025.participantes.find((p) => p.nombre === 'Ana')!.id)
   })
 
   it('lee el formato antiguo con la cantidad escrita como texto', async () => {

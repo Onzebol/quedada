@@ -6,7 +6,7 @@ import { RepositorioMemoria } from '../test/repositorioMemoria'
 import { ImportarExcel } from './ImportarExcel'
 import type { InformeImportacion } from './importarHoja'
 
-const importada = (id = 'import-compras-2026', nombre = 'Quedada 2026') => quedada({ id, nombre, participantes: [{ id: 'p1', nombre: 'Ana', familiaId: 'fa' }, { id: 'p2', nombre: 'Beto', familiaId: 'fb' }], asistentes: [{ id: 'fa', familia: 'Ana', personas: 1, llegada: null }, { id: 'fb', familia: 'Beto', personas: 1, llegada: null }], productos: [producto({ id: `${id}-producto-1` })] })
+const importada = (id = 'import-compras-2026', nombre = 'Quedada 2026') => quedada({ id, nombre, participantes: [{ id: 'p1', nombre: 'Ana', familiaId: 'fa' }, { id: 'p2', nombre: 'Beto', familiaId: 'fb' }], asistentes: [{ id: 'fa', familia: 'Ana', personas: 1, llegada: null }, { id: 'fb', familia: 'Beto', personas: 1, llegada: null }], productos: [producto({ id: `${id}-producto-1` })], gastos: [{ id: `${id}-gasto-8`, pagadorId: 'p1', concepto: 'Tienda', importe: 5000 }] })
 const informe = (...ids: string[]): InformeImportacion => ({
   importadas: ids.map((id) => ({ hoja: 'Compras 2026', quedada: importada(id), avisos: [] })),
   ignoradas: [],
@@ -98,6 +98,20 @@ describe('ImportarExcel: id de la quedada importada', () => {
     expect(q.participantes.find((p) => p.id === 'p2')).toEqual({ id: 'p2', nombre: 'Beto', familiaId: 'fb' })
     // Conserva su familia y añade la de quien no la tenía, sin duplicar.
     expect(q.asistentes.map((a) => a.id)).toEqual(['f1', 'fb'])
+  })
+
+  it('al reimportar sustituye los gastos que vinieron del Excel y conserva los apuntados a mano', async () => {
+    const repo = new RepositorioMemoria([
+      quedada({
+        id: 'ana-import-compras-2026',
+        gastos: [
+          { id: 'mio', pagadorId: 'p1', concepto: 'Gasolina', importe: 3000 },
+          { id: 'import-compras-2026-gasto-9', pagadorId: 'p1', concepto: 'Viejo', importe: 100 },
+        ],
+      }),
+    ])
+    await importar({ repo, espacio: 'ana' })
+    expect(repo.quedadas[0].gastos.map((g) => g.id)).toEqual(['mio', 'import-compras-2026-gasto-8'])
   })
 
   it('al importar por primera vez, cada comprador queda como una familia', async () => {
