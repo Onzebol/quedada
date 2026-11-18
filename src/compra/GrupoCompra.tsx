@@ -58,12 +58,16 @@ export function GrupoCompra({
   const porComprar = productos.filter((p) => !p.comprado).length
   // Con filtro sale desplegada salvo si está comprada entera; se decide al elegir el filtro (no al marcar
   // productos, para que no se pliegue sola al comprar el último) y luego se pliega y despliega a mano.
+  // «Sin asignar» y «Pendientes» abren todo; con un comprador, solo lo que aún tiene algo por comprar.
+  const abreSola = forzarAbierta && (!filtroId.startsWith('comprador:') || porComprar > 0)
   const [desplegada, setDesplegada] = useState(false) // sin filtro; se conserva al filtrar y volver
-  const [conFiltro, setConFiltro] = useState({ filtroId, abierta: forzarAbierta && porComprar > 0 })
+  const [conFiltro, setConFiltro] = useState({ filtroId, abierta: abreSola })
   if (forzarAbierta && conFiltro.filtroId !== filtroId) {
-    setConFiltro({ filtroId, abierta: porComprar > 0 })
+    setConFiltro({ filtroId, abierta: abreSola })
   } else if (!forzarAbierta && conFiltro.filtroId !== 'todos') {
-    setConFiltro({ filtroId: 'todos', abierta: false }) // al quitar el filtro, el siguiente se decide de nuevo
+    // al volver a «Todos» sale todo contraído y el siguiente filtro se decide de nuevo
+    setConFiltro({ filtroId: 'todos', abierta: false })
+    setDesplegada(false)
   }
   const abierta = forzarAbierta ? conFiltro.abierta : desplegada
   const idDetalle = useId()
