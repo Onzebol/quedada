@@ -237,6 +237,26 @@
   gap: var(--esp-2);
 }
 
+/* Pagos de la casa: casilla y botones comparten contenedor. En ancho no cambia nada
+   (display: contents); en móvil pasan a una segunda línea (#126). */
+.pago__segunda {
+  display: contents;
+}
+
+@media (max-width: 40rem) {
+  .pago--con-pagado {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .pago--con-pagado .pago__segunda {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--esp-3);
+  }
+}
+
 .gastos__cabecera {
   display: flex;
   align-items: center;
