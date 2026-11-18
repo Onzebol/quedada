@@ -1,5 +1,5 @@
 import { ordenarPorNombre, personasDe } from './asistentes'
-import { repartirProporcional } from './liquidacion'
+import { repartirProporcional, saldosCasa } from './liquidacion'
 import type { Centimos, Id, Pago, Quedada } from './tipos'
 
 export type NuevoPago = Pick<Pago, 'id' | 'familiaId' | 'importe' | 'concepto'>
@@ -66,4 +66,24 @@ export function repartirEntreFamilias(
     if (partes[a.id] > 0) resultado = anadirPago(resultado, { id: crearId(), familiaId: a.id, importe: partes[a.id], concepto })
   }
   return resultado
+}
+
+export interface ParteDeLaCasa {
+  id: Id
+  /** Lo que debe a quienes pagaron la casa (céntimos, positivo). */
+  importe: Centimos
+  enviada: boolean
+}
+
+/** Quién debe parte de lo ya pagado de la casa, cuánto y si ya lo ha enviado; por orden alfabético. */
+export function partesPorEnviar(q: Quedada): ParteDeLaCasa[] {
+  const saldos = saldosCasa(q)
+  const deben = q.participantes.filter((p) => (saldos[p.id] ?? 0) < 0)
+  return ordenarPorNombre(deben, (p) => p.nombre).map((p) => ({ id: p.id, importe: -saldos[p.id], enviada: p.casaEnviada === true }))
+}
+
+/** Marca (o desmarca) que un participante ya ha enviado su parte de la casa. */
+export function marcarCasaEnviada(q: Quedada, id: Id, enviada: boolean): Quedada {
+  if (!q.participantes.some((p) => p.id === id)) return q
+  return { ...q, participantes: q.participantes.map((p) => (p.id === id ? { ...p, casaEnviada: enviada } : p)) }
 }

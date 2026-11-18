@@ -2,7 +2,7 @@ import { Pencil, Plus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { ordenarPorNombre } from '../dominio/asistentes'
 import { formatearEuros, parsearEuros } from '../dominio/numeros'
-import { anadirPago, borrarPago, editarPago, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from '../dominio/pagos'
+import { anadirPago, borrarPago, editarPago, marcarCasaEnviada, partesPorEnviar, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from '../dominio/pagos'
 import type { Asistente, Id, Pago, Quedada } from '../dominio/tipos'
 import type { Imagenes } from '../tiques/almacenImagenes'
 import { BotonBorrar } from '../ui/BotonBorrar'
@@ -31,6 +31,9 @@ export function Pagos({ quedada, aplicar, crearId, imagenes }: Props) {
   const { precio } = quedada.casa
   const familias = ordenarPorNombre(quedada.asistentes, (a) => a.familia)
   const pendiente = pendienteDeLaCasa(quedada)
+  const partes = partesPorEnviar(quedada)
+  const nombrePersona = (id: Id) => quedada.participantes.find((p) => p.id === id)?.nombre ?? id
+  const sinEnviar = partes.filter((p) => !p.enviada)
   const nombre = (id: Id) => quedada.asistentes.find((a) => a.id === id)?.familia ?? id
   const [ventana, setVentana] = useState<'anadir' | 'repartir' | null>(null)
   const [editando, setEditando] = useState<Pago | null>(null)
@@ -101,6 +104,35 @@ export function Pagos({ quedada, aplicar, crearId, imagenes }: Props) {
               )
             })}
           </ul>
+        )}
+
+        {partes.length > 0 && (
+          <>
+            <h3>Partes de la casa</h3>
+            <p className="casa__nota">
+              {partes.length - sinEnviar.length} de {partes.length} han enviado su parte
+              {sinEnviar.length > 0 && <> · faltan {formatearEuros(sinEnviar.reduce((suma, p) => suma + p.importe, 0))}</>}
+            </p>
+            <ul className="pagos__lista" aria-label="Partes de la casa por enviar">
+              {partes.map((p) => (
+                <li key={p.id} className="pago">
+                  <span className="pago__quien">
+                    <strong>{nombrePersona(p.id)}</strong>
+                  </span>
+                  <span className="pago__importe">{formatearEuros(p.importe)}</span>
+                  <label className="pago__acciones">
+                    <input
+                      type="checkbox"
+                      checked={p.enviada}
+                      aria-label="Enviado"
+                      onChange={(e) => aplicar((q) => marcarCasaEnviada(q, p.id, e.target.checked))}
+                    />
+                    Enviado
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
 

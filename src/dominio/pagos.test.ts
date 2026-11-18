@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { borrarAsistente } from './asistentes'
 import { anadirComponente } from './casa'
 import { quedada } from './fabrica'
-import { anadirPago, borrarPago, editarPago, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from './pagos'
+import { anadirPago, borrarPago, editarPago, marcarCasaEnviada, partesPorEnviar, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from './pagos'
 
 const base = () =>
   quedada({
@@ -98,5 +98,41 @@ describe('borrar una familia', () => {
     let q = anadirPago(base(), { id: 'p1', familiaId: 'f1', importe: 100, concepto: '' })
     q = anadirPago(q, { id: 'p2', familiaId: 'f2', importe: 200, concepto: '' })
     expect(borrarAsistente(q, 'f1').pagos.map((p) => p.id)).toEqual(['p2'])
+  })
+})
+
+describe('partes de la casa por enviar', () => {
+  const conPago = () =>
+    quedada({
+      casa: { titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: 90000 },
+      asistentes: [
+        { id: 'f1', familia: 'Ana y Beto', personas: 2, llegada: null },
+        { id: 'f2', familia: 'Cris', personas: 1, llegada: null },
+      ],
+      participantes: [
+        { id: 'a', nombre: 'Ana', familiaId: 'f1' },
+        { id: 'b', nombre: 'Beto', familiaId: 'f1' },
+        { id: 'c', nombre: 'Cris', familiaId: 'f2' },
+      ],
+      pagos: [{ id: 'p1', familiaId: 'f1', importe: 90000, concepto: '' }],
+    })
+
+  it('lista solo a quien debe parte de lo pagado, con su importe', () => {
+    expect(partesPorEnviar(conPago())).toEqual([{ id: 'c', importe: 30000, enviada: false }])
+  })
+
+  it('sin pagos no hay nada por enviar', () => {
+    expect(partesPorEnviar({ ...conPago(), pagos: [] })).toEqual([])
+  })
+
+  it('marcarCasaEnviada marca y desmarca a un participante', () => {
+    const marcada = marcarCasaEnviada(conPago(), 'c', true)
+    expect(partesPorEnviar(marcada)).toEqual([{ id: 'c', importe: 30000, enviada: true }])
+    expect(marcarCasaEnviada(marcada, 'c', false).participantes.find((p) => p.id === 'c')?.casaEnviada).toBe(false)
+  })
+
+  it('ignora a un participante que no existe', () => {
+    const q = conPago()
+    expect(marcarCasaEnviada(q, 'zzz', true)).toBe(q)
   })
 })

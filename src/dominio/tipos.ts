@@ -16,6 +16,8 @@ export interface Participante {
   adulto?: boolean
   /** Familia (unidad familiar) de la que es componente, si la tiene. */
   familiaId?: Id
+  /** Si ya ha enviado a quien pagó la casa lo que le toca de ella; el Resumen lo descuenta. */
+  casaEnviada?: boolean
 }
 
 /** Una comida o bloque de la compra: cena del viernes, desayunos, bebida… */

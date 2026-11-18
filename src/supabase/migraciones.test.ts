@@ -356,4 +356,12 @@ describe('migraciones de Supabase', () => {
       expect((await como(db, ANA, "delete from storage.objects returning name")).rows).toEqual([{ name: 'q1/g1.jpg' }])
     })
   })
+
+  describe('0009: casa enviada', () => {
+    it('añade la columna nula y los participantes existentes quedan sin marca', async () => {
+      await db.exec(sql('0009_casa_enviada.sql'))
+      const p = await db.query('select casa_enviada from public.participantes where quedada_id = $1', ['q1'])
+      expect((p.rows as Record<string, unknown>[]).every((f) => f.casa_enviada === null)).toBe(true)
+    })
+  })
 })
