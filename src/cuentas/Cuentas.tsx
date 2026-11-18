@@ -100,17 +100,10 @@ function ImporteCopiable({ importe }: { importe: number }) {
   }
 
   return (
-    <span className="cuentas__copiable">
-      <button type="button" className="cuentas__importe" aria-label={`Copiar ${texto}`} onClick={() => void copiar()}>
-        {texto}
-        {copiado ? <Check className="icono" size={14} aria-hidden="true" /> : <Copy className="icono" size={14} aria-hidden="true" />}
-      </button>
-      {copiado && (
-        <span role="status" className="cuentas__copiado">
-          Importe copiado
-        </span>
-      )}
-    </span>
+    <button type="button" className="cuentas__importe" aria-label={`Copiar ${texto}`} onClick={() => void copiar()}>
+      {texto}
+      {copiado ? <Check className="icono" size={14} aria-hidden="true" /> : <Copy className="icono" size={14} aria-hidden="true" />}
+    </button>
   )
 }
 

@@ -185,18 +185,3 @@
   white-space: nowrap;
   cursor: copy;
 }
-
-.cuentas__copiable {
-  position: relative;
-  display: inline-flex;
-}
-
-/* Debajo del botón, sin mover el resto de la fila. */
-.cuentas__copiado {
-  position: absolute;
-  top: calc(100% + 2px);
-  left: 0;
-  color: var(--moss);
-  font-size: 0.8125rem;
-  white-space: nowrap;
-}

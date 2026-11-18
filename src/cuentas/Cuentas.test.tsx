@@ -94,7 +94,6 @@ describe('Cuentas', () => {
     const lista = screen.getByRole('list', { name: 'Quién paga a quién' })
     await usuario.click(within(lista).getByRole('button', { name: /Copiar 180,00[\s ]€/ }))
     expect(await navigator.clipboard.readText()).toBe('180,00')
-    expect(await screen.findByRole('status')).toHaveTextContent('Importe copiado')
   })
 
   it('sin nada que liquidar lo dice', () => {
