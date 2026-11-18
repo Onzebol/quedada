@@ -115,8 +115,8 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   **Es una sesión del navegador, sin servidor que valide la identidad: sirve para saber quién es
   quién, no para proteger datos.** `Sesion` muestra entrar y, con sesión, un botón arriba a la derecha que solo lleva la foto o, sin foto, la inicial (#113; el nombre va en su `aria-label`) y que abre un menú (#43, `role="menu"`; arriba muestra el nombre completo de la cuenta (#52; Google no da `given_name` vía Supabase y adivinar el nombre de pila fallaba con nombres compuestos) y el correo (#113; `Usuario.email` es opcional, lo rellena Supabase y **nunca se guarda en el navegador**, así que la sesión de Google de respaldo no lo trae) y debajo «Cerrar sesión»; se cierra con Escape o al pulsar fuera; al cerrar sesión `main.tsx` recarga la página, que sin sesión muestra `PantallaEntrada` vía la prop `alSalir` de `App`), y «Este soy yo»
   (`Participante.cuentaId`, columna `cuenta_id` en SQLite añadida con `ALTER` en bases antiguas;
-  lógica en `dominio/vinculos.ts`). `ruta.ts` + `useHashQuedada` mantienen `#/<id>` (#40; antes `#/quedada/<id>`, que se sigue entendiendo para no romper enlaces ya compartidos: un id nuevo nunca lleva `/` sin codificar) y
-  `CopiarEnlace` copia ese enlace. Hoy los datos siguen siendo locales: un enlace abierto en otro
+  lógica en `dominio/vinculos.ts`). `ruta.ts` + `useHashQuedada` mantienen `#/<id>` (#40; antes `#/quedada/<id>`, que se sigue entendiendo para no romper enlaces ya compartidos: un id nuevo nunca lleva `/` sin codificar)
+  (#143: ya no hay botón «Copiar enlace» en la barra; para compartir está «Invitar»). Hoy los datos siguen siendo locales: un enlace abierto en otro
   navegador no trae la quedada (la app lo avisa); para eso hace falta el almacenamiento compartido
   (pendiente).
   **Configuración**: `VITE_GOOGLE_CLIENT_ID` (ver `.env.example`; en CI, variable de repositorio

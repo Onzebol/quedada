@@ -21,11 +21,6 @@ export function quedadaDeHash(hash: string): string | null {
   }
 }
 
-/** URL completa de la quedada: la de la página sin su hash antiguo, más `#/<id>`. */
-export function enlaceQuedada(urlPagina: string, id: string): string {
-  return `${urlPagina.split('#')[0]}${hashQuedada(id)}`
-}
-
 const UNIRSE = '#/unirse/'
 
 /** Hash de una invitación: `#/unirse/<token>`. */

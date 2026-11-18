@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { enlaceQuedada, hashQuedada, quedadaDeHash } from './ruta'
+import { hashQuedada, quedadaDeHash } from './ruta'
 
 describe('ruta de la quedada', () => {
   it('lee el id de #/<id>', () => {
@@ -32,11 +32,6 @@ describe('ruta de la quedada', () => {
 
   it('el hash de una quedada no repite la palabra quedada', () => {
     expect(hashQuedada('284626d3-012c-48a6-ab15-07a8e9bf5b35')).toBe('#/284626d3-012c-48a6-ab15-07a8e9bf5b35')
-  })
-
-  it('construye el enlace con la base de la página y un hash', () => {
-    expect(enlaceQuedada('https://onzebol.github.io/quedada/', 'q1')).toBe('https://onzebol.github.io/quedada/#/q1')
-    expect(enlaceQuedada('https://x.es/quedada/?a=1#/viejo', 'a b')).toBe('https://x.es/quedada/?a=1#/a%20b')
   })
 })
 

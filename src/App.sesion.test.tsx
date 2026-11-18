@@ -186,11 +186,9 @@ describe('Instalar la aplicación', () => {
 })
 
 describe('Enlace de la quedada', () => {
-  it('copia el enlace con la ruta de hash de la quedada', async () => {
-    const { usuario } = await preparar(new AutenticacionMemoria(ana))
-    await usuario.click(screen.getByRole('button', { name: 'Copiar enlace' }))
-    expect(await navigator.clipboard.readText()).toBe('https://onzebol.github.io/quedada/#/q1')
-    expect(await screen.findByText('Enlace copiado')).toBeInTheDocument()
+  it('la barra de la quedada no tiene botón «Copiar enlace» (para compartir está «Invitar»)', async () => {
+    await preparar(new AutenticacionMemoria(ana))
+    expect(screen.queryByRole('button', { name: 'Copiar enlace' })).not.toBeInTheDocument()
   })
 
   it('abrir #/<id> muestra esa quedada', async () => {
