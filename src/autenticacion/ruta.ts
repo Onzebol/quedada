@@ -25,3 +25,27 @@ export function quedadaDeHash(hash: string): string | null {
 export function enlaceQuedada(urlPagina: string, id: string): string {
   return `${urlPagina.split('#')[0]}${hashQuedada(id)}`
 }
+
+const UNIRSE = '#/unirse/'
+
+/** Hash de una invitación: `#/unirse/<token>`. */
+export function hashInvitacion(token: string): string {
+  return `${UNIRSE}${encodeURIComponent(token)}`
+}
+
+/** Token de un hash `#/unirse/<token>`, o `null` si el hash es otra cosa. */
+export function invitacionDeHash(hash: string): string | null {
+  if (!hash.startsWith(UNIRSE)) return null
+  const resto = hash.slice(UNIRSE.length)
+  if (resto === '' || resto.includes('/')) return null
+  try {
+    return decodeURIComponent(resto)
+  } catch {
+    return null
+  }
+}
+
+/** URL completa de la invitación: la de la página sin su hash, más `#/unirse/<token>`. */
+export function enlaceInvitacion(urlPagina: string, token: string): string {
+  return `${urlPagina.split('#')[0]}${hashInvitacion(token)}`
+}

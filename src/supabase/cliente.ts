@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import type { ClienteAuth } from './autenticacionSupabase'
 import type { ClienteAlmacen } from '../tiques/almacenSupabase'
+import type { ClienteRpc } from '../invitaciones/invitacionesSupabase'
 import type { ClienteDatos } from './repositorioSupabase'
 
-export type ClienteSupabase = ClienteAuth & ClienteDatos & ClienteAlmacen
+export type ClienteSupabase = ClienteAuth & ClienteDatos & ClienteAlmacen & ClienteRpc
 
 /** Cliente de Supabase, o `null` si faltan la URL o la clave pública (la app sigue en modo local). */
 export function crearCliente(

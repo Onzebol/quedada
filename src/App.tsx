@@ -3,6 +3,7 @@ import { CopiarEnlace } from './autenticacion/CopiarEnlace'
 import { AutenticacionGoogle } from './autenticacion/autenticacionGoogle'
 import { Sesion } from './autenticacion/Sesion'
 import type { Autenticacion } from './autenticacion/tipos'
+import { useHashInvitacion } from './autenticacion/useHashInvitacion'
 import { useHashQuedada } from './autenticacion/useHashQuedada'
 import { useSesion } from './autenticacion/useSesion'
 import { Asistentes } from './asistentes/Asistentes'
@@ -22,6 +23,9 @@ import { ImportarExcel } from './importacion/ImportarExcel'
 import type { InformeImportacion } from './importacion/importarHoja'
 import { leerExcel as leerExcelReal } from './importacion/leerExcel'
 import './inicio/inicio.css'
+import { Compartir } from './invitaciones/Compartir'
+import type { Invitaciones } from './invitaciones/tipos'
+import { Unirse } from './invitaciones/Unirse'
 import type { Imagenes } from './tiques/almacenImagenes'
 import './index.css'
 
@@ -38,11 +42,14 @@ interface Props {
   geocodificar?: Geocodificador
   /** Dónde guardar las fotos de los tiques; sin ello (modo local) no se ofrece la foto. */
   imagenes?: Imagenes
+  /** Invitar por enlace y unirse; sin ello (modo local) no hay invitaciones. */
+  invitaciones?: Invitaciones
 }
 
-export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir, geocodificar, imagenes }: Props) {
+export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir, geocodificar, imagenes, invitaciones }: Props) {
   const almacen = useMemo(() => repositorio ?? new RepositorioLocalStorage(), [repositorio])
   const [activa, setActiva] = useHashQuedada()
+  const token = useHashInvitacion()
   const auth = useMemo(() => autenticacion ?? new AutenticacionGoogle(), [autenticacion])
   const sesionBase = useSesion(auth)
   const sesion = useMemo(
@@ -63,7 +70,15 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
           Quedada
         </button>
       </h1>
-      {activa === null ? (
+      {token !== null && invitaciones !== undefined && sesion.usuario !== null ? (
+        <Unirse
+          token={token}
+          nombre={sesion.usuario.nombre}
+          invitaciones={invitaciones}
+          alUnirse={setActiva}
+          alCancelar={() => setActiva(null)}
+        />
+      ) : activa === null ? (
         <PaginaInicial
           almacen={almacen}
           crearId={crearId}
@@ -82,6 +97,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
           urlPagina={urlPagina}
           geocodificar={geocodificar}
           imagenes={imagenes}
+          invitaciones={invitaciones}
         />
       )}
     </main>
@@ -192,9 +208,10 @@ interface PropsVista {
   urlPagina?: string
   geocodificar?: Geocodificador
   imagenes?: Imagenes
+  invitaciones?: Invitaciones
 }
 
-function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodificar, imagenes }: PropsVista) {
+function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodificar, imagenes, invitaciones }: PropsVista) {
   const estado = useQuedada(almacen, crearId, quedadaId)
 
   return (
@@ -203,6 +220,9 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
         <Sesion sesion={sesion} quedada={estado.quedada} aplicar={estado.aplicar} />
         {estado.quedada !== null && estado.error !== 'noEncontrada' && (
           <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />
+        )}
+        {estado.quedada !== null && estado.error !== 'noEncontrada' && invitaciones !== undefined && (almacen.puedeBorrar?.(quedadaId) ?? true) && (
+          <Compartir quedadaId={estado.quedada.id} invitaciones={invitaciones} urlPagina={urlPagina} />
         )}
       </div>
       {estado.quedada !== null && estado.error !== 'noEncontrada' && <h2 className="quedada__nombre">{estado.quedada.nombre}</h2>}

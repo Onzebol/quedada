@@ -6,6 +6,7 @@ import { producto, quedada } from './dominio/fabrica'
 import { anadirAsistente } from './dominio/asistentes'
 import { anadirParticipante, quedadaInicial } from './dominio/operaciones'
 import { AutenticacionMemoria } from './test/autenticacionMemoria'
+import { InvitacionesMemoria } from './test/invitacionesMemoria'
 import { abrirPrimera } from './test/abrirPrimera'
 import { RepositorioMemoria } from './test/repositorioMemoria'
 
@@ -852,5 +853,54 @@ describe('Las cuentas ignoran los precios de la lista (#95)', () => {
     const cuentas = await abrirCuentas()
     expect(within(cuentas).getByText('No hay nada que liquidar')).toBeInTheDocument()
     expect(normalizar(within(within(cuentas).getByRole('list', { name: 'Totales' })).getByText('Total pagado').nextElementSibling?.textContent ?? null)).toBe('0,00 €')
+  })
+})
+
+describe('Invitar por enlace (#136)', () => {
+  const marta = { id: 'cuenta-marta', nombre: 'Marta', foto: null }
+
+  it('el propietario ve «Invitar» dentro de la quedada', async () => {
+    const repositorio = new RepositorioMemoria([quedada({ id: 'q1', nombre: 'Almunia' })])
+    window.location.hash = '#/q1'
+    render(<App repositorio={repositorio} crearId={contador()} invitaciones={new InvitacionesMemoria()} />)
+    expect(await screen.findByRole('button', { name: 'Invitar' })).toBeInTheDocument()
+  })
+
+  it('quien entró con un enlace (no es el propietario) no ve «Invitar»', async () => {
+    const repositorio = new RepositorioMemoria([quedada({ id: 'q1', nombre: 'Almunia' })])
+    repositorio.puedeBorrar = () => false
+    window.location.hash = '#/q1'
+    render(<App repositorio={repositorio} crearId={contador()} invitaciones={new InvitacionesMemoria()} />)
+    await screen.findByRole('heading', { name: 'Almunia' })
+    expect(screen.queryByRole('button', { name: 'Invitar' })).not.toBeInTheDocument()
+  })
+
+  it('sin invitaciones (modo local) no se ofrece «Invitar»', async () => {
+    const repositorio = new RepositorioMemoria([quedada({ id: 'q1', nombre: 'Almunia' })])
+    window.location.hash = '#/q1'
+    render(<App repositorio={repositorio} crearId={contador()} />)
+    await screen.findByRole('heading', { name: 'Almunia' })
+    expect(screen.queryByRole('button', { name: 'Invitar' })).not.toBeInTheDocument()
+  })
+
+  it('abrir #/unirse/<token> ofrece unirse y, al hacerlo, abre la quedada', async () => {
+    const repositorio = new RepositorioMemoria([quedada({ id: 'q1', nombre: 'Almunia' })])
+    const invitaciones = new InvitacionesMemoria({ destinos: { buena: ['q1', 'Almunia'] } })
+    window.location.hash = '#/unirse/buena'
+    render(<App repositorio={repositorio} crearId={contador()} invitaciones={invitaciones} autenticacion={new AutenticacionMemoria(marta, marta)} />)
+    expect(await screen.findByRole('heading', { name: 'Te han invitado a «Almunia»' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Unirme' }))
+    expect(await screen.findByRole('heading', { name: 'Almunia' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('#/q1')
+    expect(invitaciones.aceptados).toEqual([{ token: 'buena', nombre: 'Marta' }])
+  })
+
+  it('«Ahora no» lleva a la página inicial', async () => {
+    const invitaciones = new InvitacionesMemoria({ destinos: { buena: ['q1', 'Almunia'] } })
+    window.location.hash = '#/unirse/buena'
+    render(<App repositorio={new RepositorioMemoria()} crearId={contador()} invitaciones={invitaciones} autenticacion={new AutenticacionMemoria(marta, marta)} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Ahora no' }))
+    expect(await screen.findByRole('heading', { name: 'Tus quedadas' })).toBeInTheDocument()
+    expect(window.location.hash).not.toContain('unirse')
   })
 })

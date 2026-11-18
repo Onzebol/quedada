@@ -5,6 +5,7 @@ import App from './App.tsx'
 import { PantallaEntrada } from './autenticacion/PantallaEntrada'
 import { ActualizacionPwa } from './pwa/ActualizacionPwa'
 import { AutenticacionSupabase } from './supabase/autenticacionSupabase'
+import { InvitacionesSupabase } from './invitaciones/invitacionesSupabase'
 import { crearCliente } from './supabase/cliente'
 import { RepositorioSupabase } from './supabase/repositorioSupabase'
 import { AlmacenSupabase } from './tiques/almacenSupabase'
@@ -23,6 +24,7 @@ async function iniciar() {
       repositorio={new RepositorioSupabase(cliente, autenticacion.actual()?.id)}
       autenticacion={autenticacion}
       alSalir={() => location.reload()}
+      invitaciones={new InvitacionesSupabase(cliente)}
       imagenes={{ almacen: new AlmacenSupabase(cliente), reducir: reducirImagen }}
     />
   )

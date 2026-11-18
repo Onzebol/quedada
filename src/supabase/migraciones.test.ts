@@ -410,6 +410,89 @@ describe('migraciones de Supabase', () => {
     })
   })
 
+  describe('0012: invitaciones por enlace', () => {
+    const MARTA = '00000000-0000-0000-0000-00000000000c'
+    const token = async () => (await como(db, ANA, "select public.crear_invitacion('q1') as t")).rows[0].t as string
+
+    beforeEach(async () => {
+      await db.exec(sql('0011_miembros.sql'))
+      await db.exec(sql('0012_invitaciones.sql'))
+      await db.exec(`insert into auth.users values ('${MARTA}')`)
+    })
+
+    it('el propietario crea un enlace y quien lo recibe ve el nombre de la quedada', async () => {
+      const t = await token()
+      expect(t).toMatch(/^[0-9a-f]{32}$/)
+      expect((await como(db, LUIS, `select public.nombre_invitacion('${t}') as n`)).rows).toEqual([{ n: 'Almunia 2026' }])
+      expect((await como(db, ANA, "select public.invitacion_activa('q1') as t")).rows).toEqual([{ t }])
+    })
+
+    it('aceptar el enlace hace miembro, con su nombre, y da acceso a la quedada', async () => {
+      const t = await token()
+      expect((await como(db, MARTA, `select public.aceptar_invitacion('${t}', 'Marta') as id`)).rows).toEqual([{ id: 'q1' }])
+      expect((await como(db, MARTA, "select id from public.productos where quedada_id = 'q1' order by id")).rows).toEqual([{ id: 'pr1' }, { id: 'pr2' }])
+      expect((await db.query('select usuario_id, nombre from public.quedada_miembros')).rows).toEqual([{ usuario_id: MARTA, nombre: 'Marta' }])
+    })
+
+    it('aceptar dos veces no duplica; el propietario que abre su enlace no se hace miembro', async () => {
+      const t = await token()
+      await como(db, MARTA, `select public.aceptar_invitacion('${t}', 'Marta')`)
+      await como(db, MARTA, `select public.aceptar_invitacion('${t}', 'Marta')`)
+      expect((await como(db, ANA, `select public.aceptar_invitacion('${t}', 'Ana') as id`)).rows).toEqual([{ id: 'q1' }])
+      expect((await db.query('select * from public.quedada_miembros')).rows).toHaveLength(1)
+    })
+
+    it('un enlace inventado, desactivado o caducado no sirve', async () => {
+      await expect(como(db, MARTA, "select public.aceptar_invitacion('inventado', 'Marta')")).rejects.toThrow()
+      expect((await como(db, MARTA, "select public.nombre_invitacion('inventado') as n")).rows).toEqual([{ n: null }])
+      const t = await token()
+      await como(db, ANA, "select public.desactivar_invitacion('q1')")
+      await expect(como(db, MARTA, `select public.aceptar_invitacion('${t}', 'Marta')`)).rejects.toThrow()
+      expect((await como(db, ANA, "select public.invitacion_activa('q1') as t")).rows).toEqual([{ t: null }])
+      const otro = await token()
+      await db.query("update public.invitaciones set caduca = now() - interval '1 day' where token = $1", [otro])
+      await expect(como(db, MARTA, `select public.aceptar_invitacion('${otro}', 'Marta')`)).rejects.toThrow()
+      expect((await db.query('select * from public.quedada_miembros')).rows).toEqual([])
+    })
+
+    it('un enlace nuevo desactiva el anterior y caduca a los 30 días', async () => {
+      const a = await token()
+      const b = await token()
+      expect(b).not.toBe(a)
+      await expect(como(db, MARTA, `select public.aceptar_invitacion('${a}', 'Marta')`)).rejects.toThrow()
+      const dias = await db.query<{ d: number }>('select round(extract(epoch from (caduca - creada)) / 86400)::int as d from public.invitaciones where token = $1', [b])
+      expect(dias.rows).toEqual([{ d: 30 }])
+    })
+
+    it('solo el propietario crea, ve y desactiva el enlace y retira miembros', async () => {
+      const t = await token()
+      await como(db, MARTA, `select public.aceptar_invitacion('${t}', 'Marta')`)
+      for (const quien of [LUIS, MARTA]) {
+        await expect(como(db, quien, "select public.crear_invitacion('q1')")).rejects.toThrow()
+        await expect(como(db, quien, "select public.invitacion_activa('q1')")).rejects.toThrow()
+        await expect(como(db, quien, "select public.desactivar_invitacion('q1')")).rejects.toThrow()
+        await expect(como(db, quien, `select public.retirar_miembro('q1', '${MARTA}')`)).rejects.toThrow()
+      }
+      await como(db, ANA, `select public.retirar_miembro('q1', '${MARTA}')`)
+      expect((await como(db, MARTA, "select id from public.productos where quedada_id = 'q1'")).rows).toEqual([])
+    })
+
+    it('la tabla de invitaciones no se lee ni se toca desde la API', async () => {
+      await token()
+      expect((await como(db, ANA, 'select token from public.invitaciones')).rows).toEqual([])
+      await expect(como(db, ANA, "insert into public.invitaciones (quedada_id) values ('q1')")).rejects.toThrow()
+    })
+
+    it('los miembros ven quiénes están; quien no es miembro, no', async () => {
+      const t = await token()
+      await como(db, MARTA, `select public.aceptar_invitacion('${t}', 'Marta')`)
+      const esperado = [{ usuario_id: MARTA, nombre: 'Marta' }]
+      expect((await como(db, ANA, "select * from public.miembros_de('q1')")).rows).toEqual(esperado)
+      expect((await como(db, MARTA, "select * from public.miembros_de('q1')")).rows).toEqual(esperado)
+      await expect(como(db, LUIS, "select * from public.miembros_de('q1')")).rejects.toThrow()
+    })
+  })
+
   describe('0009: casa enviada', () => {
     it('añade la columna nula y los participantes existentes quedan sin marca', async () => {
       await db.exec(sql('0009_casa_enviada.sql'))

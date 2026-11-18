@@ -39,3 +39,26 @@ describe('ruta de la quedada', () => {
     expect(enlaceQuedada('https://x.es/quedada/?a=1#/viejo', 'a b')).toBe('https://x.es/quedada/?a=1#/a%20b')
   })
 })
+
+describe('ruta de la invitación', () => {
+  it('lee el token de #/unirse/<token>', async () => {
+    const { invitacionDeHash } = await import('./ruta')
+    expect(invitacionDeHash('#/unirse/abc123')).toBe('abc123')
+  })
+
+  it('devuelve null si el hash no es una invitación', async () => {
+    const { invitacionDeHash } = await import('./ruta')
+    for (const h of ['', '#/', '#/unirse', '#/unirse/', '#/unirse/a/b', '#/abc', '#/quedada/unirse']) {
+      expect(invitacionDeHash(h)).toBeNull()
+    }
+  })
+
+  it('no confunde una invitación con una quedada', () => {
+    expect(quedadaDeHash('#/unirse/abc123')).toBeNull()
+  })
+
+  it('construye el enlace de la invitación sin el hash anterior', async () => {
+    const { enlaceInvitacion } = await import('./ruta')
+    expect(enlaceInvitacion('https://x.es/quedada/#/otra', 'abc123')).toBe('https://x.es/quedada/#/unirse/abc123')
+  })
+})
