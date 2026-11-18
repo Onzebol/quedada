@@ -207,24 +207,42 @@ describe('alquiler de la casa (pagos por familia)', () => {
   const con = (pagos: ReturnType<typeof pago>[], extra = {}) =>
     quedada({ participantes: personas, asistentes: familias, casa, pagos, ...extra })
 
-  it('si cada familia paga según sus personas, nadie debe nada', () => {
+  it('si cada familia paga según sus personas, el pagador de la familia cobra lo de su compañero', () => {
     const l = liquidacion(con([pago('1', 'f1', 60000), pago('2', 'f2', 30000)]))
     expect(l.total).toBe(90000)
-    expect(l.balances).toEqual({ a: 0, b: 0, c: 0 })
-    expect(l.transferencias).toEqual([])
+    expect(l.balances).toEqual({ a: 30000, b: -30000, c: 0 })
+    expect(l.transferencias).toEqual([{ de: 'b', a: 'a', importe: 30000 }])
   })
 
   it('si una familia lo paga todo, las demás le deben su parte', () => {
     const l = liquidacion(con([pago('1', 'f1', 90000)]))
-    expect(l.balances).toEqual({ a: 15000, b: 15000, c: -30000 })
-    expect(l.transferencias.reduce((s, t) => s + t.importe, 0)).toBe(30000)
+    expect(l.balances).toEqual({ a: 60000, b: -30000, c: -30000 })
+    expect(l.transferencias.reduce((s, t) => s + t.importe, 0)).toBe(60000)
   })
 
-  it('el pago de una familia se acredita a sus componentes según su porcentaje de casa', () => {
+  it('el pago de una familia se acredita entero a su pagador de la casa y la deuda sigue repartida por porcentaje', () => {
     const q = con([pago('1', 'f1', 90000)], {
+      asistentes: [{ ...familias[0], pagadorId: 'b' }, familias[1]],
       participantes: [{ ...personas[0], porcentajeCasa: 50 }, personas[1], personas[2]],
     })
-    expect(liquidacion(q).pagado).toMatchObject({ a: 30000, b: 60000 })
+    const l = liquidacion(q)
+    expect(l.pagado).toMatchObject({ b: 90000 })
+    expect(l.pagado.a).toBeUndefined()
+    expect(l.balances.a).toBe(-18000)
+    expect(Object.values(l.balances).reduce((s, v) => s + v, 0)).toBe(0)
+  })
+
+  it('sin pagador elegido, el pago va al primer adulto de la familia', () => {
+    const q = con([pago('1', 'f1', 90000)], {
+      participantes: [{ ...personas[0], adulto: false }, personas[1], personas[2]],
+    })
+    expect(liquidacion(q).pagado).toMatchObject({ b: 90000 })
+    expect(liquidacion(con([pago('1', 'f1', 90000)])).pagado).toMatchObject({ a: 90000 })
+  })
+
+  it('un pagador que ya no es de la familia se ignora', () => {
+    const q = con([pago('1', 'f1', 90000)], { asistentes: [{ ...familias[0], pagadorId: 'c' }, familias[1]] })
+    expect(liquidacion(q).pagado).toMatchObject({ a: 90000 })
   })
 
   it('con un pago parcial solo se reparte lo pagado, no el precio', () => {

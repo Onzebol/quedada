@@ -52,6 +52,8 @@ export interface Asistente {
   personas: number
   /** Hora de llegada `HH:MM`, o `null` si aún no se sabe. */
   llegada: string | null
+  /** Componente (adulto) de la familia al que se le acreditan los pagos de la casa; si falta, el primer adulto. */
+  pagadorId?: Id
 }
 
 /** Algo que no se compra para una comida concreta: leche, lavavajillas… Lo trae una familia. */

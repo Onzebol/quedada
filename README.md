@@ -40,6 +40,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 95 | Las cuentas salen de lo que ha pagado cada uno (sección «Gastos» de «Pagos», aunque no esté en la lista) y de los pagos de la casa; los precios de la lista de la compra son solo orientativos |
 | 118 | Tiques por foto: un gasto puede llevar la foto del tique (cámara o galería, reducida y guardada en Supabase Storage), con el total y el pagador escritos a mano |
 | 120 | Casilla «Pagado» en cada pago de la casa, para saber si quien debía pagarlo ya lo ha hecho |
+| 130 | Cada familia tiene una persona (adulta) que paga la casa: los pagos de la casa se le acreditan enteros en el Resumen; lo que debe cada uno sigue repartido por % casa |
 
 ## Requisitos
 

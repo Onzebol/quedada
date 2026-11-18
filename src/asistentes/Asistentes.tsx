@@ -7,10 +7,11 @@ import {
   borrarAsistente,
   editarAsistente,
   ordenarPorNombre,
+  pagadorDeLaCasa,
   personasDe,
   totalAsistentes,
 } from '../dominio/asistentes'
-import type { Asistente, Id, Quedada } from '../dominio/tipos'
+import type { Asistente, Id, Participante, Quedada } from '../dominio/tipos'
 import { BotonBorrar } from '../ui/BotonBorrar'
 import { ConIcono } from '../ui/ConIcono'
 import { FormularioModal } from '../ui/FormularioModal'
@@ -61,6 +62,7 @@ export function Asistentes({ quedada, aplicar, crearId }: Props) {
           titulo="Nueva familia"
           envio="Añadir"
           inicial={{ familia: '', personas: 1, llegada: null }}
+          candidatos={[]}
           conPersonas
           onGuardar={(v) =>
             aplicar((q) => anadirAsistente(q, { id: crearId(), familia: v.familia, personas: v.personas, llegada: v.llegada }))
@@ -145,13 +147,15 @@ function FichaFamilia({ quedada, asistente: a, aplicar, crearId }: PropsFamilia)
         <FormularioFamilia
           titulo="Editar familia"
           envio="Guardar"
-          inicial={{ familia: a.familia, personas: a.personas, llegada: a.llegada }}
+          inicial={{ familia: a.familia, personas: a.personas, llegada: a.llegada, pagadorId: pagadorDeLaCasa(quedada, a) }}
+          candidatos={componentes.filter((p) => p.adulto !== false)}
           conPersonas={componentes.length === 0}
           onGuardar={(v) =>
             aplicar((q) =>
               editarAsistente(q, a.id, {
                 familia: v.familia,
                 llegada: v.llegada,
+                ...(v.pagadorId !== undefined ? { pagadorId: v.pagadorId } : {}),
                 ...(componentes.length === 0 ? { personas: v.personas } : {}),
               }),
             )
@@ -173,22 +177,27 @@ interface ValoresFamilia {
   familia: string
   personas: number
   llegada: string | null
+  /** Quién paga la casa; `undefined` si la familia no tiene adultos entre los que elegir. */
+  pagadorId?: string
 }
 
 interface PropsFormularioFamilia {
   titulo: string
   envio: string
   inicial: ValoresFamilia
+  /** Adultos de la familia entre los que se elige quién paga la casa. */
+  candidatos: Participante[]
   /** Con componentes, el número de personas sale de ellos y no se edita aquí. */
   conPersonas: boolean
   onGuardar: (valores: ValoresFamilia) => void
   onCerrar: () => void
 }
 
-function FormularioFamilia({ titulo, envio, inicial, conPersonas, onGuardar, onCerrar }: PropsFormularioFamilia) {
+function FormularioFamilia({ titulo, envio, inicial, candidatos, conPersonas, onGuardar, onCerrar }: PropsFormularioFamilia) {
   const [familia, setFamilia] = useState(inicial.familia)
   const [personas, setPersonas] = useState(String(inicial.personas))
   const [llegada, setLlegada] = useState(inicial.llegada ?? '')
+  const [pagador, setPagador] = useState(inicial.pagadorId ?? '')
 
   function guardar() {
     const n = Number(personas)
@@ -196,6 +205,7 @@ function FormularioFamilia({ titulo, envio, inicial, conPersonas, onGuardar, onC
       familia,
       personas: Number.isInteger(n) && n >= 1 ? n : inicial.personas,
       llegada: llegada === '' ? null : llegada,
+      ...(pagador !== '' ? { pagadorId: pagador } : {}),
     })
   }
 
@@ -215,6 +225,18 @@ function FormularioFamilia({ titulo, envio, inicial, conPersonas, onGuardar, onC
         Llegada
         <input type="time" value={llegada} onChange={(e) => setLlegada(e.target.value)} />
       </label>
+      {candidatos.length > 0 && (
+        <label>
+          Quién paga la casa
+          <select value={pagador} onChange={(e) => setPagador(e.target.value)}>
+            {candidatos.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nombre}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
     </FormularioModal>
   )
 }

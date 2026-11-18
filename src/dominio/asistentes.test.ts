@@ -3,6 +3,7 @@ import {
   anadirAsistente,
   editarAsistente,
   ordenarPorNombre,
+  pagadorDeLaCasa,
   totalAsistentes,
 } from './asistentes'
 import { quedada } from './fabrica'
@@ -45,5 +46,37 @@ describe('asistentes', () => {
     const nombres = ['zapata', 'Álvarez', 'Pérez', 'alonso', 'Ñúñez']
     const ordenados = ordenarPorNombre(nombres.map((n) => ({ nombre: n })), (x) => x.nombre)
     expect(ordenados.map((x) => x.nombre)).toEqual(['alonso', 'Álvarez', 'Ñúñez', 'Pérez', 'zapata'])
+  })
+})
+
+describe('pagador de la casa', () => {
+  const base = () =>
+    quedada({
+      asistentes: [{ id: 'f1', familia: 'Pérez', personas: 2, llegada: null }],
+      participantes: [
+        { id: 'a', nombre: 'Ana', familiaId: 'f1', adulto: false },
+        { id: 'b', nombre: 'Beto', familiaId: 'f1' },
+        { id: 'c', nombre: 'Cris' },
+      ],
+    })
+
+  it('sin elegir, es el primer adulto de la familia (o el primer componente si no hay adultos)', () => {
+    const q = base()
+    expect(pagadorDeLaCasa(q, q.asistentes[0])).toBe('b')
+    const sinAdultos = { ...q, participantes: q.participantes.map((p) => ({ ...p, adulto: false })) }
+    expect(pagadorDeLaCasa(sinAdultos, q.asistentes[0])).toBe('a')
+  })
+
+  it('una familia sin componentes no tiene pagador', () => {
+    const q = quedada({ asistentes: [{ id: 'f1', familia: 'Sola', personas: 1, llegada: null }] })
+    expect(pagadorDeLaCasa(q, q.asistentes[0])).toBeUndefined()
+  })
+
+  it('se elige entre los componentes adultos y se puede volver al valor por defecto', () => {
+    const q = editarAsistente(base(), 'f1', { pagadorId: 'b' })
+    expect(q.asistentes[0].pagadorId).toBe('b')
+    expect(editarAsistente(q, 'f1', { pagadorId: 'a' }).asistentes[0].pagadorId).toBe('b') // menor
+    expect(editarAsistente(q, 'f1', { pagadorId: 'c' }).asistentes[0].pagadorId).toBe('b') // de otra familia
+    expect('pagadorId' in editarAsistente(q, 'f1', { pagadorId: null }).asistentes[0]).toBe(false)
   })
 })
