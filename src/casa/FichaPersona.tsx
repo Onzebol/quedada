@@ -19,7 +19,7 @@ export function FichaPersona({ participante: p, aplicar }: Props) {
     <li className="persona">
       <span className="persona__nombre">{p.nombre}</span>
       <span className="persona__datos">
-        <span>{p.adulto === false ? 'Niño' : 'Adulto'}</span>
+        <span>{p.adulto === false ? 'Menor' : 'Adulto'}</span>
         <span>Casa {pesoCasa(p)} %</span>
         <span>Demás gastos {p.porcentajeComida ?? 100} %</span>
       </span>
@@ -61,9 +61,9 @@ function EditarPersona({ participante: p, aplicar, onCerrar }: Props & { onCerra
       </label>
       <label>
         Tipo
-        <select value={adulto ? 'adulto' : 'nino'} onChange={(e) => setAdulto(e.target.value === 'adulto')}>
+        <select value={adulto ? 'adulto' : 'menor'} onChange={(e) => setAdulto(e.target.value === 'adulto')}>
           <option value="adulto">Adulto</option>
-          <option value="nino">Niño</option>
+          <option value="menor">Menor</option>
         </select>
       </label>
       <label>

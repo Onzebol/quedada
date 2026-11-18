@@ -230,9 +230,9 @@ function NuevaPersona({ alAnadir, onCerrar }: { alAnadir: (nombre: string, adult
       </label>
       <label>
         Tipo
-        <select value={adulto ? 'adulto' : 'nino'} onChange={(e) => setAdulto(e.target.value === 'adulto')}>
+        <select value={adulto ? 'adulto' : 'menor'} onChange={(e) => setAdulto(e.target.value === 'adulto')}>
           <option value="adulto">Adulto</option>
-          <option value="nino">Niño</option>
+          <option value="menor">Menor</option>
         </select>
       </label>
     </FormularioModal>
