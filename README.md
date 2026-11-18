@@ -41,6 +41,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 118 | Tiques por foto: un gasto puede llevar la foto del tique (cámara o galería, reducida y guardada en Supabase Storage), con el total y el pagador escritos a mano |
 | 132 | Miembros y permisos: tabla `quedada_miembros`; todos los miembros ven y editan la quedada, solo el propietario la borra (paso 3 de #29; la invitación por enlace viene después) |
 | 136 | Invitar por enlace: el propietario genera un enlace (caduca a los 30 días) y quien lo abre con Google entra como miembro; lista de miembros y «Retirar» (paso 4 de #29) |
+| 140 | El enlace de invitación (o de una quedada) sobrevive al login con Google: se recuerda antes de redirigir y se restaura al volver |
 | 120 | Casilla «Pagado» en cada pago de la casa, para saber si quien debía pagarlo ya lo ha hecho |
 | 128 | Resumen rediseñado: totales, ficha por familia (casa pagada, total pagado, le toca y saldo, con desglose por persona) y quién paga a quién |
 

@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { restaurarEnlacePendiente } from './autenticacion/enlacePendiente'
 import { PantallaEntrada } from './autenticacion/PantallaEntrada'
 import { ActualizacionPwa } from './pwa/ActualizacionPwa'
 import { AutenticacionSupabase } from './supabase/autenticacionSupabase'
@@ -18,6 +19,8 @@ async function iniciar() {
   const autenticacion = await AutenticacionSupabase.abrir(cliente, location.origin + location.pathname)
   // Sin sesión solo se ve la pantalla de entrada; con ella, las quedadas son las de la cuenta.
   if (!cliente || !autenticacion.actual()) return <PantallaEntrada autenticacion={autenticacion} />
+  // Si se llegó con un enlace (invitación o quedada) y se pasó por Google, se recupera antes de pintar.
+  restaurarEnlacePendiente()
   // Al cerrar sesión se recarga: sin sesión la página vuelve a la pantalla de entrada.
   return (
     <App

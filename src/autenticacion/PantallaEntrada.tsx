@@ -1,5 +1,6 @@
 import { LogIn } from 'lucide-react'
 import { ConIcono } from '../ui/ConIcono'
+import { guardarEnlacePendiente } from './enlacePendiente'
 import type { Autenticacion } from './tipos'
 import './sesion.css'
 import { useSesion } from './useSesion'
@@ -12,7 +13,11 @@ export function PantallaEntrada({ autenticacion }: { autenticacion: Autenticacio
     <main className="pagina entrada">
       <h1>Quedada</h1>
       {disponible ? (
-        <button type="button" className="con-texto" onClick={() => void entrar()}>
+        <button type="button" className="con-texto" onClick={() => {
+            // La redirección a Google pierde el hash: se recuerda el enlace abierto (invitación o quedada).
+            guardarEnlacePendiente(window.location.hash)
+            void entrar()
+          }}>
           <ConIcono icono={LogIn}>Entrar con Google</ConIcono>
         </button>
       ) : (
