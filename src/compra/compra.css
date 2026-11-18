@@ -241,12 +241,14 @@
 
 .fila input[type='checkbox'] {
   grid-column: 1;
-  grid-row: 1 / span 3;
+  grid-row: 1;
+  align-self: center;
 }
 
 .fila .fila__nombre > span {
   grid-column: 2;
   grid-row: 1;
+  align-self: center;
 }
 
 .fila__datos {
