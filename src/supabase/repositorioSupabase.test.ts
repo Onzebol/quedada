@@ -18,6 +18,25 @@ const marcar = (q: Quedada, id: string): Quedada => ({
 })
 
 describe('RepositorioSupabase', () => {
+  describe('puedeBorrar', () => {
+    it('es del propietario; una quedada compartida por otra persona no se puede borrar', async () => {
+      const { backend } = nuevo()
+      const q = quedada({ id: 'q1' })
+      await new RepositorioSupabase(backend.cliente(), 'ana').guardar(q)
+      backend.tablas.quedadas[0].propietario_id = 'ana'
+      backend.tablas.quedadas.push({ ...backend.tablas.quedadas[0], id: 'q2', propietario_id: 'luis' })
+      const repo = new RepositorioSupabase(backend.cliente(), 'ana')
+      await repo.listar()
+      expect(repo.puedeBorrar('q1')).toBe(true)
+      expect(repo.puedeBorrar('q2')).toBe(false)
+    })
+
+    it('sin saber quién es la cuenta no se oculta nada', async () => {
+      const { repo } = nuevo()
+      expect(repo().puedeBorrar('lo-que-sea')).toBe(true)
+    })
+  })
+
   it('empieza sin quedadas', async () => {
     expect(await nuevo().repo().listar()).toEqual([])
   })

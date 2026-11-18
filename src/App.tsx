@@ -168,7 +168,7 @@ function PaginaInicial({ almacen, crearId, leerExcel, sesion, espacio, abrir }: 
       {quedadas === null ? (
         !error && <p role="status">Cargando…</p>
       ) : (
-        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(n) => void crear(n)} alEliminar={eliminar} alRenombrar={(id, n) => void renombrar(id, n)}>
+        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(n) => void crear(n)} alEliminar={eliminar} alRenombrar={(id, n) => void renombrar(id, n)} puedeEliminar={almacen.puedeBorrar?.bind(almacen)}>
           <ImportarExcel
             leer={leerExcel}
             repositorio={almacen}

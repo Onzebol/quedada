@@ -6,13 +6,13 @@ import { Inicio } from './Inicio'
 
 const lista = () => [quedada({ id: 'a', nombre: 'Almunia 2026' }), quedada({ id: 'b', nombre: 'Almunia 2025' })]
 
-function preparar(quedadas = lista()) {
+function preparar(quedadas = lista(), puedeEliminar?: (id: string) => boolean) {
   const alElegir = vi.fn()
   const alCrear = vi.fn()
   const alEliminar = vi.fn().mockResolvedValue(undefined)
   const alRenombrar = vi.fn()
   render(
-    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alRenombrar={alRenombrar} />,
+    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alRenombrar={alRenombrar} puedeEliminar={puedeEliminar} />,
   )
   return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar, alRenombrar }
 }
@@ -76,5 +76,11 @@ describe('Inicio', () => {
     expect(alEliminar).not.toHaveBeenCalled()
     await usuario.click(within(aviso).getByRole('button', { name: 'Sí, borrar' }))
     expect(alEliminar).toHaveBeenCalledWith('b')
+  })
+
+  it('solo ofrece borrar las quedadas que la cuenta puede borrar (las compartidas no)', () => {
+    preparar(lista(), (id) => id === 'a')
+    expect(screen.getAllByRole('button', { name: /^Borrar quedada/ })).toHaveLength(1)
+    expect(screen.getByRole('button', { name: /^Borrar quedada Almunia 2026/ })).toBeInTheDocument()
   })
 })

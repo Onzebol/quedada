@@ -357,6 +357,59 @@ describe('migraciones de Supabase', () => {
     })
   })
 
+  describe('0011: miembros', () => {
+    beforeEach(async () => {
+      await db.exec(sql('0011_miembros.sql'))
+      await db.query("insert into public.quedada_miembros (quedada_id, usuario_id) values ('q1', $1)", [LUIS])
+    })
+
+    it('un miembro ve la quedada compartida y sus filas, además de las suyas', async () => {
+      expect((await como(db, LUIS, 'select id from public.quedadas order by id')).rows).toEqual([{ id: 'q1' }, { id: 'q2' }])
+      expect((await como(db, LUIS, "select id from public.productos where quedada_id = 'q1' order by id")).rows).toEqual([{ id: 'pr1' }, { id: 'pr2' }])
+    })
+
+    it('un miembro puede añadir, cambiar y borrar filas y editar la quedada', async () => {
+      await como(db, LUIS, "insert into public.productos (quedada_id, id, posicion, grupo_id, nombre, unidad, comprado, descuento, observaciones) values ('q1','x',9,'g1','Vino','',false,0,'')")
+      const cambiadas = await como(db, LUIS, "update public.productos set comprado = false where quedada_id = 'q1' and id = 'pr1' returning id")
+      expect(cambiadas.rows).toEqual([{ id: 'pr1' }])
+      const editada = await como(db, LUIS, "update public.quedadas set nombre = 'Nuevo' where id = 'q1' returning id")
+      expect(editada.rows).toEqual([{ id: 'q1' }])
+      const borradas = await como(db, LUIS, "delete from public.productos where quedada_id = 'q1' and id = 'x' returning id")
+      expect(borradas.rows).toEqual([{ id: 'x' }])
+    })
+
+    it('un miembro no puede borrar la quedada ni cambiar su propietario', async () => {
+      expect((await como(db, LUIS, "delete from public.quedadas where id = 'q1' returning id")).rows).toEqual([])
+      await expect(como(db, LUIS, "update public.quedadas set propietario_id = '" + LUIS + "' where id = 'q1'")).rejects.toThrow()
+      expect((await db.query("select propietario_id from public.quedadas where id = 'q1'")).rows).toEqual([{ propietario_id: ANA }])
+    })
+
+    it('quien no es miembro sigue sin ver nada de la quedada', async () => {
+      await db.query("delete from public.quedada_miembros")
+      expect((await como(db, LUIS, "select id from public.productos where quedada_id = 'q1'")).rows).toEqual([])
+      expect((await como(db, LUIS, "select id from public.quedadas where id = 'q1'")).rows).toEqual([])
+    })
+
+    it('solo el propietario ve la lista completa de miembros; un miembro solo se ve a sí mismo', async () => {
+      expect((await como(db, ANA, 'select usuario_id from public.quedada_miembros')).rows).toEqual([{ usuario_id: LUIS }])
+      expect((await como(db, LUIS, 'select usuario_id from public.quedada_miembros')).rows).toEqual([{ usuario_id: LUIS }])
+    })
+
+    it('solo el propietario añade y retira miembros; un miembro puede salirse', async () => {
+      await expect(como(db, LUIS, "insert into public.quedada_miembros (quedada_id, usuario_id) values ('q1', '" + ANA + "')")).rejects.toThrow()
+      await como(db, ANA, "delete from public.quedada_miembros where usuario_id = '" + LUIS + "'")
+      expect((await db.query('select * from public.quedada_miembros')).rows).toEqual([])
+      await db.query("insert into public.quedada_miembros (quedada_id, usuario_id) values ('q1', $1)", [LUIS])
+      expect((await como(db, LUIS, "delete from public.quedada_miembros where usuario_id = '" + LUIS + "' returning usuario_id")).rows).toHaveLength(1)
+    })
+
+    it('un miembro recibe los avisos de tiempo real de la quedada compartida', async () => {
+      expect((await comoEnTema(db, LUIS, 'quedada:q1', 'select 1 as x from realtime.messages limit 1')).rows).toBeDefined()
+      await db.query("update public.productos set comprado = false where id = 'pr1'")
+      expect((await comoEnTema(db, LUIS, 'quedada:q1', 'select topic from realtime.messages')).rows.length).toBeGreaterThan(0)
+    })
+  })
+
   describe('0009: casa enviada', () => {
     it('añade la columna nula y los participantes existentes quedan sin marca', async () => {
       await db.exec(sql('0009_casa_enviada.sql'))
