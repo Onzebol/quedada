@@ -88,6 +88,15 @@ describe('Cuentas', () => {
     expect(filas).toEqual(['Gómez paga 180,00 € a Pérez'])
   })
 
+  it('al pulsar el importe de una transferencia se copia el número (para pegarlo en la app del banco)', async () => {
+    const usuario = userEvent.setup()
+    render(<Cuentas quedada={q()} />)
+    const lista = screen.getByRole('list', { name: 'Quién paga a quién' })
+    await usuario.click(within(lista).getByRole('button', { name: /Copiar 180,00[\s ]€/ }))
+    expect(await navigator.clipboard.readText()).toBe('180,00')
+    expect(await screen.findByRole('status')).toHaveTextContent('Importe copiado')
+  })
+
   it('sin nada que liquidar lo dice', () => {
     render(<Cuentas quedada={q({ pagos: [], gastos: [] })} />)
     expect(screen.getByText('No hay nada que liquidar')).toBeInTheDocument()

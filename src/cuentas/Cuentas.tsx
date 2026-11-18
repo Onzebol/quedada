@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, Copy } from 'lucide-react'
 import { useId, useState } from 'react'
 import { formatearEuros } from '../dominio/numeros'
 import { resumenPorFamilia, type GrupoResumen, type PersonaResumen } from '../dominio/resumen'
@@ -84,6 +84,36 @@ function FilaPersona({ persona: p }: { persona: PersonaResumen }) {
   )
 }
 
+/** Importe de una transferencia: al pulsarlo se copia el número («180,00») para pegarlo en la app del banco. */
+function ImporteCopiable({ importe }: { importe: number }) {
+  const [copiado, setCopiado] = useState(false)
+  const texto = formatearEuros(importe)
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(texto.replace(/[^\d,-]/g, ''))
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      setCopiado(false)
+    }
+  }
+
+  return (
+    <span className="cuentas__copiable">
+      <button type="button" className="cuentas__importe" aria-label={`Copiar ${texto}`} onClick={() => void copiar()}>
+        {texto}
+        {copiado ? <Check className="icono" size={14} aria-hidden="true" /> : <Copy className="icono" size={14} aria-hidden="true" />}
+      </button>
+      {copiado && (
+        <span role="status" className="cuentas__copiado">
+          Importe copiado
+        </span>
+      )}
+    </span>
+  )
+}
+
 /** Resumen de las cuentas, de solo lectura: lo que paga cada uno de casa y gastos se ajusta en «La casa». */
 export function Cuentas({ quedada }: Props) {
   const { grupos, totales, transferencias } = resumenPorFamilia(quedada)
@@ -129,7 +159,7 @@ export function Cuentas({ quedada }: Props) {
         <ul className="cuentas__transferencias" aria-label="Quién paga a quién">
           {transferencias.map((t) => (
             <li key={`${t.de}-${t.a}`}>
-              <strong>{nombre(t.de)}</strong> paga <span className="cuentas__importe">{formatearEuros(t.importe)}</span> a{' '}
+              <strong>{nombre(t.de)}</strong> paga <ImporteCopiable importe={t.importe} /> a{' '}
               <strong>{nombre(t.a)}</strong>
             </li>
           ))}
