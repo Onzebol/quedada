@@ -191,7 +191,7 @@ function FormularioGasto({ quienes, inicial, conFoto, onGuardar, onCerrar }: Pro
             <input type="file" accept="image/*" onChange={(e) => setFoto(e.target.files?.[0] ?? null)} />
           </label>
           {inicial?.imagen && foto === null && (
-            <label>
+            <label className="tique__quitar">
               <input type="checkbox" checked={quitarFoto} onChange={(e) => setQuitarFoto(e.target.checked)} />
               Quitar la foto
             </label>

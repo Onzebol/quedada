@@ -71,6 +71,41 @@
   font: inherit;
 }
 
+/* Selector de archivo (#124): campo con borde y, dentro, el botón del sistema con aspecto de píldora. */
+:where(input[type='file']) {
+  min-height: var(--alto-control);
+  min-width: 0;
+  padding: calc((var(--alto-control) - 2rem) / 2 - 1px) var(--esp-2);
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 40px;
+  color: var(--mut);
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(input[type='file']):hover {
+  border-color: #aebcb5;
+}
+
+:where(input[type='file'])::file-selector-button {
+  min-height: 2rem;
+  margin-right: var(--esp-3);
+  padding: 0 var(--esp-4);
+  background: transparent;
+  border: 1px solid var(--linea);
+  border-radius: 40px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+:where(input[type='file']:hover)::file-selector-button {
+  border-color: var(--moss);
+  color: var(--moss);
+}
+
 :where(textarea) {
   padding: var(--esp-2) var(--esp-3);
   line-height: 1.4;
