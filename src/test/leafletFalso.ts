@@ -53,8 +53,10 @@ export class MapaFalso {
 export const leaflet = {
   mapa: null as MapaFalso | null,
   marcador: null as MarcadorFalso | null,
-  /** Atribución de la capa de teselas. */
-  atribucion: '',
+  /** Capas de teselas creadas: url -> atribución. */
+  capas: {} as Record<string, string>,
+  /** Nombres de las capas base que ofrece el selector de capas. */
+  selector: [] as string[],
   /** Simula arrastrar el marcador a otro sitio y soltarlo. */
   arrastrar(lat: number, lng: number) {
     leaflet.marcador!.posicion = { lat, lng }
@@ -68,9 +70,15 @@ export const leaflet = {
 
 const L = {
   map: () => (leaflet.mapa = new MapaFalso()),
-  tileLayer: (_url: string, opciones: { attribution?: string }) => {
-    leaflet.atribucion = opciones.attribution ?? ''
-    return { addTo: () => undefined }
+  tileLayer: (url: string, opciones: { attribution?: string }) => {
+    leaflet.capas[url] = opciones.attribution ?? ''
+    return { addTo: () => undefined, url }
+  },
+  control: {
+    layers: (bases: Record<string, unknown>) => {
+      leaflet.selector = Object.keys(bases)
+      return { addTo: () => undefined }
+    },
   },
   divIcon: (opciones: Record<string, unknown>) => opciones,
   marker: (posicion: [number, number], opciones: Record<string, unknown>) => (leaflet.marcador = new MarcadorFalso(posicion, opciones)),

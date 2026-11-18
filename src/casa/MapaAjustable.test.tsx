@@ -10,6 +10,7 @@ vi.mock('leaflet/dist/leaflet.css', () => ({}))
 beforeEach(() => {
   leaflet.mapa = null
   leaflet.marcador = null
+  leaflet.selector = []
 })
 
 describe('MapaAjustable', () => {
@@ -26,6 +27,12 @@ describe('MapaAjustable', () => {
     render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
     await waitFor(() => expect(leaflet.mapa).not.toBeNull())
     expect(leaflet.mapa!.prefijo).toBe(false)
+  })
+
+  it('ofrece también la capa de satélite', async () => {
+    render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
+    await waitFor(() => expect(leaflet.mapa).not.toBeNull())
+    expect(leaflet.selector).toEqual(['Mapa', 'Satélite'])
   })
 
   it('al soltar el marcador avisa de la nueva posición', async () => {

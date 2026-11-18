@@ -10,7 +10,8 @@ vi.mock('leaflet/dist/leaflet.css', () => ({}))
 beforeEach(() => {
   leaflet.mapa = null
   leaflet.marcador = null
-  leaflet.atribucion = ''
+  leaflet.capas = {}
+  leaflet.selector = []
 })
 
 describe('MapaCasa', () => {
@@ -27,8 +28,17 @@ describe('MapaCasa', () => {
     render(<MapaCasa latitud={41.6} longitud={-1.2} />)
     await waitFor(() => expect(leaflet.mapa).not.toBeNull())
     expect(leaflet.mapa!.prefijo).toBe(false)
-    expect(leaflet.atribucion).toContain('© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>')
-    expect(leaflet.atribucion).not.toMatch(/donat|problem/i)
+    const calles = leaflet.capas['https://tile.openstreetmap.org/{z}/{x}/{y}.png']
+    expect(calles).toContain('© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>')
+    expect(calles).not.toMatch(/donat|problem/i)
+  })
+
+  it('ofrece la capa de satélite con la atribución de Esri', async () => {
+    render(<MapaCasa latitud={41.6} longitud={-1.2} />)
+    await waitFor(() => expect(leaflet.mapa).not.toBeNull())
+    expect(leaflet.selector).toEqual(['Mapa', 'Satélite'])
+    const satelite = Object.entries(leaflet.capas).find(([url]) => url.includes('World_Imagery'))
+    expect(satelite?.[1]).toMatch(/Esri/)
   })
 
   it('«Centrar» devuelve el mapa a la casa', async () => {
