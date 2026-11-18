@@ -441,6 +441,22 @@ describe('Lista de la compra', () => {
     expect(desayunos).toHaveAttribute('aria-expanded', 'false')
     await usuario.click(bebida)
     expect(bebida).toHaveAttribute('aria-expanded', 'true')
+    // cada vez que se filtra se decide de nuevo, aunque sea el mismo filtro
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Todos')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Compra Josu')
+    expect(screen.getByRole('button', { name: 'Bebida' })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: 'Desayunos' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('las secciones compradas enteras lo indican con «Todo comprado»', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    const seccion = () => screen.getByRole('region', { name: 'Bebida' })
+    expect(within(seccion()).queryByText('Todo comprado')).not.toBeInTheDocument()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    expect(within(seccion()).queryByText('Todo comprado')).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+    expect(within(seccion()).getByText('Todo comprado')).toBeInTheDocument()
   })
 
   it('oculta las comidas vacías cuando hay un filtro activo', async () => {

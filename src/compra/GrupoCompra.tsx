@@ -62,6 +62,8 @@ export function GrupoCompra({
   const [conFiltro, setConFiltro] = useState({ filtroId, abierta: forzarAbierta && porComprar > 0 })
   if (forzarAbierta && conFiltro.filtroId !== filtroId) {
     setConFiltro({ filtroId, abierta: porComprar > 0 })
+  } else if (!forzarAbierta && conFiltro.filtroId !== 'todos') {
+    setConFiltro({ filtroId: 'todos', abierta: false }) // al quitar el filtro, el siguiente se decide de nuevo
   }
   const abierta = forzarAbierta ? conFiltro.abierta : desplegada
   const idDetalle = useId()
@@ -91,6 +93,7 @@ export function GrupoCompra({
               {forzarAbierta ? `${productos.length} de ${total}` : total} {total === 1 ? 'producto' : 'productos'}
             </span>
             {porComprar > 0 && <span>{porComprar} por comprar</span>}
+            {productos.length > 0 && porComprar === 0 && <span className="grupo__comprado">Todo comprado</span>}
             {sinComprador > 0 && <span>{sinComprador} sin comprador</span>}
           </p>
         </div>
