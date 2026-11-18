@@ -20,7 +20,7 @@ async function iniciar() {
   // Al cerrar sesión se recarga: sin sesión la página vuelve a la pantalla de entrada.
   return (
     <App
-      repositorio={new RepositorioSupabase(cliente)}
+      repositorio={new RepositorioSupabase(cliente, autenticacion.actual()?.id)}
       autenticacion={autenticacion}
       alSalir={() => location.reload()}
       imagenes={{ almacen: new AlmacenSupabase(cliente), reducir: reducirImagen }}

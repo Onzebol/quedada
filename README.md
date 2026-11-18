@@ -39,6 +39,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 8 y 9 | Memoria entre años y tickets |
 | 95 | Las cuentas salen de lo que ha pagado cada uno (sección «Gastos» de «Pagos», aunque no esté en la lista) y de los pagos de la casa; los precios de la lista de la compra son solo orientativos |
 | 118 | Tiques por foto: un gasto puede llevar la foto del tique (cámara o galería, reducida y guardada en Supabase Storage), con el total y el pagador escritos a mano |
+| 132 | Miembros y permisos: tabla `quedada_miembros`; todos los miembros ven y editan la quedada, solo el propietario la borra (paso 3 de #29; la invitación por enlace viene después) |
 | 120 | Casilla «Pagado» en cada pago de la casa, para saber si quien debía pagarlo ya lo ha hecho |
 | 128 | Resumen rediseñado: totales, ficha por familia (pagado, le toca y saldo, con desglose por persona) y quién paga a quién |
 
@@ -68,7 +69,7 @@ npm run dev
 
 ## Cuentas y datos en Supabase
 
-Con Supabase configurado, la gente entra con su cuenta de Google y sus quedadas se guardan en la nube, cada una visible solo para su propietaria (seguridad por fila). **Hay que entrar con Google para usar la app**: sin sesión solo se ve la pantalla de entrada (y, sin configuración de Supabase, un aviso).
+Con Supabase configurado, la gente entra con su cuenta de Google y sus quedadas se guardan en la nube, cada una visible solo para su propietaria y sus miembros (seguridad por fila; hoy los miembros se añaden a mano en la base, la invitación por enlace llega en la siguiente issue). **Hay que entrar con Google para usar la app**: sin sesión solo se ve la pantalla de entrada (y, sin configuración de Supabase, un aviso).
 
 1. Crea un proyecto en supabase.com y ejecuta en el editor SQL, por orden, `supabase/migrations/0001_quedadas.sql`, `0002_tablas.sql` y `0003_tiempo_real.sql` (la segunda pasa las quedadas existentes a tablas; si ya tenías datos, después de fusionar la PR del cambio vuelve a ejecutar una vez `select public.convertir_quedadas_desde_datos();`).
 2. En Google Cloud Console crea un cliente OAuth «Aplicación web» con la URI de redirección que muestra Supabase (*Authentication → Providers → Google*) y pega su Client ID y secret en Supabase.

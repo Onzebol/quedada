@@ -258,9 +258,20 @@ export class RepositorioSupabase implements Repositorio {
   private readonly cliente: ClienteDatos
   /** Lo último que se sabe que hay en el servidor, por quedada: la base de las diferencias. */
   private readonly vistas = new Map<Id, Quedada>()
+  /** Quién es el propietario de cada quedada leída (las compartidas son de otra persona). */
+  private readonly propietarios = new Map<Id, unknown>()
+  private readonly usuarioId: string | undefined
 
-  constructor(cliente: ClienteDatos) {
+  /** `usuarioId` es el de la cuenta con sesión: sirve para saber qué quedadas son suyas. */
+  constructor(cliente: ClienteDatos, usuarioId?: string) {
     this.cliente = cliente
+    this.usuarioId = usuarioId
+  }
+
+  /** Solo el propietario borra la quedada (la RLS lo exige); sin saber quién es la cuenta, no se oculta nada. */
+  puedeBorrar(id: Id): boolean {
+    if (this.usuarioId === undefined || !this.propietarios.has(id)) return true
+    return this.propietarios.get(id) === this.usuarioId
   }
 
   async listar(): Promise<Quedada[]> {
@@ -280,6 +291,7 @@ export class RepositorioSupabase implements Repositorio {
       const q = leerQuedada(f)
       if (q === null) return []
       this.vistas.set(q.id, structuredClone(q))
+      this.propietarios.set(q.id, f.propietario_id)
       return [q]
     })
   }
@@ -301,6 +313,7 @@ export class RepositorioSupabase implements Repositorio {
     const q = data ? leerQuedada(data) : null
     if (q === null) return null
     this.vistas.set(q.id, structuredClone(q))
+    if (data) this.propietarios.set(q.id, data.propietario_id)
     return q
   }
 
