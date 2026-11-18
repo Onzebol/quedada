@@ -41,12 +41,25 @@ afterEach(() => {
 })
 
 describe('Sesión con Google', () => {
-  it('el nombre del botón se puede ocultar si hay foto (no cabe en pantallas estrechas) y no si no la hay', async () => {
+  it('el botón de la cuenta no muestra el nombre: solo la foto o, sin foto, la inicial (#113)', async () => {
     await preparar(new AutenticacionMemoria(ana, ana))
-    expect((await screen.findByText('Ana Pérez')).className).toBe('sesion__nombre')
+    const boton = await screen.findByRole('button', { name: 'Ana Pérez' })
+    expect(boton.textContent).toBe('')
+    expect(boton.querySelector('img')).toHaveAttribute('src', 'https://fotos/ana.png')
     cleanup()
     await preparar(new AutenticacionMemoria({ ...ana, foto: null }, { ...ana, foto: null }))
-    expect((await screen.findByText('Ana Pérez')).className).toBe('')
+    const sinFoto = await screen.findByRole('button', { name: 'Ana Pérez' })
+    expect(sinFoto.textContent).toBe('A')
+  })
+
+  it('el menú muestra el nombre y el correo de la cuenta (#113)', async () => {
+    const conCorreo = { ...ana, email: 'ana@ejemplo.es' }
+    const { usuario } = await preparar(new AutenticacionMemoria(conCorreo, conCorreo))
+    expect(screen.queryByText('ana@ejemplo.es')).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Ana Pérez' }))
+    const menu = screen.getByRole('menu')
+    expect(within(menu).getByText('Ana Pérez')).toBeInTheDocument()
+    expect(within(menu).getByText('ana@ejemplo.es')).toBeInTheDocument()
   })
 
   it('sin sesión ofrece entrar; al entrar muestra nombre y foto y permite salir', async () => {
@@ -54,13 +67,12 @@ describe('Sesión con Google', () => {
     expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Entrar con Google' }))
     const boton = await screen.findByRole('button', { name: 'Ana Pérez' })
-    expect(boton.textContent).toBe('Ana Pérez')
-    expect(boton.lastElementChild).toHaveAttribute('src', 'https://fotos/ana.png')
+    expect(boton.querySelector('img')).toHaveAttribute('src', 'https://fotos/ana.png')
     expect(screen.queryByRole('menuitem', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Ana Pérez' }))
     await usuario.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
     expect(screen.getByRole('button', { name: 'Entrar con Google' })).toBeInTheDocument()
-    expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ana Pérez' })).not.toBeInTheDocument()
   })
 
   it('el menú del usuario se abre al pulsar y se cierra con Escape o al pulsar fuera', async () => {

@@ -3,6 +3,8 @@ export interface Usuario {
   id: string
   nombre: string
   foto: string | null
+  /** Solo para mostrarlo en el menú: no se guarda en el navegador. */
+  email?: string
 }
 
 /**

@@ -18,12 +18,13 @@ export interface ClienteAuth {
   }
 }
 
-/** Lo mínimo que guardamos de la cuenta: id, nombre visible y foto. */
+/** Lo mínimo de la cuenta: id, nombre visible, foto y correo (este solo se muestra). */
 export function usuarioDeSupabase(u: UsuarioSupabase): Usuario {
   const meta = u.user_metadata ?? {}
   const nombreMeta = [meta.full_name, meta.name].find((n): n is string => typeof n === 'string' && n !== '')
   const nombre = nombreMeta ?? (u.email ? u.email.split('@')[0] : u.id)
-  return { id: u.id, nombre, foto: typeof meta.avatar_url === 'string' ? meta.avatar_url : null }
+  const foto = typeof meta.avatar_url === 'string' ? meta.avatar_url : null
+  return u.email ? { id: u.id, nombre, foto, email: u.email } : { id: u.id, nombre, foto }
 }
 
 /**
