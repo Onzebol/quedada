@@ -9,9 +9,9 @@
 
 /* Móvil: solo el icono; el texto queda para lectores de pantalla (nombre accesible).
    Salvo en la línea de botones de las personas (.persona__acciones), «Añadir persona» y las acciones del mapa
-   (.casa__mapa-acciones): ahí caben con texto. */
+   (.casa__mapa-acciones) y los botones de «Pagos» (.pagos__acciones): ahí caben con texto. */
 @media (max-width: 39.99rem) {
-  .icono-texto:not(:is(.persona__acciones, .familia__anadir, .casa__mapa-acciones) *) {
+  .icono-texto:not(:is(.persona__acciones, .familia__anadir, .casa__mapa-acciones, .pagos__acciones) *) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -20,11 +20,11 @@
     white-space: nowrap;
   }
 
-  .icono + .icono-texto:not(:is(.persona__acciones, .familia__anadir, .casa__mapa-acciones) *) {
+  .icono + .icono-texto:not(:is(.persona__acciones, .familia__anadir, .casa__mapa-acciones, .pagos__acciones) *) {
     margin-left: 0;
   }
 
-  button:has(> .icono-texto):not(.familia__anadir, :is(.persona__acciones, .casa__mapa-acciones) *) {
+  button:has(> .icono-texto):not(.familia__anadir, :is(.persona__acciones, .casa__mapa-acciones, .pagos__acciones) *) {
     width: var(--alto-control);
     height: var(--alto-control);
     min-width: 0;

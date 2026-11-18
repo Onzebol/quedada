@@ -84,6 +84,8 @@ export interface Pago {
   importe: Centimos
   /** Texto libre: «Reserva», «Resto»… */
   concepto: string
+  /** Si quien debía este pago ya lo ha pagado. Solo es un recordatorio: no cambia las cuentas. */
+  pagado?: boolean
 }
 
 /** Un gasto real: lo que alguien ha puesto de su bolsillo (compra, gasolina…), esté o no en la lista de la compra. */

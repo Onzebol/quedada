@@ -276,7 +276,7 @@ describe('Pagos', () => {
   it('muestra el precio, lo pagado y lo que falta', async () => {
     const { panel } = await abrirPagos(conFamilias({ pagos: [{ id: 'x', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }] }))
     expect(within(panel).getByText('Precio').nextElementSibling).toHaveTextContent(/900,00\s€/)
-    expect(within(panel).getByText('Pagado').nextElementSibling).toHaveTextContent(/200,00\s€/)
+    expect(within(panel).getByText('Pagado', { selector: 'dt' }).nextElementSibling).toHaveTextContent(/200,00\s€/)
     expect(within(panel).getByText('Falta').nextElementSibling).toHaveTextContent(/700,00\s€/)
   })
 
@@ -287,6 +287,17 @@ describe('Pagos', () => {
     expect(fila).toHaveTextContent('Reserva')
     expect(fila).toHaveTextContent('García')
     expect(fila).toHaveTextContent(/200,00\s€/)
+  })
+
+  it('cada pago tiene una casilla «Pagado» que se guarda', async () => {
+    const { usuario, repositorio, panel } = await abrirPagos(conFamilias({ pagos: [{ id: 'x', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }] }))
+    const casilla = within(panel).getByRole('checkbox', { name: 'Pagado: Reserva de García' })
+    expect(casilla).not.toBeChecked()
+    await usuario.click(casilla)
+    expect((await guardada(repositorio)).pagos[0]).toMatchObject({ id: 'x', pagado: true })
+    expect(casilla).toBeChecked()
+    await usuario.click(casilla)
+    expect((await guardada(repositorio)).pagos[0].pagado).toBe(false)
   })
 
   it('añade el pago de una familia', async () => {

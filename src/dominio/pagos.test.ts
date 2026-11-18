@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { borrarAsistente } from './asistentes'
 import { anadirComponente } from './casa'
 import { quedada } from './fabrica'
-import { anadirPago, borrarPago, editarPago, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from './pagos'
+import { anadirPago, borrarPago, editarPago, marcarPagado, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from './pagos'
 
 const base = () =>
   quedada({
@@ -98,5 +98,20 @@ describe('borrar una familia', () => {
     let q = anadirPago(base(), { id: 'p1', familiaId: 'f1', importe: 100, concepto: '' })
     q = anadirPago(q, { id: 'p2', familiaId: 'f2', importe: 200, concepto: '' })
     expect(borrarAsistente(q, 'f1').pagos.map((p) => p.id)).toEqual(['p2'])
+  })
+})
+
+describe('marcarPagado', () => {
+  it('marca y desmarca que quien debía el pago ya lo ha pagado', () => {
+    const q = anadirPago(base(), { id: 'p1', familiaId: 'f1', importe: 20000, concepto: 'Reserva' })
+    expect(q.pagos[0].pagado).toBeUndefined()
+    const marcado = marcarPagado(q, 'p1', true)
+    expect(marcado.pagos[0].pagado).toBe(true)
+    expect(marcarPagado(marcado, 'p1', false).pagos[0].pagado).toBe(false)
+  })
+
+  it('ignora un pago que no existe', () => {
+    const q = base()
+    expect(marcarPagado(q, 'zzz', true)).toBe(q)
   })
 })

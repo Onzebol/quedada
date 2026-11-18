@@ -37,6 +37,12 @@ export function borrarPago(q: Quedada, id: Id): Quedada {
   return { ...q, pagos: q.pagos.filter((p) => p.id !== id) }
 }
 
+/** Marca (o desmarca) que quien debía el pago ya lo ha pagado. */
+export function marcarPagado(q: Quedada, id: Id, pagado: boolean): Quedada {
+  if (!q.pagos.some((p) => p.id === id)) return q
+  return { ...q, pagos: q.pagos.map((p) => (p.id === id ? { ...p, pagado } : p)) }
+}
+
 /** Suma de todos los pagos de la casa. */
 export function totalPagado(q: Quedada): Centimos {
   return q.pagos.reduce((suma, p) => suma + p.importe, 0)

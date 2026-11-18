@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS basicos (
 );
 CREATE TABLE IF NOT EXISTS pagos (
   quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
-  id TEXT NOT NULL, posicion INTEGER NOT NULL, familia_id TEXT NOT NULL, importe INTEGER NOT NULL, concepto TEXT NOT NULL,
+  id TEXT NOT NULL, posicion INTEGER NOT NULL, familia_id TEXT NOT NULL, importe INTEGER NOT NULL, concepto TEXT NOT NULL, pagado INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (quedada_id, id)
 );
 CREATE TABLE IF NOT EXISTS gastos (
@@ -71,6 +71,8 @@ export class RepositorioSqlite implements Repositorio {
     for (const [columna, tipo] of [['porcentaje_casa', 'REAL'], ['familia_id', 'TEXT'], ['adulto', 'INTEGER']]) {
       if (!columnas.includes(columna)) bd.run(`ALTER TABLE participantes ADD COLUMN ${columna} ${tipo}`)
     }
+    const dePagos = bd.exec('PRAGMA table_info(pagos)')[0]?.values.map((f) => f[1]) ?? []
+    if (!dePagos.includes('pagado')) bd.run('ALTER TABLE pagos ADD COLUMN pagado INTEGER NOT NULL DEFAULT 0')
     const deQuedadas = bd.exec('PRAGMA table_info(quedadas)')[0]?.values.map((f) => f[1]) ?? []
     for (const [columna, tipo] of [
       ['casa_titulo', 'TEXT'], ['casa_descripcion', 'TEXT'], ['casa_direccion', 'TEXT'],
@@ -116,7 +118,7 @@ export class RepositorioSqlite implements Repositorio {
       q.asistentes.forEach((a, i) => this.bd.run('INSERT INTO asistentes VALUES (?,?,?,?,?,?)', [q.id, a.id, i, a.familia, a.personas, a.llegada]))
       q.basicos.forEach((b, i) => this.bd.run('INSERT INTO basicos VALUES (?,?,?,?,?)', [q.id, b.id, i, b.nombre, b.asistenteId]))
       for (const [i, p] of (q.pagos ?? []).entries()) {
-        this.bd.run('INSERT INTO pagos VALUES (?,?,?,?,?,?)', [q.id, p.id, i, p.familiaId, p.importe, p.concepto])
+        this.bd.run('INSERT INTO pagos VALUES (?,?,?,?,?,?,?)', [q.id, p.id, i, p.familiaId, p.importe, p.concepto, p.pagado ? 1 : 0])
       }
       q.gastos.forEach((g, i) => this.bd.run('INSERT INTO gastos VALUES (?,?,?,?,?,?)', [q.id, g.id, i, g.pagadorId, g.concepto, g.importe]))
       this.bd.run('COMMIT')
@@ -200,11 +202,12 @@ export class RepositorioSqlite implements Repositorio {
         nombre: String(f[1]),
         asistenteId: f[2] as string | null,
       })),
-      pagos: this.filas('SELECT id, familia_id, importe, concepto FROM pagos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
+      pagos: this.filas('SELECT id, familia_id, importe, concepto, pagado FROM pagos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),
         familiaId: String(f[1]),
         importe: Number(f[2]),
         concepto: String(f[3]),
+        ...(f[4] === 1 && { pagado: true }),
       })),
       gastos: this.filas('SELECT id, pagador_id, concepto, importe FROM gastos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),

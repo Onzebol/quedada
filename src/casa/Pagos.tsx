@@ -2,7 +2,7 @@ import { Pencil, Plus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { ordenarPorNombre } from '../dominio/asistentes'
 import { formatearEuros, parsearEuros } from '../dominio/numeros'
-import { anadirPago, borrarPago, editarPago, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from '../dominio/pagos'
+import { anadirPago, borrarPago, editarPago, marcarPagado, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from '../dominio/pagos'
 import type { Asistente, Id, Pago, Quedada } from '../dominio/tipos'
 import type { Imagenes } from '../tiques/almacenImagenes'
 import { BotonBorrar } from '../ui/BotonBorrar'
@@ -79,12 +79,21 @@ export function Pagos({ quedada, aplicar, crearId, imagenes }: Props) {
             {quedada.pagos.map((p) => {
               const descripcion = `${p.concepto === '' ? 'Pago' : p.concepto} de ${nombre(p.familiaId)}`
               return (
-                <li key={p.id} className="pago">
+                <li key={p.id} className="pago pago--con-pagado">
                   <span className="pago__quien">
                     <strong>{nombre(p.familiaId)}</strong>
                     {p.concepto !== '' && <span className="pago__concepto">{p.concepto}</span>}
                   </span>
                   <span className="pago__importe">{formatearEuros(p.importe)}</span>
+                  <label className="pago__pagado">
+                    <input
+                      type="checkbox"
+                      checked={p.pagado === true}
+                      aria-label={`Pagado: ${descripcion}`}
+                      onChange={(e) => aplicar((q) => marcarPagado(q, p.id, e.target.checked))}
+                    />
+                    Pagado
+                  </label>
                   <span className="pago__acciones">
                     <button type="button" aria-label={`Editar ${descripcion}`} onClick={() => setEditando(p)}>
                       <ConIcono icono={Pencil}>Editar</ConIcono>

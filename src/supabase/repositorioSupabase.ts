@@ -156,12 +156,13 @@ const TABLAS: Tabla[] = [
   ),
   tabla(
     'pagos',
-    (p: Pago) => ({ id: p.id, familia_id: p.familiaId, importe: p.importe, concepto: p.concepto }),
+    (p: Pago) => ({ id: p.id, familia_id: p.familiaId, importe: p.importe, concepto: p.concepto, pagado: p.pagado === true }),
     (f): Pago => ({
       id: texto(f.id),
       familiaId: texto(f.familia_id),
       importe: Number(f.importe),
       concepto: texto(f.concepto),
+      ...(f.pagado === true && { pagado: true }),
     }),
   ),
   tabla(

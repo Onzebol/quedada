@@ -356,4 +356,24 @@ describe('migraciones de Supabase', () => {
       expect((await como(db, ANA, "delete from storage.objects returning name")).rows).toEqual([{ name: 'q1/g1.jpg' }])
     })
   })
+
+  describe('0009: casa enviada', () => {
+    it('añade la columna nula y los participantes existentes quedan sin marca', async () => {
+      await db.exec(sql('0009_casa_enviada.sql'))
+      const p = await db.query('select casa_enviada from public.participantes where quedada_id = $1', ['q1'])
+      expect((p.rows as Record<string, unknown>[]).every((f) => f.casa_enviada === null)).toBe(true)
+    })
+  })
+
+  describe('0010: pagos pagados', () => {
+    it('los pagos existentes quedan sin pagar y se retira la columna casa_enviada', async () => {
+      await db.query('update public.quedadas set casa_precio = 90000, casa_pagador_id = $1 where id = $2', ['p1', 'q1'])
+      await db.query('update public.participantes set familia_id = $1 where quedada_id = $2 and id = $3', ['a1', 'q1', 'p1'])
+      await db.exec(sql('0005_pagos.sql'))
+      await db.exec(sql('0009_casa_enviada.sql'))
+      await db.exec(sql('0010_pago_pagado.sql'))
+      expect((await db.query('select pagado from public.pagos')).rows).toEqual([{ pagado: false }])
+      await expect(db.query('select casa_enviada from public.participantes')).rejects.toThrow()
+    })
+  })
 })
