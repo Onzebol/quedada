@@ -28,8 +28,15 @@ export async function crearMapa(
     maxZoom: 19,
     attribution: 'Imágenes © Esri, Maxar, Earthstar Geographics',
   })
-  L.control.layers({ Mapa: calles, Satélite: satelite }, undefined, { collapsed: true }).addTo(mapa)
-  return { L, mapa }
+  let verSatelite = false
+  /** Cambia de capa y devuelve si ahora se ve el satélite. */
+  const alternarCapa = () => {
+    mapa.removeLayer(verSatelite ? satelite : calles)
+    verSatelite = !verSatelite
+    mapa.addLayer(verSatelite ? satelite : calles)
+    return verSatelite
+  }
+  return { L, mapa, alternarCapa }
 }
 
 /** Devuelve el mapa a la casa, con el zoom inicial. */

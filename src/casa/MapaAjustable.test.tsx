@@ -10,7 +10,6 @@ vi.mock('leaflet/dist/leaflet.css', () => ({}))
 beforeEach(() => {
   leaflet.mapa = null
   leaflet.marcador = null
-  leaflet.selector = []
 })
 
 describe('MapaAjustable', () => {
@@ -29,10 +28,13 @@ describe('MapaAjustable', () => {
     expect(leaflet.mapa!.prefijo).toBe(false)
   })
 
-  it('ofrece también la capa de satélite', async () => {
+  it('un solo botón alterna entre el mapa y el satélite', async () => {
     render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
     await waitFor(() => expect(leaflet.mapa).not.toBeNull())
-    expect(leaflet.selector).toEqual(['Mapa', 'Satélite'])
+    await userEvent.click(screen.getByRole('button', { name: 'Satélite' }))
+    expect(leaflet.mapa!.capaActiva).toContain('World_Imagery')
+    await userEvent.click(screen.getByRole('button', { name: 'Mapa' }))
+    expect(leaflet.mapa!.capaActiva).toContain('tile.openstreetmap.org')
   })
 
   it('al soltar el marcador avisa de la nueva posición', async () => {
