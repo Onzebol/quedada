@@ -1,7 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
 import { formatearEuros } from '../dominio/numeros'
-import { resumenPorFamilia, type GrupoResumen, type LineaResumen } from '../dominio/resumen'
+import { resumenPorFamilia, type GrupoResumen, type PersonaResumen } from '../dominio/resumen'
 import type { Quedada } from '../dominio/tipos'
 import './cuentas.css'
 
@@ -62,7 +62,7 @@ function FichaGrupo({ grupo }: { grupo: GrupoResumen }) {
   )
 }
 
-function FilaPersona({ persona: p }: { persona: LineaResumen }) {
+function FilaPersona({ persona: p }: { persona: PersonaResumen }) {
   return (
     <li>
       <span className="cuentas__nombre">{p.nombre}</span>
@@ -79,7 +79,6 @@ function FilaPersona({ persona: p }: { persona: LineaResumen }) {
           <dt>Gastos</dt>
           <dd>{formatearEuros(p.gastos)}</dd>
         </div>
-        <Saldo balance={p.balance} />
       </dl>
     </li>
   )

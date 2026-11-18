@@ -65,9 +65,10 @@ describe('Cuentas', () => {
     await userEvent.click(within(ficha('Pérez')).getByRole('button', { name: /Pérez/ }))
     const personas = within(ficha('Pérez')).getByRole('list', { name: 'Personas de Pérez' })
     const ana = within(personas).getByText('Ana').closest('li') as HTMLElement
-    expect(within(ana).getByText('Ha pagado').nextElementSibling).toHaveTextContent(euros('200,00 €'))
+    expect(within(ana).getByText('Ha pagado').nextElementSibling).toHaveTextContent(euros('0,00 €'))
     expect(within(ana).getByText('Casa').nextElementSibling).toHaveTextContent(euros('100,00 €'))
     expect(within(ana).getByText('Gastos').nextElementSibling).toHaveTextContent(euros('10,00 €'))
+    expect(within(ana).queryByText(/Debe|Le deben|Al día/)).not.toBeInTheDocument()
   })
 
   it('una persona sin familia es una ficha sin desplegable', () => {

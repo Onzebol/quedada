@@ -12,11 +12,14 @@ export interface LineaResumen {
   balance: Centimos
 }
 
+/** Una persona dentro de su familia: lo que ha pagado en gastos y lo que le toca. El saldo es de la familia. */
+export type PersonaResumen = Omit<LineaResumen, 'balance'>
+
 /** Una familia (o una persona suelta) con las personas que la componen; vacío si no tiene componentes. */
 export interface GrupoResumen extends LineaResumen {
   /** Lo que el grupo ha pagado del alquiler (solo pagos marcados como pagados); `pagado` incluye además sus gastos. */
   casaPagada: Centimos
-  personas: LineaResumen[]
+  personas: PersonaResumen[]
 }
 
 export interface ResumenCuentas {
@@ -42,6 +45,7 @@ export function resumenPorFamilia(q: Quedada): ResumenCuentas {
   const pagado = pagadoPor(q)
   const partes = partesDeCadaUno(q)
   const deParticipante = (id: Id, nombre: string) => linea(id, nombre, pagado[id] ?? 0, partes.casa[id] ?? 0, partes.gastos[id] ?? 0)
+  const gastosPagados = (id: Id) => q.gastos.filter((g) => g.pagadorId === id).reduce((s, g) => s + g.importe, 0)
   const suma = (lineas: LineaResumen[], campo: 'pagado' | 'casa' | 'gastos') => lineas.reduce((s, l) => s + l[campo], 0)
 
   const grupos: GrupoResumen[] = []
@@ -49,11 +53,15 @@ export function resumenPorFamilia(q: Quedada): ResumenCuentas {
   for (const a of q.asistentes) {
     const componentes = q.participantes.filter((p) => p.familiaId === a.id)
     componentes.forEach((p) => enFamilia.add(p.id))
-    const personas = ordenarPorNombre(componentes.map((p) => deParticipante(p.id, p.nombre)), (l) => l.nombre)
+    const lineas = componentes.map((p) => deParticipante(p.id, p.nombre))
+    const personas: PersonaResumen[] = ordenarPorNombre(
+      componentes.map((p, i) => ({ id: p.id, nombre: p.nombre, pagado: gastosPagados(p.id), casa: lineas[i].casa, gastos: lineas[i].gastos })),
+      (l) => l.nombre,
+    )
     // Sin componentes, la familia figura ella misma con lo que haya pagado.
     const propia = componentes.length === 0 ? pagado[a.id] ?? 0 : 0
     const casaPagada = pagosCobrados(q).filter((p) => p.familiaId === a.id).reduce((s, p) => s + p.importe, 0)
-    grupos.push({ ...linea(a.id, a.familia, suma(personas, 'pagado') + propia, suma(personas, 'casa'), suma(personas, 'gastos')), casaPagada, personas })
+    grupos.push({ ...linea(a.id, a.familia, suma(lineas, 'pagado') + propia, suma(lineas, 'casa'), suma(lineas, 'gastos')), casaPagada, personas })
   }
   for (const p of q.participantes) {
     if (!enFamilia.has(p.id)) grupos.push({ ...deParticipante(p.id, p.nombre), casaPagada: 0, personas: [] })
