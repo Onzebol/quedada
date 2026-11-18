@@ -157,7 +157,7 @@
 
 .pago {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: var(--esp-2) var(--esp-3);
   align-items: center;
   padding: var(--esp-3) 0;
@@ -169,6 +169,7 @@
   flex-wrap: wrap;
   gap: 0 var(--esp-2);
   align-items: baseline;
+  min-width: 0;
 }
 
 .pago__concepto {
@@ -177,10 +178,10 @@
 
 .pago__importe {
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .pago__acciones {
-  grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
   gap: var(--esp-2);
