@@ -130,7 +130,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
 - Supabase (#25, `src/supabase/`, `supabase/migrations/`): identidad y datos compartidos en
   Supabase (GitHub Pages es solo estático y SQLite no se puede compartir entre personas).
   `AutenticacionSupabase` implementa `Autenticacion` con Supabase Auth (Google): `abrir` resuelve la
-  sesión una vez antes de pintar y `entrar` redirige a Google (la página se recarga al volver; el
+  sesión una vez antes de pintar y `entrar` redirige a Google pidiendo siempre elegir la cuenta (`prompt=select_account`, #134) (la página se recarga al volver; el
   enrutado por hash no choca con el flujo PKCE, que usa `?code=`). `RepositorioSupabase` (#30, paso 1 de #29) guarda **una fila por cosa**: `quedadas` y las tablas
   `participantes`, `grupos`, `productos`, `asistentes` y `basicos` (`0002_tablas.sql`, con `quedada_id`
   y `posicion`). Lee con una sola consulta con las hijas incrustadas y guarda **por diferencias**
