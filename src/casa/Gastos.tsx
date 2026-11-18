@@ -83,7 +83,7 @@ export function Gastos({ quedada, aplicar, crearId, imagenes }: Props) {
           <>
             <ul className="pagos__lista" aria-label="Gastos">
               {quedada.gastos.map((g) => (
-                <li key={g.id} className="pago">
+                <li key={g.id} className={imagenes && g.imagen ? 'pago pago--con-tique' : 'pago'}>
                   {imagenes && g.imagen && (
                     <MiniaturaTique key={`${g.imagen}:${version}`} almacen={imagenes.almacen} ruta={g.imagen} concepto={g.concepto} />
                   )}
