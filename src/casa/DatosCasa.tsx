@@ -44,11 +44,11 @@ function Mapa({ latitud, longitud, nombre }: { latitud: number; longitud: number
       <iframe key={vez} title="Mapa de la casa" src={urlMapaIncrustado(latitud, longitud)} loading="lazy" />
       <div className="casa__mapa-acciones">
         <button type="button" onClick={() => setVez((v) => v + 1)}>
-          <ConIcono icono={LocateFixed}>Centrar en la casa</ConIcono>
+          <ConIcono icono={LocateFixed}>Centrar</ConIcono>
         </button>
         {enlaceApp !== null && (
           <a className="casa__boton" href={enlaceApp}>
-            <ConIcono icono={Navigation}>Abrir en la app de mapas</ConIcono>
+            <ConIcono icono={Navigation}>Navegar</ConIcono>
           </a>
         )}
       </div>
