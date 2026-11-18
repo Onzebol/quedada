@@ -728,6 +728,16 @@ describe('Página inicial', () => {
     expect(repositorio.quedadas).toHaveLength(0)
   })
 
+  it('la página inicial va centrada y la vista de una quedada no (#111)', async () => {
+    const usuario = abrirInicio(new RepositorioMemoria([conLeche()]))
+    await usuario.click(await screen.findByRole('button', { name: 'Almunia 2026' }))
+    await screen.findByRole('tab', { name: 'La casa' })
+    expect(screen.getByRole('main')).not.toHaveClass('pagina--inicio')
+    await usuario.click(screen.getByRole('button', { name: 'Quedada' }))
+    await screen.findByRole('heading', { level: 2, name: 'Tus quedadas' })
+    expect(screen.getByRole('main')).toHaveClass('pagina--inicio')
+  })
+
   it('elegir una quedada lleva a su URL y la muestra', async () => {
     const usuario = abrirInicio(new RepositorioMemoria([conLeche(), conPan()]))
     await usuario.click(await screen.findByRole('button', { name: 'Almunia 2025' }))

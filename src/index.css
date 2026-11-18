@@ -55,6 +55,20 @@ body {
   outline-offset: 4px;
 }
 
+/* Página inicial (#111): título y contenido centrados en la web. */
+.pagina--inicio {
+  align-items: center;
+}
+
+.pagina--inicio > h1,
+.pagina--inicio > .inicio > h2 {
+  text-align: center;
+}
+
+.pagina--inicio > .inicio {
+  width: 100%;
+}
+
 .quedada__nombre {
   margin: 0;
 }

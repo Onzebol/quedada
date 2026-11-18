@@ -54,7 +54,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
   )
 
   return (
-    <main className="pagina">
+    <main className={activa === null ? 'pagina pagina--inicio' : 'pagina'}>
       <h1>
         <button type="button" className="logo" onClick={() => setActiva(null)}>
           Quedada
