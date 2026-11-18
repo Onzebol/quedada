@@ -40,6 +40,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 95 | Las cuentas salen de lo que ha pagado cada uno (sección «Gastos» de «Pagos», aunque no esté en la lista) y de los pagos de la casa; los precios de la lista de la compra son solo orientativos |
 | 118 | Tiques por foto: un gasto puede llevar la foto del tique (cámara o galería, reducida y guardada en Supabase Storage), con el total y el pagador escritos a mano |
 | 120 | Casilla «Pagado» en cada pago de la casa, para saber si quien debía pagarlo ya lo ha hecho |
+| 128 | Resumen rediseñado: totales, ficha por familia (pagado, le toca y saldo, con desglose por persona) y quién paga a quién |
 
 ## Requisitos
 
@@ -80,7 +81,7 @@ En *Project Settings → Realtime* deja activado Realtime y desmarcado «Allow p
 
 - `src/dominio/`: modelo y lógica sin React (tipos, totales, liquidación, repositorio). Dinero en céntimos.
 - `src/compra/`: la lista de la compra (React).
-- `src/cuentas/`: pagado por persona, ajustes de reparto y transferencias (React).
+- `src/cuentas/`: Resumen: totales, ficha por familia con su saldo y transferencias (React).
 - `src/inicio/`: página inicial con la lista de quedadas (crear, elegir, eliminar).
 - `src/importacion/`: importación del Excel de compras (`.xlsx`) a quedadas.
 - `src/`: `App` y arranque de la interfaz.
