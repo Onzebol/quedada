@@ -28,7 +28,9 @@ function preparar(repositorio = new RepositorioMemoria(), participantes: string[
   return { usuario, repositorio, vista, crearId }
 }
 
+// La quedada se abre en «La casa»: pasa a la lista de la compra.
 async function esperarCarga() {
+  await userEvent.click(await screen.findByRole('tab', { name: 'Lista de la compra' }))
   await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
 }
 
@@ -498,12 +500,12 @@ function quedadaConGastos() {
 }
 
 describe('Pestañas', () => {
-  it('divide la quedada en La casa, Lista de la compra, Pagos y Resumen, y abre la lista de la compra', async () => {
+  it('divide la quedada en La casa, Lista de la compra, Pagos y Resumen, y abre La casa', async () => {
     preparar()
-    await esperarCarga()
+    await screen.findByRole('tab', { name: 'La casa' })
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['La casa', 'Lista de la compra', 'Pagos', 'Resumen'])
-    expect(screen.getByRole('tab', { name: 'Lista de la compra' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.queryByRole('region', { name: 'Asistentes' })).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'La casa' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('region', { name: 'Asistentes' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Cuentas' })).not.toBeInTheDocument()
   })
 
@@ -669,6 +671,7 @@ describe('Página inicial', () => {
   it('elegir una quedada lleva a su URL y la muestra', async () => {
     const usuario = abrirInicio(new RepositorioMemoria([conLeche(), conPan()]))
     await usuario.click(await screen.findByRole('button', { name: 'Almunia 2025' }))
+    await usuario.click(await screen.findByRole('tab', { name: 'Lista de la compra' }))
     await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
     await abrirSeccion('Cena del viernes')
     expect(await screen.findByText('Pan')).toBeInTheDocument()
@@ -722,6 +725,7 @@ describe('Página inicial', () => {
     window.location.hash = '#/q1'
     const usuario = userEvent.setup()
     render(<App repositorio={new RepositorioMemoria([conLeche(), conPan()])} crearId={contador()} />)
+    await usuario.click(await screen.findByRole('tab', { name: 'Lista de la compra' }))
     await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
     await abrirSeccion('Cena del viernes')
     expect(screen.getByText('Leche')).toBeInTheDocument()

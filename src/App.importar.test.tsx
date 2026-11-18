@@ -46,6 +46,7 @@ async function subir(usuario: ReturnType<typeof userEvent.setup>) {
 
 /** Las secciones de la compra empiezan contraídas: las despliega todas. */
 async function abrirSecciones(usuario: ReturnType<typeof userEvent.setup>) {
+  await usuario.click(await screen.findByRole('tab', { name: 'Lista de la compra' }))
   await screen.findAllByRole('heading', { level: 3 })
   for (const alternar of screen.getAllByRole('button', { expanded: false })) {
     if (alternar.closest('h3')) await usuario.click(alternar)
