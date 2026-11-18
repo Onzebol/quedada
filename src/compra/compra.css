@@ -234,6 +234,21 @@
   font-size: 0.875rem;
 }
 
+/* En móvil los botones van en su propia línea, bajo las observaciones. */
+@media (max-width: 39.999rem) {
+  .fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fila__acciones {
+    grid-column: 1;
+    grid-row: auto;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-top: var(--esp-2);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .fila--comprada .fila__nombre span {
     transition: color 0.15s;
