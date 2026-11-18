@@ -376,11 +376,4 @@ describe('migraciones de Supabase', () => {
       await expect(db.query('select casa_enviada from public.participantes')).rejects.toThrow()
     })
   })
-
-  describe('0011: pagador de la casa', () => {
-    it('las familias existentes quedan sin pagador elegido', async () => {
-      await db.exec(sql('0011_pagador_casa.sql'))
-      expect((await db.query('select distinct pagador_id from public.asistentes')).rows).toEqual([{ pagador_id: null }])
-    })
-  })
 })

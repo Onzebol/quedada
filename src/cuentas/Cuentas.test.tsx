@@ -52,7 +52,8 @@ describe('Cuentas', () => {
     const nombres = screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)
     expect(nombres).toEqual(['Gómez', 'Pérez'])
     const perez = ficha('Pérez')
-    expect(within(perez).getByText('Ha pagado').nextElementSibling).toHaveTextContent(euros('400,00 €'))
+    expect(within(perez).getByText('Casa pagada').nextElementSibling).toHaveTextContent(euros('400,00 €'))
+    expect(within(perez).getByText('Total pagado').nextElementSibling).toHaveTextContent(euros('400,00 €'))
     expect(within(perez).getByText('Le toca').nextElementSibling).toHaveTextContent(euros('220,00 €'))
     expect(within(perez).getByText('Le deben').nextElementSibling).toHaveTextContent(euros('180,00 €'))
     expect(within(ficha('Gómez')).getByText('Debe').nextElementSibling).toHaveTextContent(euros('180,00 €'))
@@ -64,7 +65,7 @@ describe('Cuentas', () => {
     await userEvent.click(within(ficha('Pérez')).getByRole('button', { name: /Pérez/ }))
     const personas = within(ficha('Pérez')).getByRole('list', { name: 'Personas de Pérez' })
     const ana = within(personas).getByText('Ana').closest('li') as HTMLElement
-    expect(within(ana).getByText('Ha pagado').nextElementSibling).toHaveTextContent(euros('400,00 €'))
+    expect(within(ana).getByText('Ha pagado').nextElementSibling).toHaveTextContent(euros('200,00 €'))
     expect(within(ana).getByText('Casa').nextElementSibling).toHaveTextContent(euros('100,00 €'))
     expect(within(ana).getByText('Gastos').nextElementSibling).toHaveTextContent(euros('10,00 €'))
   })

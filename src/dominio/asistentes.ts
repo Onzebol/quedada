@@ -14,41 +14,17 @@ export function anadirAsistente(q: Quedada, nuevo: Asistente): Quedada {
   return { ...q, asistentes: [...q.asistentes, { id: nuevo.id, familia, personas: nuevo.personas, llegada }] }
 }
 
-/** `pagadorId: null` vuelve a la persona por defecto. */
-export type CambiosAsistente = Partial<Omit<Asistente, 'id' | 'pagadorId'>> & { pagadorId?: Id | null }
+export type CambiosAsistente = Partial<Omit<Asistente, 'id'>>
 
 /** Aplica los cambios válidos y descarta los que no lo son (familia vacía, personas < 1, hora mal escrita). */
 export function editarAsistente(q: Quedada, id: Id, cambios: CambiosAsistente): Quedada {
-  const seguros: Partial<Omit<Asistente, 'id'>> = {}
-  const quitarPagador = cambios.pagadorId === null
+  const seguros: CambiosAsistente = {}
   if (cambios.familia !== undefined && cambios.familia.trim() !== '') seguros.familia = cambios.familia.trim()
   if (cambios.personas !== undefined && personasValidas(cambios.personas)) seguros.personas = cambios.personas
   if (cambios.llegada !== undefined && (cambios.llegada === null || HORA.test(cambios.llegada))) {
     seguros.llegada = cambios.llegada
   }
-  if (typeof cambios.pagadorId === 'string') {
-    const nuevo = q.participantes.find((p) => p.id === cambios.pagadorId)
-    if (nuevo && nuevo.familiaId === id && nuevo.adulto !== false) seguros.pagadorId = nuevo.id
-  }
-  return {
-    ...q,
-    asistentes: q.asistentes.map((a) => {
-      if (a.id !== id) return a
-      const { pagadorId: _quitado, ...resto } = a
-      return quitarPagador ? { ...resto, ...seguros } : { ...a, ...seguros }
-    }),
-  }
-}
-
-/**
- * Persona a la que se le acreditan los pagos de la casa de la familia: la elegida si sigue siendo un
- * componente adulto; si no, el primer adulto (o el primer componente si todos son menores).
- * `undefined` si la familia no tiene componentes.
- */
-export function pagadorDeLaCasa(q: Quedada, a: Asistente): Id | undefined {
-  const componentes = q.participantes.filter((p) => p.familiaId === a.id)
-  const elegido = componentes.find((p) => p.id === a.pagadorId && p.adulto !== false)
-  return (elegido ?? componentes.find((p) => p.adulto !== false) ?? componentes[0])?.id
+  return { ...q, asistentes: q.asistentes.map((a) => (a.id === id ? { ...a, ...seguros } : a)) }
 }
 
 /** Borra la familia; sus componentes se quedan como participantes sin familia. */

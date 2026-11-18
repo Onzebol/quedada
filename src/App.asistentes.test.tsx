@@ -113,36 +113,6 @@ describe('Asistentes', () => {
     expect(nombres).toEqual(['Álvarez', 'Zapata'])
   })
 
-  it('elige quién paga la casa entre los adultos de la familia (por defecto, el primero)', async () => {
-    const { usuario, repositorio } = await preparar(
-      quedada({
-        id: 'q1',
-        asistentes: [{ id: 'f1', familia: 'Pérez', personas: 3, llegada: null }],
-        participantes: [
-          { id: 'n', nombre: 'Nico', familiaId: 'f1', adulto: false },
-          { id: 'a', nombre: 'Ana', familiaId: 'f1' },
-          { id: 'b', nombre: 'Beto', familiaId: 'f1' },
-        ],
-      }),
-    )
-    await usuario.click(within(seccion()).getByRole('button', { name: 'Editar familia Pérez' }))
-    const d = within(screen.getByRole('dialog', { name: 'Editar familia' }))
-    const lista = d.getByRole('combobox', { name: 'Quién paga la casa' })
-    expect(lista).toHaveValue('a')
-    expect(within(lista).queryByRole('option', { name: 'Nico' })).not.toBeInTheDocument()
-    await usuario.selectOptions(lista, 'Beto')
-    await usuario.click(d.getByRole('button', { name: 'Guardar' }))
-    expect((await repositorio.obtener('q1'))!.asistentes[0].pagadorId).toBe('b')
-  })
-
-  it('una familia sin componentes no ofrece elegir quién paga la casa', async () => {
-    const { usuario } = await preparar(
-      quedada({ id: 'q1', asistentes: [{ id: 'f1', familia: 'Pérez', personas: 2, llegada: null }] }),
-    )
-    await usuario.click(within(seccion()).getByRole('button', { name: 'Editar familia Pérez' }))
-    expect(screen.queryByRole('combobox', { name: 'Quién paga la casa' })).not.toBeInTheDocument()
-  })
-
   it('edita personas y hora de llegada de una familia', async () => {
     const { usuario, repositorio } = await preparar(
       quedada({ id: 'q1', asistentes: [{ id: 'a1', familia: 'Pérez', personas: 2, llegada: null }] }),

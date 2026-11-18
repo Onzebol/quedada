@@ -25,11 +25,10 @@ describe('resumenPorFamilia', () => {
     const { grupos } = resumenPorFamilia(q)
     expect(grupos.map((g) => g.nombre)).toEqual(['Gómez', 'Pérez'])
     const [gomez, perez] = grupos
-    expect(gomez).toMatchObject({ pagado: 4000, casa: 20000, gastos: 2000, balance: -18000 })
-    expect(perez).toMatchObject({ pagado: 40000, casa: 20000, gastos: 2000, balance: 18000 })
+    expect(gomez).toMatchObject({ pagado: 4000, casaPagada: 0, casa: 20000, gastos: 2000, balance: -18000 })
+    expect(perez).toMatchObject({ pagado: 40000, casaPagada: 40000, casa: 20000, gastos: 2000, balance: 18000 })
     expect(perez.personas.map((p) => p.nombre)).toEqual(['ana', 'beto'])
-    expect(perez.personas[0]).toMatchObject({ pagado: 40000, casa: 10000, gastos: 1000, balance: 29000 })
-    expect(perez.personas[1]).toMatchObject({ pagado: 0, casa: 10000, gastos: 1000, balance: -11000 })
+    expect(perez.personas[0]).toMatchObject({ pagado: 20000, casa: 10000, gastos: 1000, balance: 9000 })
   })
 
   it('los saldos de todos los grupos suman 0', () => {
@@ -99,5 +98,15 @@ describe('resumenPorFamilia', () => {
     expect(resumenPorFamilia(conPrecio(50000, [pago('f1', 20000), sinMarcar])).totales.casaFalta).toBe(30000)
     expect(resumenPorFamilia(conPrecio(10000, [pago('f1', 20000)])).totales.casaFalta).toBe(0)
     expect(resumenPorFamilia(conPrecio(null, [pago('f1', 20000)])).totales.casaFalta).toBeNull()
+  })
+
+  it('la casa pagada de una familia solo cuenta los pagos marcados como pagados', () => {
+    const q = quedada({
+      asistentes: [familia('f1', 'Pérez')],
+      participantes: [persona('ana', { familiaId: 'f1' })],
+      pagos: [pago('f1', 30000), { ...pago('f1', 5000), id: 'sin-pagar', pagado: false }],
+      gastos: [gasto('ana', 2000)],
+    })
+    expect(resumenPorFamilia(q).grupos[0]).toMatchObject({ casaPagada: 30000, pagado: 32000 })
   })
 })

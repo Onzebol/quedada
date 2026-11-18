@@ -1,5 +1,5 @@
 import { ordenarPorNombre } from './asistentes'
-import { liquidar, pagadoPor, partesDeCadaUno, totalCasa, type Transferencia } from './liquidacion'
+import { liquidar, pagadoPor, pagosCobrados, partesDeCadaUno, totalCasa, type Transferencia } from './liquidacion'
 import type { Centimos, Id, Quedada } from './tipos'
 
 /** Lo de una persona o de una familia: lo pagado, lo que le toca (casa y gastos) y el saldo (positivo = le deben). */
@@ -14,6 +14,8 @@ export interface LineaResumen {
 
 /** Una familia (o una persona suelta) con las personas que la componen; vacío si no tiene componentes. */
 export interface GrupoResumen extends LineaResumen {
+  /** Lo que el grupo ha pagado del alquiler (solo pagos marcados como pagados); `pagado` incluye además sus gastos. */
+  casaPagada: Centimos
   personas: LineaResumen[]
 }
 
@@ -50,10 +52,11 @@ export function resumenPorFamilia(q: Quedada): ResumenCuentas {
     const personas = ordenarPorNombre(componentes.map((p) => deParticipante(p.id, p.nombre)), (l) => l.nombre)
     // Sin componentes, la familia figura ella misma con lo que haya pagado.
     const propia = componentes.length === 0 ? pagado[a.id] ?? 0 : 0
-    grupos.push({ ...linea(a.id, a.familia, suma(personas, 'pagado') + propia, suma(personas, 'casa'), suma(personas, 'gastos')), personas })
+    const casaPagada = pagosCobrados(q).filter((p) => p.familiaId === a.id).reduce((s, p) => s + p.importe, 0)
+    grupos.push({ ...linea(a.id, a.familia, suma(personas, 'pagado') + propia, suma(personas, 'casa'), suma(personas, 'gastos')), casaPagada, personas })
   }
   for (const p of q.participantes) {
-    if (!enFamilia.has(p.id)) grupos.push({ ...deParticipante(p.id, p.nombre), personas: [] })
+    if (!enFamilia.has(p.id)) grupos.push({ ...deParticipante(p.id, p.nombre), casaPagada: 0, personas: [] })
   }
 
   const ordenados = ordenarPorNombre(grupos, (g) => g.nombre)

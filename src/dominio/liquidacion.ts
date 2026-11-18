@@ -1,4 +1,3 @@
-import { pagadorDeLaCasa } from './asistentes'
 import { pesoCasa } from './casa'
 import type { Centimos, Id, Quedada } from './tipos'
 
@@ -47,21 +46,29 @@ export function repartirProporcional(total: Centimos, pesos: Record<Id, number>)
 }
 
 /** Pagos de la casa que entran en las cuentas: solo los marcados como pagados (puede haber quien aún no haya pagado la reserva). */
-function pagosCobrados(quedada: Quedada) {
+export function pagosCobrados(quedada: Quedada) {
   return quedada.pagos.filter((p) => p.pagado === true)
 }
 
 /**
- * Lo pagado por cada persona: sus gastos y los pagos de la casa. El pago de una familia se acredita
- * entero a su pagador de la casa (`pagadorDeLaCasa`); si la familia no tiene componentes, figura ella misma.
+ * Lo pagado por cada persona: sus gastos y los pagos de la casa. El pago de una familia se acredita a sus
+ * componentes según su porcentaje de casa (a partes iguales si todos pesan 0); si la familia no
+ * tiene componentes, figura ella misma.
  */
 export function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
   const pagado: Record<Id, Centimos> = {}
   for (const g of quedada.gastos) pagado[g.pagadorId] = (pagado[g.pagadorId] ?? 0) + g.importe
   for (const pago of pagosCobrados(quedada)) {
-    const familia = quedada.asistentes.find((a) => a.id === pago.familiaId)
-    const quien = (familia && pagadorDeLaCasa(quedada, familia)) ?? pago.familiaId
-    pagado[quien] = (pagado[quien] ?? 0) + pago.importe
+    const componentes = quedada.participantes.filter((p) => p.familiaId === pago.familiaId)
+    if (componentes.length === 0) {
+      pagado[pago.familiaId] = (pagado[pago.familiaId] ?? 0) + pago.importe
+      continue
+    }
+    const pesos: Record<Id, number> = {}
+    for (const p of componentes) pesos[p.id] = pesoCasa(p)
+    for (const [id, parte] of Object.entries(repartirProporcional(pago.importe, pesos))) {
+      pagado[id] = (pagado[id] ?? 0) + parte
+    }
   }
   return pagado
 }

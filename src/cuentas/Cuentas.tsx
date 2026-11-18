@@ -38,7 +38,11 @@ function FichaGrupo({ grupo }: { grupo: GrupoResumen }) {
       </h4>
       <dl className="cuentas__datos">
         <div>
-          <dt>Ha pagado</dt>
+          <dt>Casa pagada</dt>
+          <dd>{formatearEuros(grupo.casaPagada)}</dd>
+        </div>
+        <div>
+          <dt>Total pagado</dt>
           <dd>{formatearEuros(grupo.pagado)}</dd>
         </div>
         <div>

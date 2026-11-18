@@ -137,13 +137,12 @@ const TABLAS: Tabla[] = [
   ),
   tabla(
     'asistentes',
-    (a: Asistente) => ({ id: a.id, familia: a.familia, personas: a.personas, llegada: a.llegada, pagador_id: a.pagadorId ?? null }),
+    (a: Asistente) => ({ id: a.id, familia: a.familia, personas: a.personas, llegada: a.llegada }),
     (f): Asistente => ({
       id: texto(f.id),
       familia: texto(f.familia),
       personas: Number(f.personas),
       llegada: hay(f.llegada) ? texto(f.llegada) : null,
-      ...(hay(f.pagador_id) ? { pagadorId: texto(f.pagador_id) } : {}),
     }),
   ),
   tabla(
