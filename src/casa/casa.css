@@ -107,6 +107,15 @@
 }
 
 
-.casa__mapa button {
-  align-self: flex-start;
+/* Centrar (izquierda) y navegar (derecha) en una línea; si no caben, navegar baja pero sigue a la derecha. */
+.casa__mapa-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.casa__mapa-acciones .casa__boton {
+  margin-left: auto;
 }

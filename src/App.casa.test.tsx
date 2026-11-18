@@ -137,6 +137,10 @@ describe('La casa: ficha', () => {
       await preparar(quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }))
       expect(within(ficha()).getByRole('link', { name: 'Abrir en la app de mapas' })).toHaveAttribute('href', 'geo:41.6,-1.2?q=41.6,-1.2(Casa)')
       expect(within(ficha()).queryByRole('link', { name: /OpenStreetMap/ })).not.toBeInTheDocument()
+      // Centrar y navegar comparten línea (el CSS pone navegar a la derecha y deja el texto de ambos en móvil).
+      const fila = within(ficha()).getByRole('button', { name: 'Centrar en la casa' }).parentElement
+      expect(fila).toHaveClass('casa__mapa-acciones')
+      expect(fila).toContainElement(within(ficha()).getByRole('link', { name: 'Abrir en la app de mapas' }))
     } finally {
       agente.mockRestore()
     }

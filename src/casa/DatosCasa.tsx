@@ -42,14 +42,16 @@ function Mapa({ latitud, longitud, nombre }: { latitud: number; longitud: number
   return (
     <div className="casa__mapa">
       <iframe key={vez} title="Mapa de la casa" src={urlMapaIncrustado(latitud, longitud)} loading="lazy" />
-      <button type="button" onClick={() => setVez((v) => v + 1)}>
-        <ConIcono icono={LocateFixed}>Centrar en la casa</ConIcono>
-      </button>
-      {enlaceApp !== null && (
-        <a className="casa__boton" href={enlaceApp}>
-          <ConIcono icono={Navigation}>Abrir en la app de mapas</ConIcono>
-        </a>
-      )}
+      <div className="casa__mapa-acciones">
+        <button type="button" onClick={() => setVez((v) => v + 1)}>
+          <ConIcono icono={LocateFixed}>Centrar en la casa</ConIcono>
+        </button>
+        {enlaceApp !== null && (
+          <a className="casa__boton" href={enlaceApp}>
+            <ConIcono icono={Navigation}>Abrir en la app de mapas</ConIcono>
+          </a>
+        )}
+      </div>
     </div>
   )
 }
