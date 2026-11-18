@@ -39,3 +39,16 @@
   border-color: #fff;
   color: #fff;
 }
+
+/* El botón principal, claro con letras oscuras para que se lea sobre el fondo oscuro. */
+.aviso .aviso__actualizar {
+  background: var(--surf);
+  border-color: var(--surf);
+  color: var(--ink);
+}
+
+.aviso .aviso__actualizar:hover:not(:disabled) {
+  background: #fff;
+  border-color: #fff;
+  color: var(--moss);
+}
