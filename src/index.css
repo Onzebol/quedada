@@ -55,6 +55,12 @@ body {
   outline-offset: 4px;
 }
 
+/* Página inicial (#111): el logo queda a la izquierda y el bloque «Tus quedadas» en el centro de la web. */
+.pagina--inicio > .inicio {
+  width: 100%;
+  margin-inline: auto;
+}
+
 .quedada__nombre {
   margin: 0;
 }
