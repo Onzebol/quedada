@@ -14,7 +14,7 @@ interface Props {
   aplicar: (cambio: (q: Quedada) => Quedada) => void
 }
 
-function MenuUsuario({ nombre, foto, salir }: { nombre: string; foto: string | null; salir: () => void }) {
+function MenuUsuario({ nombre, foto, email, salir }: { nombre: string; foto: string | null; email?: string; salir: () => void }) {
   const [abierto, setAbierto] = useState(false)
   const raiz = useRef<HTMLDivElement>(null)
 
@@ -36,12 +36,19 @@ function MenuUsuario({ nombre, foto, salir }: { nombre: string; foto: string | n
 
   return (
     <div className="sesion__persona" ref={raiz}>
-      <button type="button" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
-        <span className={foto !== null ? 'sesion__nombre' : undefined}>{nombre}</span>
-        {foto !== null && <img src={foto} alt="" width={32} height={32} referrerPolicy="no-referrer" />}
+      <button type="button" aria-label={nombre} aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
+        {foto !== null ? (
+          <img src={foto} alt="" width={32} height={32} referrerPolicy="no-referrer" />
+        ) : (
+          <span className="sesion__inicial">{Array.from(nombre)[0]?.toUpperCase()}</span>
+        )}
       </button>
       {abierto && (
         <div className="sesion__menu" role="menu">
+          <div className="sesion__cuenta">
+            <strong>{nombre}</strong>
+            {email !== undefined && <span>{email}</span>}
+          </div>
           <button type="button" role="menuitem" onClick={salir}>
             <ConIcono icono={LogOut}>Cerrar sesión</ConIcono>
           </button>
@@ -67,7 +74,7 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
         <>
           <div className="sesion__esquina">
             <BotonInstalar />
-            <MenuUsuario nombre={usuario.nombre} foto={usuario.foto} salir={() => void salir()} />
+            <MenuUsuario nombre={usuario.nombre} foto={usuario.foto} email={usuario.email} salir={() => void salir()} />
           </div>
           {quedada !== null && quedada.participantes.length > 0 && (
             <label>

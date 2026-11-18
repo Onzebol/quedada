@@ -18,11 +18,15 @@ function clienteFalso(sesion: { user: typeof supabaseUser } | null, errorEntrada
 
 describe('usuarioDeSupabase', () => {
   it('usa nombre completo y foto', () => {
-    expect(usuarioDeSupabase(supabaseUser)).toEqual({ id: 'u1', nombre: 'Ana Pérez', foto: 'https://foto/ana.png' })
+    expect(usuarioDeSupabase(supabaseUser)).toMatchObject({ id: 'u1', nombre: 'Ana Pérez', foto: 'https://foto/ana.png' })
+  })
+
+  it('incluye el correo para mostrarlo (#113)', () => {
+    expect(usuarioDeSupabase({ id: 'u2', email: 'luis@x.es' }).email).toBe('luis@x.es')
   })
 
   it('sin nombre usa lo anterior a la @ del correo y sin foto es null', () => {
-    expect(usuarioDeSupabase({ id: 'u2', email: 'luis@x.es' })).toEqual({ id: 'u2', nombre: 'luis', foto: null })
+    expect(usuarioDeSupabase({ id: 'u2', email: 'luis@x.es' })).toMatchObject({ id: 'u2', nombre: 'luis', foto: null })
   })
 
   it('sin nombre ni correo usa el id', () => {
@@ -39,7 +43,7 @@ describe('AutenticacionSupabase', () => {
 
   it('restaura la sesión existente', async () => {
     const auth = await AutenticacionSupabase.abrir(clienteFalso({ user: supabaseUser }).cliente, 'https://web/')
-    expect(auth.actual()).toEqual({ id: 'u1', nombre: 'Ana Pérez', foto: 'https://foto/ana.png' })
+    expect(auth.actual()).toMatchObject({ id: 'u1', nombre: 'Ana Pérez', foto: 'https://foto/ana.png' })
   })
 
   it('entrar redirige a Google y vuelve a la página', async () => {
