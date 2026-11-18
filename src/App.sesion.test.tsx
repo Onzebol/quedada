@@ -31,6 +31,7 @@ async function preparar(
   const repositorio = new RepositorioMemoria(quedadas)
   abrirPrimera(repositorio)
   render(<App repositorio={repositorio} autenticacion={auth} urlPagina={urlPagina} crearId={() => 'x'} alSalir={alSalir} />)
+  await usuario.click(await screen.findByRole('tab', { name: 'Lista de la compra' }))
   await screen.findByRole('heading', { level: 2, name: 'Lista de la compra' })
   return { usuario, repositorio }
 }
@@ -190,7 +191,11 @@ describe('Enlace de la quedada', () => {
     const q2 = quedada({ id: 'q2', nombre: 'Quedada 2025', grupos: [{ id: 'g2', nombre: 'Merienda', orden: 0 }] })
     await preparar(new AutenticacionMemoria(ana), [q1(), q2])
     window.location.hash = '#/q2'
-    expect(await screen.findByRole('heading', { level: 3, name: 'Merienda' })).toBeInTheDocument()
+    // Al cambiar de quedada, las pestañas se reinician en «La casa».
+    await waitFor(async () => {
+      await userEvent.click(screen.getByRole('tab', { name: 'Lista de la compra' }))
+      expect(screen.getByRole('heading', { level: 3, name: 'Merienda' })).toBeInTheDocument()
+    })
   })
 
   it('avisa si la quedada del enlace no existe o no es accesible', async () => {
