@@ -234,35 +234,6 @@ describe('La casa: ficha', () => {
   })
 })
 
-describe('Resumen: lo que paga cada uno de la casa', () => {
-  async function abrirResumen(inicial: ReturnType<typeof quedada>) {
-    const { usuario } = await preparar(inicial)
-    await usuario.click(screen.getByRole('tab', { name: 'Resumen' }))
-    return screen.getByRole('region', { name: 'Cuentas' })
-  }
-
-  it('lista lo que le toca a cada participante del precio de la casa, según su % de casa', async () => {
-    const cuentas = await abrirResumen(
-      quedada({
-        id: 'q1',
-        casa: casaCon({ precio: 90000 }),
-        participantes: [
-          { id: 'a', nombre: 'Ana' },
-          { id: 'b', nombre: 'Beto', porcentajeCasa: 50 },
-        ],
-      }),
-    )
-    const partes = within(cuentas).getByRole('list', { name: 'Lo que paga cada uno de la casa' })
-    expect(within(partes).getByText(/Ana/)).toHaveTextContent(/600,00\s€/)
-    expect(within(partes).getByText(/Beto/)).toHaveTextContent(/300,00\s€/)
-  })
-
-  it('sin precio de la casa no aparece la sección', async () => {
-    const cuentas = await abrirResumen(quedada({ id: 'q1', participantes: [{ id: 'a', nombre: 'Ana' }] }))
-    expect(within(cuentas).queryByText(/Lo que paga cada uno de la casa/)).not.toBeInTheDocument()
-  })
-})
-
 describe('Pagos', () => {
   const conFamilias = (parcial: Partial<ReturnType<typeof quedada>> = {}) =>
     quedada({

@@ -46,14 +46,19 @@ export function repartirProporcional(total: Centimos, pesos: Record<Id, number>)
   return resultado
 }
 
+/** Pagos de la casa que entran en las cuentas: solo los marcados como pagados (puede haber quien aún no haya pagado la reserva). */
+function pagosCobrados(quedada: Quedada) {
+  return quedada.pagos.filter((p) => p.pagado === true)
+}
+
 /**
  * Lo pagado por cada persona: sus gastos y los pagos de la casa. El pago de una familia se acredita
  * entero a su pagador de la casa (`pagadorDeLaCasa`); si la familia no tiene componentes, figura ella misma.
  */
-function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
+export function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
   const pagado: Record<Id, Centimos> = {}
   for (const g of quedada.gastos) pagado[g.pagadorId] = (pagado[g.pagadorId] ?? 0) + g.importe
-  for (const pago of quedada.pagos) {
+  for (const pago of pagosCobrados(quedada)) {
     const familia = quedada.asistentes.find((a) => a.id === pago.familiaId)
     const quien = (familia && pagadorDeLaCasa(quedada, familia)) ?? pago.familiaId
     pagado[quien] = (pagado[quien] ?? 0) + pago.importe
@@ -61,22 +66,29 @@ function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
   return pagado
 }
 
-/** Alquiler que entra en las cuentas: solo lo pagado. */
-function totalCasa(quedada: Quedada): Centimos {
-  return quedada.pagos.reduce((suma, p) => suma + p.importe, 0)
+/** Alquiler que entra en las cuentas: solo lo marcado como pagado. */
+export function totalCasa(quedada: Quedada): Centimos {
+  return pagosCobrados(quedada).reduce((suma, p) => suma + p.importe, 0)
 }
 
-/** Saldo de cada persona: lo que ha pagado menos lo que le corresponde. */
-export function balances(quedada: Quedada): Record<Id, Centimos> {
-  const pagado = pagadoPor(quedada)
+/** Lo que le toca a cada participante: su parte del alquiler pagado y de los gastos. */
+export function partesDeCadaUno(quedada: Quedada): { casa: Record<Id, Centimos>; gastos: Record<Id, Centimos> } {
   const pesosCasa: Record<Id, number> = {}
   const pesosComida: Record<Id, number> = {}
   for (const p of quedada.participantes) {
     pesosCasa[p.id] = pesoCasa(p)
     pesosComida[p.id] = p.porcentajeComida ?? 100
   }
-  const debeCasa = repartirProporcional(totalCasa(quedada), pesosCasa)
-  const debeComida = repartirProporcional(quedada.gastos.reduce((suma, g) => suma + g.importe, 0), pesosComida)
+  return {
+    casa: repartirProporcional(totalCasa(quedada), pesosCasa),
+    gastos: repartirProporcional(quedada.gastos.reduce((suma, g) => suma + g.importe, 0), pesosComida),
+  }
+}
+
+/** Saldo de cada persona: lo que ha pagado menos lo que le corresponde. */
+export function balances(quedada: Quedada): Record<Id, Centimos> {
+  const pagado = pagadoPor(quedada)
+  const { casa: debeCasa, gastos: debeComida } = partesDeCadaUno(quedada)
 
   const saldos: Record<Id, Centimos> = {}
   for (const p of quedada.participantes) saldos[p.id] = 0

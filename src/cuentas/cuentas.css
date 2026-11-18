@@ -1,69 +1,161 @@
-/* Sierra: panel verde para las cuentas, con filas separadas por líneas translúcidas. */
+/* Resumen: fichas como las de «La casa». Botones, campos y la caja del panel vienen de ui/controles.css. */
 .cuentas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
   padding: var(--relleno-panel);
-  background: var(--moss);
-  color: #fff;
+  background: #fff;
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
 }
 
-.cuentas h2 {
-  margin: 0 0 var(--esp-2);
-  font-size: 1.625rem;
+.cuentas h2,
+.cuentas h3,
+.cuentas h4,
+.cuentas p {
+  margin: 0;
 }
 
-.cuentas > p:first-of-type {
-  margin: 0 0 1rem;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.cuentas__personas,
-.cuentas__transferencias {
-  list-style: none;
+.cuentas ul,
+.cuentas dl {
   margin: 0;
   padding: 0;
+  list-style: none;
 }
 
-.cuentas__personas li {
+.cuentas__totales {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--esp-2);
+}
+
+/* En móvil, de dos en dos; con más ancho, todos en una fila. */
+@media (min-width: 40rem) {
+  .cuentas__totales {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  }
+}
+
+.cuentas__totales li {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-top: 1px solid rgb(255 255 255 / 0.25);
-  font-size: 0.9375rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: var(--esp-3);
+  font-size: 0.8125rem;
+  background: var(--moss);
+  border-radius: 12px;
+  color: #fff;
 }
 
-.cuentas__personas label {
-  display: flex;
-  flex-direction: row;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.cuentas input[type='text'],
-.cuentas input[type='number'] {
-  min-height: 2.25rem;
-  width: 5rem;
-  padding: 0 0.5rem;
-  background: #fff;
-  border: 0;
-  border-radius: 10px;
+.cuentas__totales .cuentas__falta {
+  background: var(--sun);
   color: var(--ink);
 }
 
-.cuentas h4 {
-  margin: 1.25rem 0 0.5rem;
-  font-size: 1.25rem;
+.cuentas__totales strong {
+  font-size: clamp(1rem, 4.5vw, 1.375rem);
+  letter-spacing: -0.02em;
 }
 
-.cuentas__transferencias li {
-  padding: 0.75rem 0;
-  border-top: 1px solid rgb(255 255 255 / 0.25);
+.cuentas__grupos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
+  align-items: start;
+  gap: var(--esp-3);
+}
+
+.cuentas__ficha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  padding: var(--esp-4);
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+}
+
+.cuentas__ficha h4 {
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.cuentas__ficha h4 button {
+  display: inline-flex;
+  gap: var(--esp-2);
+  align-items: center;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.cuentas__ficha h4 button:hover {
+  color: var(--moss);
+}
+
+.cuentas__flecha {
+  color: var(--mut);
+}
+
+.cuentas__ficha h4 button[aria-expanded='true'] .cuentas__flecha {
+  rotate: 180deg;
+}
+
+.cuentas__datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-4);
+}
+
+.cuentas__datos dt {
+  color: var(--mut);
+  font-size: 0.8125rem;
+}
+
+.cuentas__datos dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.cuentas__saldo--favor dd {
+  color: var(--moss);
+}
+
+.cuentas__saldo--contra dd {
+  color: #a23b2a;
+}
+
+.cuentas__saldo:is(p) {
+  align-self: end;
+  color: var(--mut);
+  font-weight: 700;
+}
+
+.cuentas__personas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding-top: var(--esp-2);
+  border-top: 1px solid var(--linea);
+}
+
+.cuentas__nombre {
+  display: block;
+  margin-bottom: 0.25rem;
   font-weight: 600;
 }
 
-.cuentas :focus-visible {
-  outline-color: #fff;
+.cuentas__transferencias {
+  display: grid;
+  gap: var(--esp-2);
+}
+
+.cuentas__transferencias li {
+  padding: var(--esp-3) var(--esp-4);
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  font-weight: 600;
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { producto, quedada } from './fabrica'
 import { balances, liquidacion, liquidar, repartirProporcional } from './liquidacion'
-import type { Gasto, Participante } from './tipos'
+import type { Gasto, Pago, Participante } from './tipos'
 
 function persona(id: string, parcial: Partial<Participante> = {}): Participante {
   return { id, nombre: id, ...parcial }
@@ -102,7 +102,7 @@ describe('balances', () => {
         { id: 'fb', familia: 'B', personas: 1, llegada: null },
       ],
       casa: { titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: 10000 },
-      pagos: [{ id: 'pg', familiaId: 'fb', importe: 10000, concepto: '' }],
+      pagos: [{ id: 'pg', familiaId: 'fb', importe: 10000, concepto: '', pagado: true }],
       gastos: [gasto('a', 20)],
     })
     // gastos: a paga 20 € y le tocan todos. casa: 50 € cada uno, la paga la familia de b.
@@ -203,9 +203,17 @@ describe('alquiler de la casa (pagos por familia)', () => {
     { id: 'b', nombre: 'Beto', familiaId: 'f1' },
     { id: 'c', nombre: 'Cris', familiaId: 'f2' },
   ]
-  const pago = (id: string, familiaId: string, importe: number) => ({ id, familiaId, importe, concepto: '' })
-  const con = (pagos: ReturnType<typeof pago>[], extra = {}) =>
+  const pago = (id: string, familiaId: string, importe: number): Pago => ({ id, familiaId, importe, concepto: '', pagado: true })
+  const con = (pagos: Pago[], extra = {}) =>
     quedada({ participantes: personas, asistentes: familias, casa, pagos, ...extra })
+
+  it('un pago sin marcar como pagado no cuenta en las cuentas (la reserva puede estar sin pagar)', () => {
+    const sinPagar = { ...pago('1', 'f1', 60000), pagado: false }
+    const sinCampo: Pago = { id: '2', familiaId: 'f2', importe: 30000, concepto: '' }
+    const l = liquidacion(con([sinPagar, sinCampo, pago('3', 'f2', 3000)]))
+    expect(l.total).toBe(3000)
+    expect(l.balances).toEqual({ a: -1000, b: -1000, c: 2000 })
+  })
 
   it('si cada familia paga según sus personas, el pagador de la familia cobra lo de su compañero', () => {
     const l = liquidacion(con([pago('1', 'f1', 60000), pago('2', 'f2', 30000)]))
