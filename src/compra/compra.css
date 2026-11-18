@@ -282,7 +282,7 @@
     white-space: nowrap;
   }
 
-  :is(.compra__datos, .grupo__datos) > span + span::before {
+  :root :is(.compra__datos, .grupo__datos) > span + span::before {
     margin: 0 0.4em;
   }
 }
