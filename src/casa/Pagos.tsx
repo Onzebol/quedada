@@ -1,7 +1,7 @@
 import { Pencil, Plus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { ordenarPorNombre } from '../dominio/asistentes'
-import { formatearEuros, parsearEuros } from '../dominio/numeros'
+import { filtrarImporte, formatearEuros, parsearEuros } from '../dominio/numeros'
 import { anadirPago, borrarPago, editarPago, marcarPagado, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from '../dominio/pagos'
 import type { Asistente, Id, Pago, Quedada } from '../dominio/tipos'
 import type { Imagenes } from '../tiques/almacenImagenes'
@@ -177,7 +177,7 @@ function FormularioPago({ titulo, envio, familias, inicial, onEnviar, onCerrar }
       </label>
       <label>
         Importe (€)
-        <input type="text" inputMode="decimal" required value={valores.importe} onChange={(e) => setValores({ ...valores, importe: e.target.value })} />
+        <input type="text" inputMode="decimal" required value={valores.importe} onChange={(e) => setValores({ ...valores, importe: filtrarImporte(e.target.value) })} />
       </label>
       <label>
         Concepto
@@ -203,7 +203,7 @@ function FormularioReparto({
       <p className="casa__ayuda">Crea un pago por familia, proporcional a su número de personas.</p>
       <label>
         Importe total (€)
-        <input type="text" inputMode="decimal" required value={importe} onChange={(e) => setImporte(e.target.value)} />
+        <input type="text" inputMode="decimal" required value={importe} onChange={(e) => setImporte(filtrarImporte(e.target.value))} />
       </label>
       <label>
         Concepto

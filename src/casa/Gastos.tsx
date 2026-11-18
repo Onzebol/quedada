@@ -2,7 +2,7 @@ import { Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { compradores } from '../dominio/compradores'
 import { anadirGasto, borrarGasto, editarGasto } from '../dominio/gastos'
-import { formatearEuros, parsearEuros } from '../dominio/numeros'
+import { filtrarImporte, formatearEuros, parsearEuros } from '../dominio/numeros'
 import type { Gasto, Id, Quedada } from '../dominio/tipos'
 import { rutaTique, type Imagenes } from '../tiques/almacenImagenes'
 import { MiniaturaTique } from '../tiques/MiniaturaTique'
@@ -182,7 +182,7 @@ function FormularioGasto({ quienes, inicial, conFoto, onGuardar, onCerrar }: Pro
       </label>
       <label>
         Importe (€)
-        <input type="text" inputMode="decimal" value={importe} onChange={(e) => setImporte(e.target.value)} />
+        <input type="text" inputMode="decimal" value={importe} onChange={(e) => setImporte(filtrarImporte(e.target.value))} />
       </label>
       {conFoto && (
         <>
