@@ -1,23 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { producto, quedada } from './fabrica'
 import { balances, liquidacion, liquidar, repartirProporcional } from './liquidacion'
-import type { Grupo, Participante, Producto } from './tipos'
-
-const comida: Grupo = { id: 'comida', nombre: 'Cena', orden: 1 }
-const casa: Grupo = { id: 'casa', nombre: 'Casa', orden: 2, reparto: 'casa' }
+import type { Gasto, Participante } from './tipos'
 
 function persona(id: string, parcial: Partial<Participante> = {}): Participante {
   return { id, nombre: id, ...parcial }
 }
 
-function compra(grupoId: string, compradorId: string, euros: number): Producto {
-  return producto({
-    id: `${grupoId}-${compradorId}-${euros}`,
-    grupoId,
-    compradorId,
-    cantidad: 1,
-    precioUnidad: euros,
-  })
+function gasto(pagadorId: string, euros: number, concepto = 'Compra'): Gasto {
+  return { id: `${pagadorId}-${concepto}-${euros}`, pagadorId, concepto, importe: Math.round(euros * 100) }
 }
 
 function suma(valores: Record<string, number>): number {
@@ -54,35 +45,16 @@ describe('repartirProporcional', () => {
 
 describe('balances', () => {
   it('todos pagan igual: nadie debe nada', () => {
-    const q = quedada({
-      participantes: [persona('a'), persona('b')],
-      grupos: [comida],
-      productos: [compra('comida', 'a', 10), compra('comida', 'b', 10)],
-    })
+    const q = quedada({ participantes: [persona('a'), persona('b')], gastos: [gasto('a', 10), gasto('b', 10)] })
     expect(balances(q)).toEqual({ a: 0, b: 0 })
   })
 
   it('una sola persona paga todo: el resto le debe su parte', () => {
-    const q = quedada({
-      participantes: [persona('a'), persona('b'), persona('c')],
-      grupos: [comida],
-      productos: [compra('comida', 'a', 30)],
-    })
+    const q = quedada({ participantes: [persona('a'), persona('b'), persona('c')], gastos: [gasto('a', 30)] })
     expect(balances(q)).toEqual({ a: 2000, b: -1000, c: -1000 })
   })
 
-  it('aplica el descuento del producto', () => {
-    const q = quedada({
-      participantes: [persona('a'), persona('b')],
-      grupos: [comida],
-      productos: [
-        producto({ grupoId: 'comida', compradorId: 'a', cantidad: 2, precioUnidad: 10, descuento: -4 }),
-      ],
-    })
-    expect(balances(q)).toEqual({ a: 800, b: -800 })
-  })
-
-  it('la comida se reparte por porcentaje de cada participante', () => {
+  it('los gastos se reparten por porcentaje de cada participante', () => {
     const q = quedada({
       participantes: [
         persona('a'),
@@ -90,61 +62,57 @@ describe('balances', () => {
         persona('nino', { porcentajeComida: 50 }),
         persona('bebe', { porcentajeComida: 0 }),
       ],
-      grupos: [comida],
-      productos: [compra('comida', 'a', 25)],
+      gastos: [gasto('a', 25)],
     })
     // pesos 100, 100, 50, 0 → 10 €, 10 €, 5 €, 0 €
     expect(balances(q)).toEqual({ a: 1500, b: -1000, nino: -500, bebe: 0 })
   })
 
-  it('los gastos de la casa se reparten entre todos aunque no vengan, salvo quien no paga', () => {
-    const q = quedada({
-      participantes: [
-        persona('a'),
-        persona('b'),
-        persona('c', { porcentajeComida: 0 }),
-        persona('nino', { pagaCasa: false }),
-      ],
-      grupos: [casa],
-      productos: [compra('casa', 'a', 90)],
-    })
-    // casa entre a, b y c (c aunque no coma): 30 € cada uno; el niño no paga
-    expect(balances(q)).toEqual({ a: 6000, b: -3000, c: -3000, nino: 0 })
-  })
-
-  it('combina casa y comida', () => {
-    const q = quedada({
-      participantes: [persona('a'), persona('b', { porcentajeComida: 0 })],
-      grupos: [comida, casa],
-      productos: [compra('comida', 'a', 20), compra('casa', 'b', 100)],
-    })
-    // comida: a paga 20 € y le toca 20 €. casa: 50 € cada uno, la paga b.
-    expect(balances(q)).toEqual({ a: -5000, b: 5000 })
-  })
-
-  it('un grupo sin tipo cuenta como comida', () => {
-    const q = quedada({
-      participantes: [persona('a'), persona('b', { porcentajeComida: 0 })],
-      grupos: [{ id: 'comida', nombre: 'x', orden: 1 }],
-      productos: [compra('comida', 'a', 10)],
-    })
-    expect(balances(q)).toEqual({ a: 0, b: 0 })
-  })
-
-  it('ignora los productos sin comprador', () => {
+  it('los productos de la lista no cuentan: solo los gastos', () => {
     const q = quedada({
       participantes: [persona('a'), persona('b')],
-      grupos: [comida],
-      productos: [producto({ grupoId: 'comida', compradorId: null, precioUnidad: 50 })],
+      grupos: [{ id: 'comida', nombre: 'Cena', orden: 1 }, { id: 'casa', nombre: 'Casa', orden: 2, reparto: 'casa' }],
+      productos: [
+        producto({ grupoId: 'comida', compradorId: 'a', cantidad: 2, precioUnidad: 10, descuento: -4 }),
+        producto({ id: 'p2', grupoId: 'casa', compradorId: 'b', precioUnidad: 99 }),
+      ],
+      gastos: [gasto('b', 6)],
     })
-    expect(balances(q)).toEqual({ a: 0, b: 0 })
+    expect(balances(q)).toEqual({ a: -300, b: 300 })
+  })
+
+  it('un gasto sin productos ni lista entra en las cuentas', () => {
+    const q = quedada({ participantes: [persona('a'), persona('b')], gastos: [gasto('a', 20, 'Gasolina')] })
+    expect(balances(q)).toEqual({ a: 1000, b: -1000 })
+  })
+
+  it('suma varios gastos de la misma persona', () => {
+    const q = quedada({ participantes: [persona('a'), persona('b')], gastos: [gasto('a', 10), gasto('a', 5)] })
+    expect(liquidacion(q).pagado).toEqual({ a: 1500 })
+  })
+
+  it('combina el alquiler (por % casa) y los gastos (por % comida)', () => {
+    const q = quedada({
+      participantes: [
+        { id: 'a', nombre: 'a', familiaId: 'fa' },
+        { id: 'b', nombre: 'b', familiaId: 'fb', porcentajeComida: 0 },
+      ],
+      asistentes: [
+        { id: 'fa', familia: 'A', personas: 1, llegada: null },
+        { id: 'fb', familia: 'B', personas: 1, llegada: null },
+      ],
+      casa: { titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: 10000 },
+      pagos: [{ id: 'pg', familiaId: 'fb', importe: 10000, concepto: '' }],
+      gastos: [gasto('a', 20)],
+    })
+    // gastos: a paga 20 € y le tocan todos. casa: 50 € cada uno, la paga la familia de b.
+    expect(balances(q)).toEqual({ a: -5000, b: 5000 })
   })
 
   it('la suma de balances es cero aunque el reparto no sea exacto', () => {
     const q = quedada({
       participantes: [persona('a'), persona('b'), persona('c')],
-      grupos: [comida, casa],
-      productos: [compra('comida', 'a', 10.01), compra('casa', 'b', 0.07), compra('comida', 'c', 3.33)],
+      gastos: [gasto('a', 10.01), gasto('b', 0.07), gasto('c', 3.33)],
     })
     expect(suma(balances(q))).toBe(0)
   })
@@ -194,8 +162,7 @@ describe('liquidacion', () => {
     }
     const q = quedada({
       participantes: Object.keys(pagado).map((id) => persona(id)),
-      grupos: [comida],
-      productos: Object.entries(pagado).map(([id, cts]) => compra('comida', id, cts / 100)),
+      gastos: Object.entries(pagado).map(([id, cts]) => gasto(id, cts / 100)),
     })
     const r = liquidacion(q)
     expect(r.total).toBe(318241)
@@ -215,8 +182,7 @@ describe('reparto y asistentes (#7)', () => {
   it('la regla de #4 no depende de las familias apuntadas como asistentes', () => {
     const base = quedada({
       participantes: [persona('ana'), persona('luis')],
-      grupos: [comida, casa],
-      productos: [compra('casa', 'ana', 100), compra('comida', 'luis', 40)],
+      gastos: [gasto('ana', 100), gasto('luis', 40)],
     })
     const conAsistentes = {
       ...base,

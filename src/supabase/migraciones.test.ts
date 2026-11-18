@@ -281,4 +281,31 @@ describe('migraciones de Supabase', () => {
       expect((await avisos(db)).map((a) => [a.topic, a.event, a.tabla])).toEqual([['quedada:q1', 'INSERT', 'pagos']])
     })
   })
+
+  describe('0006: gastos', () => {
+    const insertar = "insert into public.gastos (quedada_id, id, posicion, pagador_id, concepto, importe) values ('q1','g1',0,'p1','Gasolina',4550)"
+
+    it('el propietario los ve y toca; otra cuenta no', async () => {
+      await db.exec(sql('0006_gastos.sql'))
+      await como(db, ANA, insertar)
+      expect((await como(db, ANA, 'select id from public.gastos')).rows).toEqual([{ id: 'g1' }])
+      expect((await como(db, LUIS, 'select id from public.gastos')).rows).toEqual([])
+      await expect(
+        como(db, LUIS, "insert into public.gastos (quedada_id, id, posicion, pagador_id, concepto, importe) values ('q1','x',1,'p1','Intruso',100)"),
+      ).rejects.toThrow()
+      expect((await como(db, LUIS, "delete from public.gastos where quedada_id = 'q1' returning id")).rows).toEqual([])
+    })
+
+    it('no admite importes que no sean positivos', async () => {
+      await db.exec(sql('0006_gastos.sql'))
+      await expect(db.query("insert into public.gastos (quedada_id, id, posicion, pagador_id, concepto, importe) values ('q1','x',0,'p1','Nada',0)")).rejects.toThrow()
+    })
+
+    it('un cambio avisa al tema de la quedada', async () => {
+      await db.exec(sql('0006_gastos.sql'))
+      await db.exec('truncate realtime.messages')
+      await db.exec(insertar)
+      expect((await avisos(db)).map((a) => [a.topic, a.event, a.tabla])).toEqual([['quedada:q1', 'INSERT', 'gastos']])
+    })
+  })
 })

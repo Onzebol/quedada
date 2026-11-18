@@ -185,3 +185,10 @@
   justify-content: flex-end;
   gap: var(--esp-2);
 }
+
+.gastos__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}

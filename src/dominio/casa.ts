@@ -56,6 +56,7 @@ export function quitarComponente(q: Quedada, id: Id): Quedada {
   return sincronizarPersonas({
     ...q,
     participantes: q.participantes.filter((p) => p.id !== id),
+    gastos: q.gastos.filter((g) => g.pagadorId !== id),
     productos: q.productos.map((p) => (p.compradorId === id ? { ...p, compradorId: null } : p)),
   })
 }

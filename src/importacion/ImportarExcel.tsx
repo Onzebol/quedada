@@ -71,6 +71,7 @@ export function ImportarExcel({ leer, repositorio, espacio, onImportado }: Props
           participantes,
           asistentes: asistentesFinales,
           basicos: previa?.basicos ?? [],
+          gastos: previa?.gastos ?? [],
           pagos: (previa?.pagos ?? []).filter((p) => asistentesFinales.some((f) => f.id === p.familiaId)),
         })
       }

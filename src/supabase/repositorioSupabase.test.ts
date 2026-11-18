@@ -52,6 +52,7 @@ describe('RepositorioSupabase', () => {
       asistentes: [{ id: 's1', familia: 'Pérez', personas: 1, llegada: null }],
       casa: { titulo: 'Casa', descripcion: 'https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050 },
       pagos: [{ id: 'g1', familiaId: 's1', importe: 20000, concepto: 'Reserva' }],
+      gastos: [{ id: 'x1', pagadorId: 'a', concepto: 'Gasolina', importe: 4550 }],
     })
     const r = repo()
     await r.guardar(q)

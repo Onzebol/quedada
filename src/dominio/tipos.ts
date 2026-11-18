@@ -84,6 +84,15 @@ export interface Pago {
   concepto: string
 }
 
+/** Un gasto real: lo que alguien ha puesto de su bolsillo (compra, gasolina…), esté o no en la lista de la compra. */
+export interface Gasto {
+  id: Id
+  /** Quien ha pagado: participante o familia. */
+  pagadorId: Id
+  concepto: string
+  importe: Centimos
+}
+
 export interface Quedada {
   id: Id
   nombre: string
@@ -98,6 +107,8 @@ export interface Quedada {
   basicos: Basico[]
   /** Pagos del alquiler de la casa, por familia. */
   pagos: Pago[]
+  /** Gastos pagados de verdad; con los pagos de la casa son lo único que cuenta en las cuentas (la lista de la compra es orientativa). */
+  gastos: Gasto[]
 }
 
 /** Dinero en céntimos enteros, para que las sumas no arrastren errores de coma flotante. */

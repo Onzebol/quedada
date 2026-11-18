@@ -352,6 +352,76 @@ describe('Pagos', () => {
   })
 })
 
+describe('Gastos (#95)', () => {
+  const inicial = () =>
+    quedada({
+      id: 'q1',
+      participantes: [
+        { id: 'a', nombre: 'Ana' },
+        { id: 'b', nombre: 'Beto' },
+      ],
+      gastos: [{ id: 'g1', pagadorId: 'a', concepto: 'Gasolina', importe: 4550 }],
+    })
+
+  async function abrir(q = inicial()) {
+    const { usuario, repositorio } = await preparar(q)
+    await usuario.click(screen.getByRole('tab', { name: 'Pagos' }))
+    return { usuario, repositorio, panel: screen.getByRole('region', { name: 'Gastos pagados' }) }
+  }
+
+  it('lista los gastos con quién pagó, el concepto y el importe', async () => {
+    const { panel } = await abrir()
+    const fila = within(panel).getByRole('listitem')
+    expect(fila).toHaveTextContent('Gasolina')
+    expect(fila).toHaveTextContent('Ana')
+    expect(fila).toHaveTextContent(/45,50\s€/)
+  })
+
+  it('añade un gasto aunque no esté en la lista de la compra', async () => {
+    const { usuario, repositorio, panel } = await abrir()
+    await usuario.click(within(panel).getByRole('button', { name: 'Añadir gasto' }))
+    const ventana = screen.getByRole('dialog')
+    await usuario.selectOptions(within(ventana).getByRole('combobox', { name: 'Quién pagó' }), 'Beto')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Concepto' }), 'Hielo')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Importe (€)' }), '12,5')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
+    await waitFor(async () => expect((await guardada(repositorio)).gastos).toHaveLength(2))
+    expect((await guardada(repositorio)).gastos[1]).toMatchObject({ pagadorId: 'b', concepto: 'Hielo', importe: 1250 })
+  })
+
+  it('edita un gasto', async () => {
+    const { usuario, repositorio, panel } = await abrir()
+    await usuario.click(within(panel).getByRole('button', { name: 'Editar gasto Gasolina' }))
+    const campo = screen.getByRole('textbox', { name: 'Importe (€)' })
+    expect(campo).toHaveValue('45,5')
+    await usuario.clear(campo)
+    await usuario.type(campo, '50')
+    await usuario.click(screen.getByRole('button', { name: 'Guardar' }))
+    await waitFor(async () => expect((await guardada(repositorio)).gastos[0].importe).toBe(5000))
+  })
+
+  it('borra un gasto tras confirmar', async () => {
+    const { usuario, repositorio, panel } = await abrir()
+    await usuario.click(within(panel).getByRole('button', { name: 'Borrar gasto Gasolina' }))
+    await usuario.click(screen.getByRole('button', { name: 'Sí, borrar' }))
+    await waitFor(async () => expect((await guardada(repositorio)).gastos).toEqual([]))
+  })
+
+  it('un importe no válido no crea el gasto', async () => {
+    const { usuario, repositorio, panel } = await abrir()
+    await usuario.click(within(panel).getByRole('button', { name: 'Añadir gasto' }))
+    await usuario.type(screen.getByRole('textbox', { name: 'Concepto' }), 'Nada')
+    await usuario.type(screen.getByRole('textbox', { name: 'Importe (€)' }), 'abc')
+    await usuario.click(screen.getByRole('button', { name: 'Añadir' }))
+    expect((await guardada(repositorio)).gastos).toHaveLength(1)
+  })
+
+  it('explica que los precios de la lista son orientativos', async () => {
+    await abrir()
+    expect(screen.getByText(/precios de la lista de la compra son orientativos/)).toBeInTheDocument()
+  })
+})
+
 describe('La casa: familias y componentes', () => {
   /** Las fichas de familia empiezan contraídas: se expanden pulsando el nombre. */
   const expandir = (usuario: Usuario, familia: string) =>

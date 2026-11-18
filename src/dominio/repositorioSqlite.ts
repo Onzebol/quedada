@@ -42,6 +42,11 @@ CREATE TABLE IF NOT EXISTS pagos (
   id TEXT NOT NULL, posicion INTEGER NOT NULL, familia_id TEXT NOT NULL, importe INTEGER NOT NULL, concepto TEXT NOT NULL,
   PRIMARY KEY (quedada_id, id)
 );
+CREATE TABLE IF NOT EXISTS gastos (
+  quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
+  id TEXT NOT NULL, posicion INTEGER NOT NULL, pagador_id TEXT NOT NULL, concepto TEXT NOT NULL, importe INTEGER NOT NULL,
+  PRIMARY KEY (quedada_id, id)
+);
 `
 
 /** Repositorio sobre SQLite (sql.js, WebAssembly). Cada escritura persiste la base entera. */
@@ -113,6 +118,7 @@ export class RepositorioSqlite implements Repositorio {
       for (const [i, p] of (q.pagos ?? []).entries()) {
         this.bd.run('INSERT INTO pagos VALUES (?,?,?,?,?,?)', [q.id, p.id, i, p.familiaId, p.importe, p.concepto])
       }
+      q.gastos.forEach((g, i) => this.bd.run('INSERT INTO gastos VALUES (?,?,?,?,?,?)', [q.id, g.id, i, g.pagadorId, g.concepto, g.importe]))
       this.bd.run('COMMIT')
     } catch (error) {
       this.bd.run('ROLLBACK')
@@ -198,6 +204,12 @@ export class RepositorioSqlite implements Repositorio {
         familiaId: String(f[1]),
         importe: Number(f[2]),
         concepto: String(f[3]),
+      })),
+      gastos: this.filas('SELECT id, pagador_id, concepto, importe FROM gastos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
+        id: String(f[0]),
+        pagadorId: String(f[1]),
+        concepto: String(f[2]),
+        importe: Number(f[3]),
       })),
     }
   }
