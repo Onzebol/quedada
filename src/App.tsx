@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CopiarEnlace } from './autenticacion/CopiarEnlace'
 import { AutenticacionGoogle } from './autenticacion/autenticacionGoogle'
 import { Sesion } from './autenticacion/Sesion'
 import type { Autenticacion } from './autenticacion/tipos'
@@ -200,9 +199,6 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
     <>
       <div className="barra">
         <Sesion sesion={sesion} quedada={estado.quedada} aplicar={estado.aplicar} />
-        {estado.quedada !== null && estado.error !== 'noEncontrada' && (
-          <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />
-        )}
         {estado.quedada !== null && estado.error !== 'noEncontrada' && invitaciones !== undefined && (almacen.puedeBorrar?.(quedadaId) ?? true) && (
           <Compartir quedadaId={estado.quedada.id} invitaciones={invitaciones} urlPagina={urlPagina} />
         )}
