@@ -600,9 +600,9 @@ describe('Gastos y liquidación', () => {
     preparar(new RepositorioMemoria([quedadaConGastos()]))
     const cuentas = await abrirCuentas()
     // comida 16 € a medias (8 + 8); casa 100 € (50 + 50); Ana pagó 116 €
-    expect(normalizar(within(cuentas).getByText(/Total de la quedada/).textContent)).toContain('116,00 €')
-    expect(normalizar(within(cuentas).getByText(/Ana ha pagado/).textContent)).toContain('116,00 €')
-    expect(normalizar(within(cuentas).getByText(/Beto ha pagado/).textContent)).toContain('0,00 €')
+    expect(normalizar(within(cuentas).getByText('Total pagado').nextElementSibling?.textContent ?? null)).toBe('116,00 €')
+    expect(normalizar(within(cuentas).getByRole('heading', { level: 4, name: 'Ana' }).closest('li')?.textContent ?? null)).toContain('Ha pagado116,00 €')
+    expect(normalizar(within(cuentas).getByRole('heading', { level: 4, name: 'Beto' }).closest('li')?.textContent ?? null)).toContain('Ha pagado0,00 €')
     expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 58,00 € a Ana')
   })
 
@@ -654,7 +654,7 @@ describe('Gastos y liquidación', () => {
     })
     preparar(new RepositorioMemoria([q]))
     const cuentas = await abrirCuentas()
-    expect(within(cuentas).getByText(/Gómez ha pagado/)).toHaveTextContent('Gómez ha pagado 10,00 €')
+    expect(normalizar(within(cuentas).getByRole('heading', { level: 4, name: 'Gómez' }).closest('li')?.textContent ?? null)).toContain('Ha pagado10,00 €')
     expect(normalizar(within(cuentas).getByText(/Ana paga/).textContent)).toBe('Ana paga 10,00 € a Gómez')
   })
 
@@ -842,6 +842,6 @@ describe('Las cuentas ignoran los precios de la lista (#95)', () => {
     preparar(new RepositorioMemoria([q]))
     const cuentas = await abrirCuentas()
     expect(within(cuentas).getByText('No hay nada que liquidar')).toBeInTheDocument()
-    expect(normalizar(within(cuentas).getByText(/Total de la quedada/).textContent)).toContain('0,00 €')
+    expect(normalizar(within(cuentas).getByText('Total pagado').nextElementSibling?.textContent ?? null)).toBe('0,00 €')
   })
 })
