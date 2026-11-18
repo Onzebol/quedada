@@ -28,3 +28,17 @@ const EUROS = new Intl.NumberFormat('es-ES', {
 export function formatearEuros(centimos: number): string {
   return EUROS.format(centimos / 100)
 }
+
+/** Deja en un campo de importe solo dígitos, un separador decimal (punto o coma) y un menos inicial. */
+export function filtrarImporte(texto: string, conSigno = true): string {
+  let salida = ''
+  let separador = false
+  for (const c of texto) {
+    if (/\d/.test(c)) salida += c
+    else if ((c === ',' || c === '.') && !separador) {
+      separador = true
+      salida += c
+    } else if (conSigno && c === '-' && salida === '') salida += c
+  }
+  return salida
+}

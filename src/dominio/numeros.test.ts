@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatearCantidad, formatearEuros, parsearCantidad, parsearEuros } from './numeros'
+import { filtrarImporte, formatearCantidad, formatearEuros, parsearCantidad, parsearEuros } from './numeros'
 
 describe('parsearCantidad', () => {
   it('lee enteros y decimales con punto o con coma', () => {
@@ -65,5 +65,29 @@ describe('formatearEuros', () => {
   it('separa los miles y admite negativos', () => {
     expect(normal(formatearEuros(166741))).toBe('1.667,41 €')
     expect(normal(formatearEuros(-250))).toBe('-2,50 €')
+  })
+})
+
+describe('filtrarImporte', () => {
+  it('quita las letras y los símbolos', () => {
+    expect(filtrarImporte('12a€b')).toBe('12')
+    expect(filtrarImporte('abc')).toBe('')
+  })
+
+  it('deja dígitos, un separador decimal (punto o coma) y el signo menos al principio', () => {
+    expect(filtrarImporte('12,50')).toBe('12,50')
+    expect(filtrarImporte('3.5')).toBe('3.5')
+    expect(filtrarImporte('-4,2')).toBe('-4,2')
+  })
+
+  it('no admite un segundo separador ni un menos en medio', () => {
+    expect(filtrarImporte('1,2,3')).toBe('1,23')
+    expect(filtrarImporte('1-2')).toBe('12')
+  })
+})
+
+describe('filtrarImporte sin signo', () => {
+  it('quita también el menos inicial', () => {
+    expect(filtrarImporte('-4,2', false)).toBe('4,2')
   })
 })

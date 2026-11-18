@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { CambiosProducto } from '../dominio/operaciones'
-import { parsearCantidad, parsearEuros } from '../dominio/numeros'
+import { filtrarImporte, parsearCantidad, parsearEuros } from '../dominio/numeros'
 import { FormularioModal } from '../ui/FormularioModal'
 import type { ValoresProducto } from './productoVacio'
 
@@ -43,7 +43,7 @@ export function FormularioProducto({ titulo, envio, inicial, onGuardar, onCerrar
       </label>
       <label>
         Cantidad
-        <input type="text" inputMode="decimal" value={cantidad} onChange={(e) => setCantidad(e.target.value)} />
+        <input type="text" inputMode="decimal" value={cantidad} onChange={(e) => setCantidad(filtrarImporte(e.target.value, false))} />
       </label>
       <label>
         Unidad
@@ -51,7 +51,7 @@ export function FormularioProducto({ titulo, envio, inicial, onGuardar, onCerrar
       </label>
       <label>
         Precio por unidad (€)
-        <input type="text" inputMode="decimal" value={precio} onChange={(e) => setPrecio(e.target.value)} />
+        <input type="text" inputMode="decimal" value={precio} onChange={(e) => setPrecio(filtrarImporte(e.target.value))} />
       </label>
       <label>
         Observaciones

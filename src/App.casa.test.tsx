@@ -92,10 +92,18 @@ describe('La casa: ficha', () => {
     expect(within(ficha()).getByRole('heading', { name: 'Casa' })).toBeInTheDocument()
   })
 
-  it('un precio que no es un número no se guarda y avisa', async () => {
+  it('el precio no admite letras', async () => {
+    const { usuario } = await preparar()
+    const form = await editar(usuario)
+    const campo = within(form).getByRole('textbox', { name: 'Precio de la casa (€)' })
+    await usuario.type(campo, 'mu1c2ho')
+    expect(campo).toHaveValue('12')
+  })
+
+  it('un precio incompleto («,») no se guarda y avisa', async () => {
     const { usuario, repositorio } = await preparar()
     const form = await editar(usuario)
-    await usuario.type(within(form).getByRole('textbox', { name: 'Precio de la casa (€)' }), 'mucho')
+    await usuario.type(within(form).getByRole('textbox', { name: 'Precio de la casa (€)' }), ',')
     await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
     expect(within(form).getByRole('alert')).toHaveTextContent('El precio no es válido')
     expect((await guardada(repositorio)).casa.precio).toBeNull()
