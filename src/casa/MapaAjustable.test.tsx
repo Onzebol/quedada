@@ -47,12 +47,12 @@ describe('MapaAjustable', () => {
     expect(leaflet.mapa!.centro).toEqual([40, -3])
   })
 
-  it('el botón «Centrar en la casa» devuelve el mapa a la posición del marcador', async () => {
+  it('el botón «Centrar» devuelve el mapa a la posición del marcador', async () => {
     render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
     await waitFor(() => expect(leaflet.marcador).not.toBeNull())
     // El usuario ha desplazado el mapa a otro sitio.
     leaflet.mapa!.centro = [10, 10]
-    await userEvent.click(screen.getByRole('button', { name: 'Centrar en la casa' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Centrar' }))
     expect(leaflet.mapa!.centro).toEqual([41.6, -1.2])
   })
 
@@ -61,7 +61,7 @@ describe('MapaAjustable', () => {
     await waitFor(() => expect(leaflet.marcador).not.toBeNull())
     leaflet.arrastrar(41.7, -1.3)
     leaflet.mapa!.centro = [10, 10]
-    await userEvent.click(screen.getByRole('button', { name: 'Centrar en la casa' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Centrar' }))
     expect(leaflet.mapa!.centro).toEqual([41.7, -1.3])
   })
 

@@ -127,7 +127,7 @@ describe('La casa: ficha', () => {
     const q = () => quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) })
     await preparar(q())
     expect(within(ficha()).getByTitle('Mapa de la casa')).toBeInTheDocument()
-    expect(within(ficha()).queryByRole('link', { name: /app de mapas/ })).not.toBeInTheDocument()
+    expect(within(ficha()).queryByRole('link', { name: /Navegar/ })).not.toBeInTheDocument()
     expect(within(ficha()).queryByRole('link', { name: /OpenStreetMap/ })).not.toBeInTheDocument()
   })
 
@@ -135,21 +135,21 @@ describe('La casa: ficha', () => {
     const agente = vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36')
     try {
       await preparar(quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }))
-      expect(within(ficha()).getByRole('link', { name: 'Abrir en la app de mapas' })).toHaveAttribute('href', 'geo:41.6,-1.2?q=41.6,-1.2(Casa)')
+      expect(within(ficha()).getByRole('link', { name: 'Navegar' })).toHaveAttribute('href', 'geo:41.6,-1.2?q=41.6,-1.2(Casa)')
       expect(within(ficha()).queryByRole('link', { name: /OpenStreetMap/ })).not.toBeInTheDocument()
       // Centrar y navegar comparten línea (el CSS pone navegar a la derecha y deja el texto de ambos en móvil).
-      const fila = within(ficha()).getByRole('button', { name: 'Centrar en la casa' }).parentElement
+      const fila = within(ficha()).getByRole('button', { name: 'Centrar' }).parentElement
       expect(fila).toHaveClass('casa__mapa-acciones')
-      expect(fila).toContainElement(within(ficha()).getByRole('link', { name: 'Abrir en la app de mapas' }))
+      expect(fila).toContainElement(within(ficha()).getByRole('link', { name: 'Navegar' }))
     } finally {
       agente.mockRestore()
     }
   })
 
-  it('la ficha tiene «Centrar en la casa», que devuelve el mapa a la casa', async () => {
+  it('la ficha tiene «Centrar», que devuelve el mapa a la casa', async () => {
     await preparar(quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }))
     const antes = within(ficha()).getByTitle('Mapa de la casa')
-    await userEvent.click(within(ficha()).getByRole('button', { name: 'Centrar en la casa' }))
+    await userEvent.click(within(ficha()).getByRole('button', { name: 'Centrar' }))
     const despues = within(ficha()).getByTitle('Mapa de la casa')
     expect(despues).not.toBe(antes)
     expect(despues).toHaveAttribute('src', antes.getAttribute('src'))
