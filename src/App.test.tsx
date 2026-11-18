@@ -783,7 +783,13 @@ describe('Página inicial', () => {
     expect(screen.getByRole('button', { name: 'Almunia 2026' })).toBeInTheDocument()
   })
 
-  it('desde una quedada se vuelve a la página inicial', async () => {
+  it('muestra el nombre de la quedada dentro de ella', async () => {
+    window.location.hash = '#/q1'
+    render(<App repositorio={new RepositorioMemoria([conLeche(), conPan()])} crearId={contador()} />)
+    expect(await screen.findByRole('heading', { level: 2, name: 'Almunia 2026' })).toBeInTheDocument()
+  })
+
+  it('al pulsar el título «Quedada» se vuelve a la página inicial', async () => {
     window.location.hash = '#/q1'
     const usuario = userEvent.setup()
     render(<App repositorio={new RepositorioMemoria([conLeche(), conPan()])} crearId={contador()} />)
@@ -791,7 +797,7 @@ describe('Página inicial', () => {
     await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
     await abrirSeccion('Cena del viernes')
     expect(screen.getByText('Leche')).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Todas las quedadas' }))
+    await usuario.click(screen.getByRole('button', { name: 'Quedada' }))
     expect(await screen.findByRole('button', { name: 'Almunia 2025' })).toBeInTheDocument()
     expect(window.location.hash).not.toContain('q1')
   })
@@ -801,6 +807,6 @@ describe('Página inicial', () => {
     render(<App repositorio={new RepositorioMemoria([conLeche()])} crearId={contador()} />)
     expect(await screen.findByText(/No se encontró esta quedada/)).toBeInTheDocument()
     expect(screen.queryByText('Leche')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Todas las quedadas' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Todas las quedadas' })).not.toBeInTheDocument()
   })
 })

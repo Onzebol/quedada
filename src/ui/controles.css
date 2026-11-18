@@ -145,7 +145,7 @@
   margin-block: 0;
 }
 
-/* Barra superior de una quedada: volver, «Este soy yo» y copiar enlace en una sola fila. */
+/* Barra superior de una quedada: «Este soy yo» y copiar enlace en una sola fila. */
 .barra {
   display: flex;
   flex-wrap: wrap;
