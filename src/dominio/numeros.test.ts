@@ -85,3 +85,9 @@ describe('filtrarImporte', () => {
     expect(filtrarImporte('1-2')).toBe('12')
   })
 })
+
+describe('filtrarImporte sin signo', () => {
+  it('quita también el menos inicial', () => {
+    expect(filtrarImporte('-4,2', false)).toBe('4,2')
+  })
+})

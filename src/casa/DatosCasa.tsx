@@ -1,7 +1,7 @@
 import { MapPin, Pencil } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { editarCasa } from '../dominio/casa'
-import { formatearEuros, parsearEuros } from '../dominio/numeros'
+import { filtrarImporte, formatearEuros, parsearEuros } from '../dominio/numeros'
 import type { Quedada } from '../dominio/tipos'
 import { ConIcono } from '../ui/ConIcono'
 import { partirEnlaces } from './enlaces'
@@ -202,7 +202,7 @@ function FormularioCasa({
 
         <label>
           Precio de la casa (€)
-          <input type="text" inputMode="decimal" value={precio} onChange={(e) => setPrecio(e.target.value)} />
+          <input type="text" inputMode="decimal" value={precio} onChange={(e) => setPrecio(filtrarImporte(e.target.value))} />
         </label>
         {aviso === 'precio' && <p role="alert">El precio no es válido: escribe un número, por ejemplo 1250,50.</p>}
 

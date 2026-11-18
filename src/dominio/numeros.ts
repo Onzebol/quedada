@@ -30,7 +30,7 @@ export function formatearEuros(centimos: number): string {
 }
 
 /** Deja en un campo de importe solo dígitos, un separador decimal (punto o coma) y un menos inicial. */
-export function filtrarImporte(texto: string): string {
+export function filtrarImporte(texto: string, conSigno = true): string {
   let salida = ''
   let separador = false
   for (const c of texto) {
@@ -38,7 +38,7 @@ export function filtrarImporte(texto: string): string {
     else if ((c === ',' || c === '.') && !separador) {
       separador = true
       salida += c
-    } else if (c === '-' && salida === '') salida += c
+    } else if (conSigno && c === '-' && salida === '') salida += c
   }
   return salida
 }
