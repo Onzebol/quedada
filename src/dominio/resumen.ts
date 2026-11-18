@@ -1,5 +1,5 @@
 import { ordenarPorNombre } from './asistentes'
-import { pagadoPor, partesDeCadaUno, totalCasa } from './liquidacion'
+import { liquidar, pagadoPor, partesDeCadaUno, totalCasa, type Transferencia } from './liquidacion'
 import type { Centimos, Id, Quedada } from './tipos'
 
 /** Lo de una persona o de una familia: lo pagado, lo que le toca (casa y gastos) y el saldo (positivo = le deben). */
@@ -19,6 +19,8 @@ export interface GrupoResumen extends LineaResumen {
 
 export interface ResumenCuentas {
   grupos: GrupoResumen[]
+  /** Quién paga a quién entre grupos (familias o personas sueltas). */
+  transferencias: Transferencia[]
   totales: { pagado: Centimos; casaPagada: Centimos; gastos: Centimos }
 }
 
@@ -48,8 +50,10 @@ export function resumenPorFamilia(q: Quedada): ResumenCuentas {
     if (!enFamilia.has(p.id)) grupos.push({ ...deParticipante(p.id, p.nombre), personas: [] })
   }
 
+  const ordenados = ordenarPorNombre(grupos, (g) => g.nombre)
   return {
-    grupos: ordenarPorNombre(grupos, (g) => g.nombre),
+    grupos: ordenados,
+    transferencias: liquidar(Object.fromEntries(ordenados.map((g) => [g.id, g.balance]))),
     totales: {
       pagado: Object.values(pagado).reduce((s, v) => s + v, 0),
       casaPagada: totalCasa(q),

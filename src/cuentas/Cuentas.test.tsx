@@ -70,11 +70,11 @@ describe('Cuentas', () => {
     expect(within(ficha('Ana')).getByText('Al día')).toBeInTheDocument()
   })
 
-  it('«Quién paga a quién» lista las transferencias, también a una persona de una familia', () => {
+  it('«Quién paga a quién» lista las transferencias, entre familias y no entre personas', () => {
     render(<Cuentas quedada={q()} />)
     const lista = screen.getByRole('list', { name: 'Quién paga a quién' })
     const filas = within(lista).getAllByRole('listitem').map((li) => li.textContent?.replace(/\s/g, ' '))
-    expect(filas).toEqual(['Dani paga 90,00 € a Ana', 'Cris paga 70,00 € a Beto', 'Dani paga 20,00 € a Beto'])
+    expect(filas).toEqual(['Gómez paga 180,00 € a Pérez'])
   })
 
   it('sin nada que liquidar lo dice', () => {

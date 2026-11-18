@@ -1,7 +1,5 @@
 import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
-import { compradores } from '../dominio/compradores'
-import { liquidacion } from '../dominio/liquidacion'
 import { formatearEuros } from '../dominio/numeros'
 import { resumenPorFamilia, type GrupoResumen, type LineaResumen } from '../dominio/resumen'
 import type { Quedada } from '../dominio/tipos'
@@ -85,11 +83,9 @@ function FilaPersona({ persona: p }: { persona: LineaResumen }) {
 
 /** Resumen de las cuentas, de solo lectura: lo que paga cada uno de casa y gastos se ajusta en «La casa». */
 export function Cuentas({ quedada }: Props) {
-  const { transferencias } = liquidacion(quedada)
-  const { grupos, totales } = resumenPorFamilia(quedada)
-  const todos = compradores(quedada, { conNinos: true })
-  // Un niño no paga nada, pero le puede tocar su parte: su nombre tiene que salir en «Quién paga a quién».
-  const nombre = (id: string) => todos.find((c) => c.id === id)?.nombre ?? quedada.asistentes.find((a) => a.id === id)?.familia ?? id
+  const { grupos, totales, transferencias } = resumenPorFamilia(quedada)
+  // Se paga entre familias (o personas sueltas), no entre las personas de cada una.
+  const nombre = (id: string) => grupos.find((g) => g.id === id)?.nombre ?? id
 
   return (
     <section className="cuentas" aria-labelledby="titulo-cuentas">

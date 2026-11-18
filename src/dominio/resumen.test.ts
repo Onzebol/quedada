@@ -74,4 +74,20 @@ describe('resumenPorFamilia', () => {
     })
     expect(resumenPorFamilia(q).totales).toEqual({ pagado: 23000, casaPagada: 20000, gastos: 3000 })
   })
+
+  it('las transferencias son entre familias (o personas sueltas), no entre personas de una familia', () => {
+    const q = quedada({
+      asistentes: [familia('f1', 'Pérez'), familia('f2', 'Gómez')],
+      participantes: [
+        persona('ana', { familiaId: 'f1' }),
+        persona('beto', { familiaId: 'f1' }),
+        persona('cris', { familiaId: 'f2' }),
+        persona('dani', { familiaId: 'f2' }),
+      ],
+      casa: { ...quedada().casa, precio: 40000 },
+      pagos: [pago('f1', 40000)],
+      gastos: [gasto('cris', 4000)],
+    })
+    expect(resumenPorFamilia(q).transferencias).toEqual([{ de: 'f2', a: 'f1', importe: 18000 }])
+  })
 })
