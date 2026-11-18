@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS quedadas (
 CREATE TABLE IF NOT EXISTS participantes (
   quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
   id TEXT NOT NULL, posicion INTEGER NOT NULL, nombre TEXT NOT NULL,
-  porcentaje_comida REAL, paga_casa INTEGER, cuenta_id TEXT, porcentaje_casa REAL, familia_id TEXT, adulto INTEGER, casa_enviada INTEGER,
+  porcentaje_comida REAL, paga_casa INTEGER, cuenta_id TEXT, porcentaje_casa REAL, familia_id TEXT, adulto INTEGER,
   PRIMARY KEY (quedada_id, id)
 );
 CREATE TABLE IF NOT EXISTS grupos (
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS basicos (
 );
 CREATE TABLE IF NOT EXISTS pagos (
   quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
-  id TEXT NOT NULL, posicion INTEGER NOT NULL, familia_id TEXT NOT NULL, importe INTEGER NOT NULL, concepto TEXT NOT NULL,
+  id TEXT NOT NULL, posicion INTEGER NOT NULL, familia_id TEXT NOT NULL, importe INTEGER NOT NULL, concepto TEXT NOT NULL, pagado INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (quedada_id, id)
 );
 CREATE TABLE IF NOT EXISTS gastos (
@@ -68,9 +68,11 @@ export class RepositorioSqlite implements Repositorio {
     const columnas = bd.exec('PRAGMA table_info(participantes)')[0]?.values.map((f) => f[1]) ?? []
     if (!columnas.includes('cuenta_id')) bd.run('ALTER TABLE participantes ADD COLUMN cuenta_id TEXT')
     // Bases creadas antes de la ficha de la casa y de las familias (#56).
-    for (const [columna, tipo] of [['porcentaje_casa', 'REAL'], ['familia_id', 'TEXT'], ['adulto', 'INTEGER'], ['casa_enviada', 'INTEGER']]) {
+    for (const [columna, tipo] of [['porcentaje_casa', 'REAL'], ['familia_id', 'TEXT'], ['adulto', 'INTEGER']]) {
       if (!columnas.includes(columna)) bd.run(`ALTER TABLE participantes ADD COLUMN ${columna} ${tipo}`)
     }
+    const dePagos = bd.exec('PRAGMA table_info(pagos)')[0]?.values.map((f) => f[1]) ?? []
+    if (!dePagos.includes('pagado')) bd.run('ALTER TABLE pagos ADD COLUMN pagado INTEGER NOT NULL DEFAULT 0')
     const deQuedadas = bd.exec('PRAGMA table_info(quedadas)')[0]?.values.map((f) => f[1]) ?? []
     for (const [columna, tipo] of [
       ['casa_titulo', 'TEXT'], ['casa_descripcion', 'TEXT'], ['casa_direccion', 'TEXT'],
@@ -101,9 +103,9 @@ export class RepositorioSqlite implements Repositorio {
       )
       q.participantes.forEach((p, i) =>
         this.bd.run(
-          `INSERT INTO participantes (quedada_id, id, posicion, nombre, porcentaje_comida, paga_casa, cuenta_id, porcentaje_casa, familia_id, adulto, casa_enviada)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-          [q.id, p.id, i, p.nombre, p.porcentajeComida ?? null, p.pagaCasa === undefined ? null : p.pagaCasa ? 1 : 0, p.cuentaId ?? null, p.porcentajeCasa ?? null, p.familiaId ?? null, p.adulto === undefined ? null : p.adulto ? 1 : 0, p.casaEnviada === undefined ? null : p.casaEnviada ? 1 : 0],
+          `INSERT INTO participantes (quedada_id, id, posicion, nombre, porcentaje_comida, paga_casa, cuenta_id, porcentaje_casa, familia_id, adulto)
+           VALUES (?,?,?,?,?,?,?,?,?,?)`,
+          [q.id, p.id, i, p.nombre, p.porcentajeComida ?? null, p.pagaCasa === undefined ? null : p.pagaCasa ? 1 : 0, p.cuentaId ?? null, p.porcentajeCasa ?? null, p.familiaId ?? null, p.adulto === undefined ? null : p.adulto ? 1 : 0],
         ),
       )
       q.grupos.forEach((g, i) => this.bd.run('INSERT INTO grupos VALUES (?,?,?,?,?,?)', [q.id, g.id, i, g.nombre, g.orden, g.reparto ?? null]))
@@ -116,7 +118,7 @@ export class RepositorioSqlite implements Repositorio {
       q.asistentes.forEach((a, i) => this.bd.run('INSERT INTO asistentes VALUES (?,?,?,?,?,?)', [q.id, a.id, i, a.familia, a.personas, a.llegada]))
       q.basicos.forEach((b, i) => this.bd.run('INSERT INTO basicos VALUES (?,?,?,?,?)', [q.id, b.id, i, b.nombre, b.asistenteId]))
       for (const [i, p] of (q.pagos ?? []).entries()) {
-        this.bd.run('INSERT INTO pagos VALUES (?,?,?,?,?,?)', [q.id, p.id, i, p.familiaId, p.importe, p.concepto])
+        this.bd.run('INSERT INTO pagos VALUES (?,?,?,?,?,?,?)', [q.id, p.id, i, p.familiaId, p.importe, p.concepto, p.pagado ? 1 : 0])
       }
       q.gastos.forEach((g, i) => this.bd.run('INSERT INTO gastos VALUES (?,?,?,?,?,?)', [q.id, g.id, i, g.pagadorId, g.concepto, g.importe]))
       this.bd.run('COMMIT')
@@ -158,7 +160,7 @@ export class RepositorioSqlite implements Repositorio {
         longitud: q[7] as number | null,
         precio: q[8] as number | null,
       },
-      participantes: this.filas('SELECT id, nombre, porcentaje_comida, paga_casa, cuenta_id, porcentaje_casa, familia_id, adulto, casa_enviada FROM participantes WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
+      participantes: this.filas('SELECT id, nombre, porcentaje_comida, paga_casa, cuenta_id, porcentaje_casa, familia_id, adulto FROM participantes WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),
         nombre: String(f[1]),
         ...(f[2] !== null && { porcentajeComida: Number(f[2]) }),
@@ -167,7 +169,6 @@ export class RepositorioSqlite implements Repositorio {
         ...(f[5] !== null && { porcentajeCasa: Number(f[5]) }),
         ...(f[6] !== null && { familiaId: String(f[6]) }),
         ...(f[7] !== null && { adulto: f[7] === 1 }),
-        ...(f[8] !== null && { casaEnviada: f[8] === 1 }),
       })),
       grupos: this.filas('SELECT id, nombre, orden, reparto FROM grupos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),
@@ -201,11 +202,12 @@ export class RepositorioSqlite implements Repositorio {
         nombre: String(f[1]),
         asistenteId: f[2] as string | null,
       })),
-      pagos: this.filas('SELECT id, familia_id, importe, concepto FROM pagos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
+      pagos: this.filas('SELECT id, familia_id, importe, concepto, pagado FROM pagos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),
         familiaId: String(f[1]),
         importe: Number(f[2]),
         concepto: String(f[3]),
+        ...(f[4] === 1 && { pagado: true }),
       })),
       gastos: this.filas('SELECT id, pagador_id, concepto, importe FROM gastos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),

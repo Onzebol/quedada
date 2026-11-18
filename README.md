@@ -39,7 +39,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 8 y 9 | Memoria entre años y tickets |
 | 95 | Las cuentas salen de lo que ha pagado cada uno (sección «Gastos» de «Pagos», aunque no esté en la lista) y de los pagos de la casa; los precios de la lista de la compra son solo orientativos |
 | 118 | Tiques por foto: un gasto puede llevar la foto del tique (cámara o galería, reducida y guardada en Supabase Storage), con el total y el pagador escritos a mano |
-| 120 | En «Pagos», casilla «Enviado» para cada persona que debe parte de la casa: el Resumen descuenta lo que ya ha enviado a quien la pagó |
+| 120 | Casilla «Pagado» en cada pago de la casa, para saber si quien debía pagarlo ya lo ha hecho |
 
 ## Requisitos
 

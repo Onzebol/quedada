@@ -196,6 +196,10 @@
   border-top: 1px solid var(--linea);
 }
 
+.pago--con-pagado {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+
 .pago--con-tique {
   grid-template-columns: auto minmax(0, 1fr) auto auto;
 }
@@ -214,6 +218,16 @@
 
 .pago__importe {
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.pago__pagado {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--esp-2);
+  font-size: 1rem;
+  color: var(--ink);
   white-space: nowrap;
 }
 

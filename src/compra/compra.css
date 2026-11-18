@@ -158,37 +158,6 @@
   overflow-wrap: anywhere;
 }
 
-/* Casilla del diseño, con la marca de verificación dibujada en CSS. */
-.fila input[type='checkbox'] {
-  appearance: none;
-  position: relative;
-  width: 1.625rem;
-  height: 1.625rem;
-  flex: none;
-  margin: 0;
-  border: 2px solid #9bb0a7;
-  border-radius: 9px;
-  background: transparent;
-  cursor: pointer;
-}
-
-.fila input[type='checkbox']:checked {
-  background: var(--moss);
-  border-color: var(--moss);
-}
-
-.fila input[type='checkbox']:checked::after {
-  content: '';
-  position: absolute;
-  left: 0.4375rem;
-  top: 0.125rem;
-  width: 0.4375rem;
-  height: 0.8125rem;
-  border: solid #fff;
-  border-width: 0 3px 3px 0;
-  transform: rotate(45deg);
-}
-
 .fila--comprada .fila__nombre span {
   color: #8a9892;
   font-weight: 600;

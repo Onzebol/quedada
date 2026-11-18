@@ -48,10 +48,10 @@ describe('RepositorioSupabase', () => {
     const { repo, backend } = nuevo()
     const q = quedada({
       id: 'q1',
-      participantes: [{ id: 'a', nombre: 'Ana', porcentajeCasa: 50, familiaId: 's1', casaEnviada: true }, { id: 'b', nombre: 'Leo', adulto: false, familiaId: 's1' }],
+      participantes: [{ id: 'a', nombre: 'Ana', porcentajeCasa: 50, familiaId: 's1' }, { id: 'b', nombre: 'Leo', adulto: false, familiaId: 's1' }],
       asistentes: [{ id: 's1', familia: 'Pérez', personas: 1, llegada: null }],
       casa: { titulo: 'Casa', descripcion: 'https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050 },
-      pagos: [{ id: 'g1', familiaId: 's1', importe: 20000, concepto: 'Reserva' }],
+      pagos: [{ id: 'g1', familiaId: 's1', importe: 20000, concepto: 'Reserva', pagado: true }, { id: 'g2', familiaId: 's1', importe: 500, concepto: 'Resto' }],
       gastos: [
         { id: 'x1', pagadorId: 'a', concepto: 'Gasolina', importe: 4550 },
         { id: 'x2', pagadorId: 'a', concepto: 'Tique', importe: 1200, imagen: 'q1/x2.jpg' },

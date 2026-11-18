@@ -16,8 +16,6 @@ export interface Participante {
   adulto?: boolean
   /** Familia (unidad familiar) de la que es componente, si la tiene. */
   familiaId?: Id
-  /** Si ya ha enviado a quien pagó la casa lo que le toca de ella; el Resumen lo descuenta. */
-  casaEnviada?: boolean
 }
 
 /** Una comida o bloque de la compra: cena del viernes, desayunos, bebida… */
@@ -86,6 +84,8 @@ export interface Pago {
   importe: Centimos
   /** Texto libre: «Reserva», «Resto»… */
   concepto: string
+  /** Si quien debía este pago ya lo ha pagado. Solo es un recordatorio: no cambia las cuentas. */
+  pagado?: boolean
 }
 
 /** Un gasto real: lo que alguien ha puesto de su bolsillo (compra, gasolina…), esté o no en la lista de la compra. */

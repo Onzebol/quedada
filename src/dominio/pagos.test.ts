@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { borrarAsistente } from './asistentes'
 import { anadirComponente } from './casa'
 import { quedada } from './fabrica'
-import { anadirPago, borrarPago, editarPago, marcarCasaEnviada, partesPorEnviar, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from './pagos'
+import { anadirPago, borrarPago, editarPago, marcarPagado, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from './pagos'
 
 const base = () =>
   quedada({
@@ -101,38 +101,17 @@ describe('borrar una familia', () => {
   })
 })
 
-describe('partes de la casa por enviar', () => {
-  const conPago = () =>
-    quedada({
-      casa: { titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: 90000 },
-      asistentes: [
-        { id: 'f1', familia: 'Ana y Beto', personas: 2, llegada: null },
-        { id: 'f2', familia: 'Cris', personas: 1, llegada: null },
-      ],
-      participantes: [
-        { id: 'a', nombre: 'Ana', familiaId: 'f1' },
-        { id: 'b', nombre: 'Beto', familiaId: 'f1' },
-        { id: 'c', nombre: 'Cris', familiaId: 'f2' },
-      ],
-      pagos: [{ id: 'p1', familiaId: 'f1', importe: 90000, concepto: '' }],
-    })
-
-  it('lista solo a quien debe parte de lo pagado, con su importe', () => {
-    expect(partesPorEnviar(conPago())).toEqual([{ id: 'c', importe: 30000, enviada: false }])
+describe('marcarPagado', () => {
+  it('marca y desmarca que quien debía el pago ya lo ha pagado', () => {
+    const q = anadirPago(base(), { id: 'p1', familiaId: 'f1', importe: 20000, concepto: 'Reserva' })
+    expect(q.pagos[0].pagado).toBeUndefined()
+    const marcado = marcarPagado(q, 'p1', true)
+    expect(marcado.pagos[0].pagado).toBe(true)
+    expect(marcarPagado(marcado, 'p1', false).pagos[0].pagado).toBe(false)
   })
 
-  it('sin pagos no hay nada por enviar', () => {
-    expect(partesPorEnviar({ ...conPago(), pagos: [] })).toEqual([])
-  })
-
-  it('marcarCasaEnviada marca y desmarca a un participante', () => {
-    const marcada = marcarCasaEnviada(conPago(), 'c', true)
-    expect(partesPorEnviar(marcada)).toEqual([{ id: 'c', importe: 30000, enviada: true }])
-    expect(marcarCasaEnviada(marcada, 'c', false).participantes.find((p) => p.id === 'c')?.casaEnviada).toBe(false)
-  })
-
-  it('ignora a un participante que no existe', () => {
-    const q = conPago()
-    expect(marcarCasaEnviada(q, 'zzz', true)).toBe(q)
+  it('ignora un pago que no existe', () => {
+    const q = base()
+    expect(marcarPagado(q, 'zzz', true)).toBe(q)
   })
 })

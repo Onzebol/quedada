@@ -86,7 +86,6 @@ const TABLAS: Tabla[] = [
       porcentaje_casa: p.porcentajeCasa ?? null,
       familia_id: p.familiaId ?? null,
       adulto: p.adulto ?? null,
-      casa_enviada: p.casaEnviada ?? null,
     }),
     (f): Participante => ({
       id: texto(f.id),
@@ -97,7 +96,6 @@ const TABLAS: Tabla[] = [
       ...(hay(f.porcentaje_casa) && { porcentajeCasa: Number(f.porcentaje_casa) }),
       ...(hay(f.familia_id) && { familiaId: texto(f.familia_id) }),
       ...(hay(f.adulto) && { adulto: f.adulto === true }),
-      ...(hay(f.casa_enviada) && { casaEnviada: f.casa_enviada === true }),
     }),
   ),
   tabla(
@@ -158,12 +156,13 @@ const TABLAS: Tabla[] = [
   ),
   tabla(
     'pagos',
-    (p: Pago) => ({ id: p.id, familia_id: p.familiaId, importe: p.importe, concepto: p.concepto }),
+    (p: Pago) => ({ id: p.id, familia_id: p.familiaId, importe: p.importe, concepto: p.concepto, pagado: p.pagado === true }),
     (f): Pago => ({
       id: texto(f.id),
       familiaId: texto(f.familia_id),
       importe: Number(f.importe),
       concepto: texto(f.concepto),
+      ...(f.pagado === true && { pagado: true }),
     }),
   ),
   tabla(

@@ -276,7 +276,7 @@ describe('Pagos', () => {
   it('muestra el precio, lo pagado y lo que falta', async () => {
     const { panel } = await abrirPagos(conFamilias({ pagos: [{ id: 'x', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }] }))
     expect(within(panel).getByText('Precio').nextElementSibling).toHaveTextContent(/900,00\s€/)
-    expect(within(panel).getByText('Pagado').nextElementSibling).toHaveTextContent(/200,00\s€/)
+    expect(within(panel).getByText('Pagado', { selector: 'dt' }).nextElementSibling).toHaveTextContent(/200,00\s€/)
     expect(within(panel).getByText('Falta').nextElementSibling).toHaveTextContent(/700,00\s€/)
   })
 
@@ -289,37 +289,15 @@ describe('Pagos', () => {
     expect(fila).toHaveTextContent(/200,00\s€/)
   })
 
-  describe('partes de la casa por enviar', () => {
-    const conPagoDeUna = () =>
-      conFamilias({
-        participantes: [
-          { id: 'g1', nombre: 'Gema', familiaId: 'f1' },
-          { id: 'p1', nombre: 'Pablo', familiaId: 'f2' },
-        ],
-        pagos: [{ id: 'x', familiaId: 'f1', importe: 90000, concepto: 'Reserva' }],
-      })
-
-    it('lista a quien debe su parte con el importe y una casilla «Enviado»', async () => {
-      const { panel } = await abrirPagos(conPagoDeUna())
-      const lista = within(panel).getByRole('list', { name: 'Partes de la casa por enviar' })
-      const fila = within(lista).getByRole('listitem')
-      expect(fila).toHaveTextContent('Pablo')
-      expect(fila).toHaveTextContent(/450,00\s€/)
-      expect(within(fila).getByRole('checkbox', { name: 'Enviado' })).not.toBeChecked()
-      expect(within(panel).getByText(/0 de 1 han enviado su parte/)).toHaveTextContent(/faltan 450,00\s€/)
-    })
-
-    it('al marcar «Enviado» se guarda y se actualiza el resumen', async () => {
-      const { usuario, repositorio, panel } = await abrirPagos(conPagoDeUna())
-      await usuario.click(within(panel).getByRole('checkbox', { name: 'Enviado' }))
-      expect(await guardada(repositorio)).toMatchObject({ participantes: [{ id: 'g1' }, { id: 'p1', casaEnviada: true }] })
-      expect(within(panel).getByText(/1 de 1 han enviado su parte/)).toBeInTheDocument()
-    })
-
-    it('sin pagos de la casa no se muestra la lista', async () => {
-      const { panel } = await abrirPagos(conFamilias())
-      expect(within(panel).queryByRole('list', { name: 'Partes de la casa por enviar' })).not.toBeInTheDocument()
-    })
+  it('cada pago tiene una casilla «Pagado» que se guarda', async () => {
+    const { usuario, repositorio, panel } = await abrirPagos(conFamilias({ pagos: [{ id: 'x', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }] }))
+    const casilla = within(panel).getByRole('checkbox', { name: 'Pagado: Reserva de García' })
+    expect(casilla).not.toBeChecked()
+    await usuario.click(casilla)
+    expect((await guardada(repositorio)).pagos[0]).toMatchObject({ id: 'x', pagado: true })
+    expect(casilla).toBeChecked()
+    await usuario.click(casilla)
+    expect((await guardada(repositorio)).pagos[0].pagado).toBe(false)
   })
 
   it('añade el pago de una familia', async () => {

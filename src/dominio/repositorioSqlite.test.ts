@@ -52,8 +52,8 @@ describe('RepositorioSqlite', () => {
     const q = quedada({
       id: 'q1',
       casa: { titulo: 'Casa Almunia', descripcion: 'Ver https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050 },
-      pagos: [{ id: 'g1', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }],
-      participantes: [{ id: 'u1', nombre: 'Ana', porcentajeCasa: 50, familiaId: 'f1', casaEnviada: true }, { id: 'u2', nombre: 'Leo', adulto: false, familiaId: 'f1' }],
+      pagos: [{ id: 'g1', familiaId: 'f1', importe: 20000, concepto: 'Reserva', pagado: true }, { id: 'g2', familiaId: 'f1', importe: 500, concepto: 'Resto' }],
+      participantes: [{ id: 'u1', nombre: 'Ana', porcentajeCasa: 50, familiaId: 'f1' }, { id: 'u2', nombre: 'Leo', adulto: false, familiaId: 'f1' }],
       asistentes: [{ id: 'f1', familia: 'Pérez', personas: 1, llegada: null }],
     })
     const repo = await abrir()

@@ -46,12 +46,13 @@ export function repartirProporcional(total: Centimos, pesos: Record<Id, number>)
 }
 
 /**
- * Lo pagado de la casa por cada persona. El pago de una familia se acredita a sus componentes según
- * su porcentaje de casa (a partes iguales si todos pesan 0); si la familia no tiene componentes,
- * figura ella misma.
+ * Lo pagado por cada persona: sus gastos y los pagos de la casa. El pago de una familia se acredita a sus
+ * componentes según su porcentaje de casa (a partes iguales si todos pesan 0); si la familia no
+ * tiene componentes, figura ella misma.
  */
-function pagadoCasaPor(quedada: Quedada): Record<Id, Centimos> {
+function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
   const pagado: Record<Id, Centimos> = {}
+  for (const g of quedada.gastos) pagado[g.pagadorId] = (pagado[g.pagadorId] ?? 0) + g.importe
   for (const pago of quedada.pagos) {
     const componentes = quedada.participantes.filter((p) => p.familiaId === pago.familiaId)
     if (componentes.length === 0) {
@@ -67,32 +68,12 @@ function pagadoCasaPor(quedada: Quedada): Record<Id, Centimos> {
   return pagado
 }
 
-/** Lo pagado por cada persona: sus gastos y los pagos de la casa. */
-function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
-  const pagado = pagadoCasaPor(quedada)
-  for (const g of quedada.gastos) pagado[g.pagadorId] = (pagado[g.pagadorId] ?? 0) + g.importe
-  return pagado
-}
-
 /** Alquiler que entra en las cuentas: solo lo pagado. */
 function totalCasa(quedada: Quedada): Centimos {
   return quedada.pagos.reduce((suma, p) => suma + p.importe, 0)
 }
 
-/** Saldo de la casa de cada persona: lo pagado de ella menos su parte (negativo = debe a quien la pagó). */
-export function saldosCasa(quedada: Quedada): Record<Id, Centimos> {
-  const pagado = pagadoCasaPor(quedada)
-  const pesos: Record<Id, number> = {}
-  for (const p of quedada.participantes) pesos[p.id] = pesoCasa(p)
-  const debe = repartirProporcional(totalCasa(quedada), pesos)
-  const saldos: Record<Id, Centimos> = {}
-  for (const id of new Set([...Object.keys(pesos), ...Object.keys(pagado)])) {
-    saldos[id] = (pagado[id] ?? 0) - (debe[id] ?? 0)
-  }
-  return saldos
-}
-
-/** Saldo de cada persona: lo que ha pagado menos lo que le corresponde, descontando lo que ya ha enviado de la casa. */
+/** Saldo de cada persona: lo que ha pagado menos lo que le corresponde. */
 export function balances(quedada: Quedada): Record<Id, Centimos> {
   const pagado = pagadoPor(quedada)
   const pesosCasa: Record<Id, number> = {}
@@ -110,19 +91,6 @@ export function balances(quedada: Quedada): Record<Id, Centimos> {
   for (const id of Object.keys(saldos)) {
     saldos[id] = (pagado[id] ?? 0) - (debeCasa[id] ?? 0) - (debeComida[id] ?? 0)
     if (saldos[id] === 0) saldos[id] = 0 // evita -0
-  }
-
-  // Quien debe parte de la casa y ya la ha enviado salda esa deuda y se la quita a quienes la pagaron.
-  const casa = saldosCasa(quedada)
-  const enviado = quedada.participantes
-    .filter((p) => p.casaEnviada === true && (casa[p.id] ?? 0) < 0)
-    .reduce((suma, p) => suma - casa[p.id], 0)
-  if (enviado > 0) {
-    const acreedores: Record<Id, number> = {}
-    for (const [id, saldo] of Object.entries(casa)) if (saldo > 0) acreedores[id] = saldo
-    for (const p of quedada.participantes) if (p.casaEnviada === true && (casa[p.id] ?? 0) < 0) saldos[p.id] -= casa[p.id]
-    for (const [id, parte] of Object.entries(repartirProporcional(enviado, acreedores))) saldos[id] -= parte
-    for (const id of Object.keys(saldos)) if (saldos[id] === 0) saldos[id] = 0
   }
   return saldos
 }

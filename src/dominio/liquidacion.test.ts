@@ -239,30 +239,6 @@ describe('alquiler de la casa (pagos por familia)', () => {
     expect(l.transferencias).toEqual([])
   })
 
-  it('lo que alguien ya ha enviado al pagador se descuenta de los saldos', () => {
-    const q = con([pago('1', 'f1', 90000)], { participantes: [personas[0], personas[1], { ...personas[2], casaEnviada: true }] })
-    const l = liquidacion(q)
-    expect(l.balances).toEqual({ a: 0, b: 0, c: 0 })
-    expect(l.transferencias).toEqual([])
-  })
-
-  it('lo enviado se reparte entre los pagadores en proporción a lo que se les debe y los saldos suman 0', () => {
-    const q = con([pago('1', 'f1', 60000), pago('2', 'f2', 10000)], {
-      participantes: [personas[0], personas[1], { ...personas[2], casaEnviada: true }],
-    })
-    const sin = liquidacion(con([pago('1', 'f1', 60000), pago('2', 'f2', 10000)])).balances
-    const l = liquidacion(q).balances
-    expect(Object.values(l).reduce((s, v) => s + v, 0)).toBe(0)
-    expect(l.c).toBe(0)
-    expect(sin.c).toBeLessThan(0)
-    expect(l.a).toBeLessThan(sin.a)
-  })
-
-  it('la marca de quien no debe parte de la casa no cambia nada', () => {
-    const q = con([pago('1', 'f1', 90000)], { participantes: [{ ...personas[0], casaEnviada: true }, personas[1], personas[2]] })
-    expect(liquidacion(q).balances).toEqual({ a: 15000, b: 15000, c: -30000 })
-  })
-
   it('una familia sin componentes figura ella misma como pagadora (y no debe nada)', () => {
     const l = liquidacion(
       con([pago('1', 'f3', 5000)], { asistentes: [...familias, { id: 'f3', familia: 'Sola', personas: 1, llegada: null }] }),

@@ -170,3 +170,34 @@
   background: #9bb0a7;
   vertical-align: 0.2em;
 }
+
+/* Casilla del diseño, con la marca de verificación dibujada en CSS (la de la lista de la compra y la de los pagos). */
+:where(input[type='checkbox']) {
+  appearance: none;
+  position: relative;
+  width: 1.625rem;
+  height: 1.625rem;
+  flex: none;
+  margin: 0;
+  border: 2px solid #9bb0a7;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+}
+
+:where(input[type='checkbox']:checked) {
+  background: var(--moss);
+  border-color: var(--moss);
+}
+
+:where(input[type='checkbox']:checked)::after {
+  content: '';
+  position: absolute;
+  left: 0.4375rem;
+  top: 0.125rem;
+  width: 0.4375rem;
+  height: 0.8125rem;
+  border: solid #fff;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}

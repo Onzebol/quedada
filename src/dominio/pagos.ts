@@ -1,5 +1,5 @@
 import { ordenarPorNombre, personasDe } from './asistentes'
-import { repartirProporcional, saldosCasa } from './liquidacion'
+import { repartirProporcional } from './liquidacion'
 import type { Centimos, Id, Pago, Quedada } from './tipos'
 
 export type NuevoPago = Pick<Pago, 'id' | 'familiaId' | 'importe' | 'concepto'>
@@ -37,6 +37,12 @@ export function borrarPago(q: Quedada, id: Id): Quedada {
   return { ...q, pagos: q.pagos.filter((p) => p.id !== id) }
 }
 
+/** Marca (o desmarca) que quien debía el pago ya lo ha pagado. */
+export function marcarPagado(q: Quedada, id: Id, pagado: boolean): Quedada {
+  if (!q.pagos.some((p) => p.id === id)) return q
+  return { ...q, pagos: q.pagos.map((p) => (p.id === id ? { ...p, pagado } : p)) }
+}
+
 /** Suma de todos los pagos de la casa. */
 export function totalPagado(q: Quedada): Centimos {
   return q.pagos.reduce((suma, p) => suma + p.importe, 0)
@@ -66,24 +72,4 @@ export function repartirEntreFamilias(
     if (partes[a.id] > 0) resultado = anadirPago(resultado, { id: crearId(), familiaId: a.id, importe: partes[a.id], concepto })
   }
   return resultado
-}
-
-export interface ParteDeLaCasa {
-  id: Id
-  /** Lo que debe a quienes pagaron la casa (céntimos, positivo). */
-  importe: Centimos
-  enviada: boolean
-}
-
-/** Quién debe parte de lo ya pagado de la casa, cuánto y si ya lo ha enviado; por orden alfabético. */
-export function partesPorEnviar(q: Quedada): ParteDeLaCasa[] {
-  const saldos = saldosCasa(q)
-  const deben = q.participantes.filter((p) => (saldos[p.id] ?? 0) < 0)
-  return ordenarPorNombre(deben, (p) => p.nombre).map((p) => ({ id: p.id, importe: -saldos[p.id], enviada: p.casaEnviada === true }))
-}
-
-/** Marca (o desmarca) que un participante ya ha enviado su parte de la casa. */
-export function marcarCasaEnviada(q: Quedada, id: Id, enviada: boolean): Quedada {
-  if (!q.participantes.some((p) => p.id === id)) return q
-  return { ...q, participantes: q.participantes.map((p) => (p.id === id ? { ...p, casaEnviada: enviada } : p)) }
 }
