@@ -46,7 +46,7 @@ export function repartirProporcional(total: Centimos, pesos: Record<Id, number>)
 }
 
 /** Pagos de la casa que entran en las cuentas: solo los marcados como pagados (puede haber quien aún no haya pagado la reserva). */
-function pagosCobrados(quedada: Quedada) {
+export function pagosCobrados(quedada: Quedada) {
   return quedada.pagos.filter((p) => p.pagado === true)
 }
 

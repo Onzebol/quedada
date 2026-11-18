@@ -1,7 +1,7 @@
-import { ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, Copy } from 'lucide-react'
 import { useId, useState } from 'react'
 import { formatearEuros } from '../dominio/numeros'
-import { resumenPorFamilia, type GrupoResumen, type LineaResumen } from '../dominio/resumen'
+import { resumenPorFamilia, type GrupoResumen, type PersonaResumen } from '../dominio/resumen'
 import type { Quedada } from '../dominio/tipos'
 import './cuentas.css'
 
@@ -38,7 +38,11 @@ function FichaGrupo({ grupo }: { grupo: GrupoResumen }) {
       </h4>
       <dl className="cuentas__datos">
         <div>
-          <dt>Ha pagado</dt>
+          <dt>Casa pagada</dt>
+          <dd>{formatearEuros(grupo.casaPagada)}</dd>
+        </div>
+        <div>
+          <dt>Total pagado</dt>
           <dd>{formatearEuros(grupo.pagado)}</dd>
         </div>
         <div>
@@ -58,7 +62,7 @@ function FichaGrupo({ grupo }: { grupo: GrupoResumen }) {
   )
 }
 
-function FilaPersona({ persona: p }: { persona: LineaResumen }) {
+function FilaPersona({ persona: p }: { persona: PersonaResumen }) {
   return (
     <li>
       <span className="cuentas__nombre">{p.nombre}</span>
@@ -75,9 +79,31 @@ function FilaPersona({ persona: p }: { persona: LineaResumen }) {
           <dt>Gastos</dt>
           <dd>{formatearEuros(p.gastos)}</dd>
         </div>
-        <Saldo balance={p.balance} />
       </dl>
     </li>
+  )
+}
+
+/** Importe de una transferencia: al pulsarlo se copia el número («180,00») para pegarlo en la app del banco. */
+function ImporteCopiable({ importe }: { importe: number }) {
+  const [copiado, setCopiado] = useState(false)
+  const texto = formatearEuros(importe)
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(texto.replace(/[^\d,-]/g, ''))
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      setCopiado(false)
+    }
+  }
+
+  return (
+    <button type="button" className="cuentas__importe" aria-label={`Copiar ${texto}`} onClick={() => void copiar()}>
+      {texto}
+      {copiado ? <Check className="icono" size={14} aria-hidden="true" /> : <Copy className="icono" size={14} aria-hidden="true" />}
+    </button>
   )
 }
 
@@ -126,7 +152,8 @@ export function Cuentas({ quedada }: Props) {
         <ul className="cuentas__transferencias" aria-label="Quién paga a quién">
           {transferencias.map((t) => (
             <li key={`${t.de}-${t.a}`}>
-              {nombre(t.de)} paga {formatearEuros(t.importe)} a {nombre(t.a)}
+              <strong>{nombre(t.de)}</strong> paga <ImporteCopiable importe={t.importe} /> a{' '}
+              <strong>{nombre(t.a)}</strong>
             </li>
           ))}
         </ul>

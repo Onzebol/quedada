@@ -25,10 +25,12 @@ describe('resumenPorFamilia', () => {
     const { grupos } = resumenPorFamilia(q)
     expect(grupos.map((g) => g.nombre)).toEqual(['Gómez', 'Pérez'])
     const [gomez, perez] = grupos
-    expect(gomez).toMatchObject({ pagado: 4000, casa: 20000, gastos: 2000, balance: -18000 })
-    expect(perez).toMatchObject({ pagado: 40000, casa: 20000, gastos: 2000, balance: 18000 })
+    expect(gomez).toMatchObject({ pagado: 4000, casaPagada: 0, casa: 20000, gastos: 2000, balance: -18000 })
+    expect(perez).toMatchObject({ pagado: 40000, casaPagada: 40000, casa: 20000, gastos: 2000, balance: 18000 })
     expect(perez.personas.map((p) => p.nombre)).toEqual(['ana', 'beto'])
-    expect(perez.personas[0]).toMatchObject({ pagado: 20000, casa: 10000, gastos: 1000, balance: 9000 })
+    // Las personas solo muestran lo que han pagado en gastos: la casa pagada es de la familia.
+    expect(perez.personas[0]).toEqual({ id: 'ana', nombre: 'ana', pagado: 0, casa: 10000, gastos: 1000 })
+    expect(gomez.personas.find((p) => p.nombre === 'cris')).toMatchObject({ pagado: 4000, casa: 10000, gastos: 1000 })
   })
 
   it('los saldos de todos los grupos suman 0', () => {
@@ -98,5 +100,27 @@ describe('resumenPorFamilia', () => {
     expect(resumenPorFamilia(conPrecio(50000, [pago('f1', 20000), sinMarcar])).totales.casaFalta).toBe(30000)
     expect(resumenPorFamilia(conPrecio(10000, [pago('f1', 20000)])).totales.casaFalta).toBe(0)
     expect(resumenPorFamilia(conPrecio(null, [pago('f1', 20000)])).totales.casaFalta).toBeNull()
+  })
+
+  it('la casa pagada de una familia solo cuenta los pagos marcados como pagados', () => {
+    const q = quedada({
+      asistentes: [familia('f1', 'Pérez')],
+      participantes: [persona('ana', { familiaId: 'f1' })],
+      pagos: [pago('f1', 30000), { ...pago('f1', 5000), id: 'sin-pagar', pagado: false }],
+      gastos: [gasto('ana', 2000)],
+    })
+    expect(resumenPorFamilia(q).grupos[0]).toMatchObject({ casaPagada: 30000, pagado: 32000 })
+  })
+
+  it('«quién paga a quién» va por orden alfabético de quien paga y, luego, de quien cobra', () => {
+    const q = quedada({
+      participantes: [persona('1', { nombre: 'Zoe' }), persona('2', { nombre: 'Ana' }), persona('3', { nombre: 'Marta' }), persona('4', { nombre: 'Bea' })],
+      gastos: [gasto('1', 6000), gasto('4', 2000)],
+    })
+    const { grupos, transferencias } = resumenPorFamilia(q)
+    const nombre = (id: string) => grupos.find((g) => g.id === id)?.nombre
+    const filas = transferencias.map((t) => `${nombre(t.de)}>${nombre(t.a)}`)
+    expect(filas).toEqual([...filas].sort((a, b) => a.localeCompare(b, 'es')))
+    expect(transferencias.length).toBeGreaterThan(1)
   })
 })

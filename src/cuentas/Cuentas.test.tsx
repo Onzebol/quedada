@@ -52,7 +52,8 @@ describe('Cuentas', () => {
     const nombres = screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)
     expect(nombres).toEqual(['Gómez', 'Pérez'])
     const perez = ficha('Pérez')
-    expect(within(perez).getByText('Ha pagado').nextElementSibling).toHaveTextContent(euros('400,00 €'))
+    expect(within(perez).getByText('Casa pagada').nextElementSibling).toHaveTextContent(euros('400,00 €'))
+    expect(within(perez).getByText('Total pagado').nextElementSibling).toHaveTextContent(euros('400,00 €'))
     expect(within(perez).getByText('Le toca').nextElementSibling).toHaveTextContent(euros('220,00 €'))
     expect(within(perez).getByText('Le deben').nextElementSibling).toHaveTextContent(euros('180,00 €'))
     expect(within(ficha('Gómez')).getByText('Debe').nextElementSibling).toHaveTextContent(euros('180,00 €'))
@@ -64,9 +65,10 @@ describe('Cuentas', () => {
     await userEvent.click(within(ficha('Pérez')).getByRole('button', { name: /Pérez/ }))
     const personas = within(ficha('Pérez')).getByRole('list', { name: 'Personas de Pérez' })
     const ana = within(personas).getByText('Ana').closest('li') as HTMLElement
-    expect(within(ana).getByText('Ha pagado').nextElementSibling).toHaveTextContent(euros('200,00 €'))
+    expect(within(ana).getByText('Ha pagado').nextElementSibling).toHaveTextContent(euros('0,00 €'))
     expect(within(ana).getByText('Casa').nextElementSibling).toHaveTextContent(euros('100,00 €'))
     expect(within(ana).getByText('Gastos').nextElementSibling).toHaveTextContent(euros('10,00 €'))
+    expect(within(ana).queryByText(/Debe|Le deben|Al día/)).not.toBeInTheDocument()
   })
 
   it('una persona sin familia es una ficha sin desplegable', () => {
@@ -84,6 +86,14 @@ describe('Cuentas', () => {
     const lista = screen.getByRole('list', { name: 'Quién paga a quién' })
     const filas = within(lista).getAllByRole('listitem').map((li) => li.textContent?.replace(/\s/g, ' '))
     expect(filas).toEqual(['Gómez paga 180,00 € a Pérez'])
+  })
+
+  it('al pulsar el importe de una transferencia se copia el número (para pegarlo en la app del banco)', async () => {
+    const usuario = userEvent.setup()
+    render(<Cuentas quedada={q()} />)
+    const lista = screen.getByRole('list', { name: 'Quién paga a quién' })
+    await usuario.click(within(lista).getByRole('button', { name: /Copiar 180,00[\s ]€/ }))
+    expect(await navigator.clipboard.readText()).toBe('180,00')
   })
 
   it('sin nada que liquidar lo dice', () => {

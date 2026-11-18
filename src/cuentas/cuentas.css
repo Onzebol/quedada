@@ -150,12 +150,38 @@
 
 .cuentas__transferencias {
   display: grid;
-  gap: var(--esp-2);
+  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
+  align-items: start;
+  gap: var(--esp-3);
 }
 
 .cuentas__transferencias li {
-  padding: var(--esp-3) var(--esp-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-1) var(--esp-2);
+  padding: var(--esp-4);
   border: 1px solid var(--linea);
-  border-radius: 12px;
-  font-weight: 600;
+  border-radius: 16px;
+  color: var(--mut);
+}
+
+.cuentas__transferencias strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.cuentas__importe {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-height: 0;
+  padding: 2px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--moss);
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: copy;
 }
