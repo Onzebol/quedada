@@ -7,9 +7,10 @@
   margin-left: 0.4rem;
 }
 
-/* Móvil: solo el icono; el texto queda para lectores de pantalla (nombre accesible). */
+/* Móvil: solo el icono; el texto queda para lectores de pantalla (nombre accesible).
+   Salvo en la línea de botones de las personas (.persona__acciones) y «Añadir persona»: ahí caben con texto. */
 @media (max-width: 39.99rem) {
-  .icono-texto {
+  .icono-texto:not(:is(.persona__acciones, .familia__anadir) *) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -18,11 +19,11 @@
     white-space: nowrap;
   }
 
-  .icono + .icono-texto {
+  .icono + .icono-texto:not(:is(.persona__acciones, .familia__anadir) *) {
     margin-left: 0;
   }
 
-  button:has(> .icono-texto) {
+  button:has(> .icono-texto):not(.familia__anadir, :is(.persona__acciones) *) {
     width: var(--alto-control);
     height: var(--alto-control);
     min-width: 0;
@@ -36,7 +37,7 @@
 /* Fichas de familia y de sección (asistentes.css, compra.css): si el texto no cabe en la ficha, solo el icono, como en móvil
    (círculo del alto del botón). */
 @container ficha (max-width: 30rem) {
-  :is(.familia__acciones, .persona__acciones, .grupo__acciones, .fila__acciones) .icono-texto {
+  :is(.familia__acciones, .grupo__acciones, .fila__acciones) .icono-texto {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -45,11 +46,11 @@
     white-space: nowrap;
   }
 
-  :is(.familia__acciones, .persona__acciones, .grupo__acciones, .fila__acciones) .icono + .icono-texto {
+  :is(.familia__acciones, .grupo__acciones, .fila__acciones) .icono + .icono-texto {
     margin-left: 0;
   }
 
-  :is(.familia__acciones, .persona__acciones, .grupo__acciones, .fila__acciones) button:has(> .icono-texto) {
+  :is(.familia__acciones, .grupo__acciones, .fila__acciones) button:has(> .icono-texto) {
     width: var(--alto-control);
     height: var(--alto-control);
     min-width: 0;

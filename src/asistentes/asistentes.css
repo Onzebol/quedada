@@ -134,9 +134,7 @@
 
 .persona {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0 var(--esp-3);
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
   padding: var(--esp-2) 0;
 }
 
@@ -156,15 +154,15 @@
   flex-wrap: wrap;
   gap: 0;
   color: var(--mut);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
 }
 
-/* Los botones ocupan las dos líneas de la persona y quedan centrados en vertical. */
+/* Los botones van en su propia línea, bajo los datos, a la derecha. */
 .persona__acciones {
   --alto-control: 2rem;
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: center;
+  grid-column: 1;
+  justify-content: flex-end;
+  margin-top: var(--esp-2);
 }
 
 .persona__acciones button {

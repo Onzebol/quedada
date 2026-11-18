@@ -46,9 +46,7 @@
 
 .grupo__cabecera {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0 var(--esp-3);
-  align-items: center;
 }
 
 /* El contenedor del título no pinta nada: su h3 y sus datos son celdas de la rejilla de la cabecera. */
@@ -130,7 +128,7 @@
   border-left: 3px solid var(--linea);
 }
 
-/* Cada producto, como una persona de «La casa»: nombre y datos a la izquierda, botones a la derecha. */
+/* Cada producto: casilla a la izquierda; nombre, datos y botones en la columna de la derecha. */
 .fila {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -186,7 +184,7 @@
 
 .fila--comprada .fila__nombre span {
   color: #8a9892;
-  font-weight: 400;
+  font-weight: 600;
   text-decoration: line-through;
 }
 
@@ -209,6 +207,10 @@
   content: ' - ';
 }
 
+.fila__observaciones {
+  font-size: 0.75rem;
+}
+
 .fila__total {
   font-variant-numeric: tabular-nums;
 }
@@ -218,14 +220,11 @@
   font-size: 0.875rem;
 }
 
-/* Los botones ocupan las dos líneas del producto y quedan centrados en vertical. */
+/* Los botones van en su propia línea, bajo las observaciones, a la derecha. */
 .fila__acciones {
   --alto-control: 2rem;
   display: flex;
-  grid-column: 2;
-  grid-row: 1 / span 2;
   align-items: center;
-  align-self: center;
   gap: var(--esp-2);
 }
 
@@ -234,8 +233,56 @@
   font-size: 0.875rem;
 }
 
+/* La casilla va sola en una columna a la izquierda y el resto (nombre, datos y botones) en la de la derecha. */
+.fila {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.fila .fila__nombre {
+  display: contents;
+}
+
+.fila input[type='checkbox'] {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+}
+
+.fila .fila__nombre > span {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}
+
+.fila__datos {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.fila__acciones {
+  grid-column: 2;
+  grid-row: 3;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-top: var(--esp-2);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .fila--comprada .fila__nombre span {
     transition: color 0.15s;
+  }
+}
+
+/* Móvil: «97 productos · 87 por comprar · 81 sin comprador» debe caber en una línea. */
+@media (max-width: 39.99rem) {
+  :is(.compra__datos, .grupo__datos) {
+    flex-wrap: nowrap;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  :root :is(.compra__datos, .grupo__datos) > span + span::before {
+    margin: 0 0.4em;
   }
 }
