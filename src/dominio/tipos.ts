@@ -91,6 +91,8 @@ export interface Gasto {
   pagadorId: Id
   concepto: string
   importe: Centimos
+  /** Ruta de la foto del tique en el almacén de imágenes (`<quedada>/<gasto>.jpg`), si la hay. */
+  imagen?: string
 }
 
 export interface Quedada {

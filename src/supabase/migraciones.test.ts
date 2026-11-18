@@ -39,6 +39,22 @@ const SUPABASE_FALSO = `
   end $$;
 `
 
+/** Lo mínimo del esquema `storage` de Supabase que necesita `0007`. */
+const STORAGE_FALSO = `
+  create schema storage;
+  create table storage.buckets (
+    id text primary key, name text not null, public boolean default false,
+    file_size_limit bigint, allowed_mime_types text[]
+  );
+  create table storage.objects (id bigserial primary key, bucket_id text not null, name text not null);
+  alter table storage.objects enable row level security;
+  grant usage on schema storage to authenticated;
+  grant all on storage.objects to authenticated;
+  grant usage on sequence storage.objects_id_seq to authenticated;
+  create function storage.foldername(name text) returns text[] language sql immutable
+    as $$ select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1] $$;
+`
+
 const quedadaCompleta = {
   id: 'q1',
   nombre: 'Almunia 2026',
@@ -306,6 +322,38 @@ describe('migraciones de Supabase', () => {
       await db.exec('truncate realtime.messages')
       await db.exec(insertar)
       expect((await avisos(db)).map((a) => [a.topic, a.event, a.tabla])).toEqual([['quedada:q1', 'INSERT', 'gastos']])
+    })
+  })
+
+  describe('0007: fotos de los tiques', () => {
+    it('añade la ruta de la imagen al gasto, nula por defecto', async () => {
+      await db.exec(sql('0006_gastos.sql'))
+      await db.exec(STORAGE_FALSO)
+      await db.exec(sql('0007_tiques.sql'))
+      await como(db, ANA, "insert into public.gastos (quedada_id, id, posicion, pagador_id, concepto, importe) values ('q1','g1',0,'p1','Compra',1200)")
+      await como(db, ANA, "update public.gastos set imagen = 'q1/g1.jpg' where id = 'g1'")
+      expect((await como(db, ANA, 'select imagen from public.gastos')).rows).toEqual([{ imagen: 'q1/g1.jpg' }])
+    })
+
+    it('crea el bucket privado con límite de tamaño', async () => {
+      await db.exec(sql('0006_gastos.sql'))
+      await db.exec(STORAGE_FALSO)
+      await db.exec(sql('0007_tiques.sql'))
+      expect((await db.query('select id, public, file_size_limit from storage.buckets')).rows).toEqual([
+        { id: 'tiques', public: false, file_size_limit: 2097152 },
+      ])
+    })
+
+    it('solo el propietario de la quedada ve, sube y borra sus imágenes', async () => {
+      await db.exec(sql('0006_gastos.sql'))
+      await db.exec(STORAGE_FALSO)
+      await db.exec(sql('0007_tiques.sql'))
+      await como(db, ANA, "insert into storage.objects (bucket_id, name) values ('tiques', 'q1/g1.jpg')")
+      expect((await como(db, ANA, 'select name from storage.objects')).rows).toEqual([{ name: 'q1/g1.jpg' }])
+      expect((await como(db, LUIS, 'select name from storage.objects')).rows).toEqual([])
+      await expect(como(db, LUIS, "insert into storage.objects (bucket_id, name) values ('tiques', 'q1/x.jpg')")).rejects.toThrow()
+      expect((await como(db, LUIS, "delete from storage.objects returning name")).rows).toEqual([])
+      expect((await como(db, ANA, "delete from storage.objects returning name")).rows).toEqual([{ name: 'q1/g1.jpg' }])
     })
   })
 })

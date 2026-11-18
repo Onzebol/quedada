@@ -7,6 +7,8 @@ import { ActualizacionPwa } from './pwa/ActualizacionPwa'
 import { AutenticacionSupabase } from './supabase/autenticacionSupabase'
 import { crearCliente } from './supabase/cliente'
 import { RepositorioSupabase } from './supabase/repositorioSupabase'
+import { AlmacenSupabase } from './tiques/almacenSupabase'
+import { reducirImagen } from './tiques/reducirImagen'
 
 const raiz = createRoot(document.getElementById('root')!)
 
@@ -21,6 +23,7 @@ async function iniciar() {
       repositorio={new RepositorioSupabase(cliente)}
       autenticacion={autenticacion}
       alSalir={() => location.reload()}
+      imagenes={{ almacen: new AlmacenSupabase(cliente), reducir: reducirImagen }}
     />
   )
 }

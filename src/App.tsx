@@ -22,6 +22,7 @@ import { ImportarExcel } from './importacion/ImportarExcel'
 import type { InformeImportacion } from './importacion/importarHoja'
 import { leerExcel as leerExcelReal } from './importacion/leerExcel'
 import './inicio/inicio.css'
+import type { Imagenes } from './tiques/almacenImagenes'
 import './index.css'
 
 interface Props {
@@ -35,9 +36,11 @@ interface Props {
   alSalir?: () => void
   /** Busca coordenadas de la dirección de la casa (por defecto, Nominatim); inyectable para los tests. */
   geocodificar?: Geocodificador
+  /** Dónde guardar las fotos de los tiques; sin ello (modo local) no se ofrece la foto. */
+  imagenes?: Imagenes
 }
 
-export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir, geocodificar }: Props) {
+export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir, geocodificar, imagenes }: Props) {
   const almacen = useMemo(() => repositorio ?? new RepositorioLocalStorage(), [repositorio])
   const [activa, setActiva] = useHashQuedada()
   const auth = useMemo(() => autenticacion ?? new AutenticacionGoogle(), [autenticacion])
@@ -78,6 +81,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
           quedadaId={activa}
           urlPagina={urlPagina}
           geocodificar={geocodificar}
+          imagenes={imagenes}
         />
       )}
     </main>
@@ -187,9 +191,10 @@ interface PropsVista {
   quedadaId: Id
   urlPagina?: string
   geocodificar?: Geocodificador
+  imagenes?: Imagenes
 }
 
-function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodificar }: PropsVista) {
+function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodificar, imagenes }: PropsVista) {
   const estado = useQuedada(almacen, crearId, quedadaId)
 
   return (
@@ -229,7 +234,7 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
                 {
                   id: 'pagos',
                   titulo: 'Pagos',
-                  contenido: <Pagos quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />,
+                  contenido: <Pagos quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} imagenes={imagenes} />,
                 },
                 {
                   id: 'resumen',

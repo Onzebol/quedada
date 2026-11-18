@@ -164,12 +164,13 @@ const TABLAS: Tabla[] = [
   ),
   tabla(
     'gastos',
-    (g: Gasto) => ({ id: g.id, pagador_id: g.pagadorId, concepto: g.concepto, importe: g.importe }),
+    (g: Gasto) => ({ id: g.id, pagador_id: g.pagadorId, concepto: g.concepto, importe: g.importe, imagen: g.imagen ?? null }),
     (f): Gasto => ({
       id: texto(f.id),
       pagadorId: texto(f.pagador_id),
       concepto: texto(f.concepto),
       importe: Number(f.importe),
+      ...(hay(f.imagen) && { imagen: texto(f.imagen) }),
     }),
   ),
 ]
