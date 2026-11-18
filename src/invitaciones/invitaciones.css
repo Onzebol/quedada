@@ -1,0 +1,55 @@
+/* Panel «Invitar» y pantalla «Unirse»: solo disposición; botones, campos y etiquetas vienen de ui/controles.css. */
+.compartir {
+  display: contents;
+}
+
+.compartir__panel {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.compartir__panel h3 {
+  margin: 0;
+}
+
+.compartir__acciones,
+.unirse__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.compartir__ayuda {
+  margin: 0;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
+.compartir__miembros {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.compartir__miembros li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.unirse {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  max-width: 32rem;
+}
+
+.unirse h2 {
+  margin: 0;
+}

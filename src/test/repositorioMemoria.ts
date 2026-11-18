@@ -4,6 +4,8 @@ import type { Id, Quedada } from '../dominio/tipos'
 /** Repositorio en memoria para tests de interfaz. */
 export class RepositorioMemoria implements Repositorio {
   quedadas: Quedada[]
+  /** Si se asigna, hace de `Repositorio.puedeBorrar` (quién es propietario). */
+  puedeBorrar?: (id: Id) => boolean
 
   constructor(quedadas: Quedada[] = []) {
     this.quedadas = quedadas
