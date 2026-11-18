@@ -14,6 +14,11 @@ describe('PantallaEntrada', () => {
     expect(screen.getAllByRole('button')).toHaveLength(1)
   })
 
+  it('el botón de entrar muestra siempre el texto, también en móvil (#141)', () => {
+    render(<PantallaEntrada autenticacion={new AutenticacionMemoria(ana)} />)
+    expect(screen.getByRole('button', { name: 'Entrar con Google' })).toHaveClass('con-texto')
+  })
+
   it('al pulsar inicia el flujo de entrada', async () => {
     const auth = new AutenticacionMemoria(ana)
     const entrar = vi.spyOn(auth, 'entrar')

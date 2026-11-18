@@ -49,7 +49,7 @@ function MenuUsuario({ nombre, foto, email, salir }: { nombre: string; foto: str
             <strong>{nombre}</strong>
             {email !== undefined && <span>{email}</span>}
           </div>
-          <button type="button" role="menuitem" onClick={salir}>
+          <button type="button" role="menuitem" className="con-texto" onClick={salir}>
             <ConIcono icono={LogOut}>Cerrar sesión</ConIcono>
           </button>
         </div>
@@ -67,7 +67,7 @@ export function Sesion({ sesion, quedada, aplicar }: Props) {
   return (
     <section className="sesion" aria-label="Sesión">
       {usuario === null ? (
-        <button type="button" onClick={() => void entrar()}>
+        <button type="button" className="con-texto" onClick={() => void entrar()}>
           <ConIcono icono={LogIn}>Entrar con Google</ConIcono>
         </button>
       ) : (

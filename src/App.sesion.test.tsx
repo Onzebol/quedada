@@ -75,6 +75,14 @@ describe('Sesión con Google', () => {
     expect(screen.queryByRole('button', { name: 'Ana Pérez' })).not.toBeInTheDocument()
   })
 
+  it('«Entrar con Google» y «Cerrar sesión» muestran siempre el texto, también en móvil (#141)', async () => {
+    const { usuario } = await preparar(new AutenticacionMemoria(ana))
+    expect(screen.getByRole('button', { name: 'Entrar con Google' })).toHaveClass('con-texto')
+    await usuario.click(screen.getByRole('button', { name: 'Entrar con Google' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Ana Pérez' }))
+    expect(screen.getByRole('menuitem', { name: 'Cerrar sesión' })).toHaveClass('con-texto')
+  })
+
   it('el menú del usuario se abre al pulsar y se cierra con Escape o al pulsar fuera', async () => {
     const { usuario } = await preparar(new AutenticacionMemoria(ana, ana))
     const boton = screen.getByRole('button', { name: 'Ana Pérez' })
