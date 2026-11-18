@@ -79,6 +79,28 @@
   top: 0.5rem;
   right: 0.5rem;
   z-index: 1000;
+  /* Solo icono: círculo verde con el icono blanco. */
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--alto-control);
+  height: var(--alto-control);
+  min-width: 0;
+  min-height: 0;
+  flex: none;
+  aspect-ratio: 1;
+  padding: 0;
+  line-height: 0;
+  border-radius: 50%;
+  background: var(--moss);
+  border-color: var(--moss);
+  color: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+}
+
+.casa__capa:hover {
+  background: var(--moss-oscuro);
+  border-color: var(--moss-oscuro);
 }
 
 /* Marcador del mapa ajustable: una gota hecha con CSS, sin imágenes. */

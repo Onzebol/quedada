@@ -37,6 +37,8 @@ describe('MapaCasa', () => {
     render(<MapaCasa latitud={41.6} longitud={-1.2} />)
     await waitFor(() => expect(leaflet.mapa).not.toBeNull())
     expect(leaflet.mapa!.capaActiva).toContain('tile.openstreetmap.org')
+    // Solo icono: el nombre va en aria-label, sin texto visible.
+    expect(screen.getByRole('button', { name: 'Satélite' })).toHaveTextContent('')
     await userEvent.click(screen.getByRole('button', { name: 'Satélite' }))
     expect(leaflet.mapa!.capaActiva).toContain('World_Imagery')
     expect(leaflet.capas[leaflet.mapa!.capaActiva!]).toMatch(/Esri/)
