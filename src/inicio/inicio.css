@@ -42,14 +42,14 @@
   cursor: pointer;
 }
 
-.inicio__nueva {
+.inicio__cabecera {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--esp-2);
 }
 
-.inicio__nueva label {
-  flex: 1 1 14rem;
+.inicio__cabecera h2 {
+  margin: 0;
 }
-
