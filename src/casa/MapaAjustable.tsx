@@ -87,7 +87,7 @@ export function MapaAjustable({ latitud, longitud, onMover }: Props) {
         aria-label="Mapa de la casa: arrastra el marcador o pulsa en el mapa para ajustar su posición"
       />
       <button type="button" className="casa__boton" onClick={centrar}>
-        <ConIcono icono={LocateFixed}>Centrar en la casa</ConIcono>
+        <ConIcono icono={LocateFixed}>Centrar</ConIcono>
       </button>
       <p className="casa__ayuda">Arrastra el marcador o pulsa en el mapa para ajustar la posición.</p>
     </div>
