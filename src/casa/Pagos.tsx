@@ -85,6 +85,7 @@ export function Pagos({ quedada, aplicar, crearId, imagenes }: Props) {
                     {p.concepto !== '' && <span className="pago__concepto">{p.concepto}</span>}
                   </span>
                   <span className="pago__importe">{formatearEuros(p.importe)}</span>
+                  <span className="pago__segunda">
                   <label className="pago__pagado">
                     <input
                       type="checkbox"
@@ -105,6 +106,7 @@ export function Pagos({ quedada, aplicar, crearId, imagenes }: Props) {
                       mensaje={`Se quitará el pago de ${nombre(p.familiaId)}. No se puede deshacer.`}
                       onConfirmar={() => aplicar((q) => borrarPago(q, p.id))}
                     />
+                  </span>
                   </span>
                 </li>
               )
