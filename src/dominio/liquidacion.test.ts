@@ -226,28 +226,58 @@ describe('reparto y asistentes (#7)', () => {
   })
 })
 
-describe('alquiler de la casa', () => {
-  const personas = [
-    { id: 'a', nombre: 'Ana' },
-    { id: 'b', nombre: 'Beto', porcentajeCasa: 50 },
-    { id: 'c', nombre: 'Cris', pagaCasa: false },
+describe('alquiler de la casa (pagos por familia)', () => {
+  const casa = { titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: 90000 }
+  const familias = [
+    { id: 'f1', familia: 'Ana y Beto', personas: 2, llegada: null },
+    { id: 'f2', familia: 'Cris', personas: 1, llegada: null },
   ]
-  const casa = (pagadorId: string | null) => ({
-    titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: 90000, pagadorId,
-  })
+  const personas = [
+    { id: 'a', nombre: 'Ana', familiaId: 'f1' },
+    { id: 'b', nombre: 'Beto', familiaId: 'f1' },
+    { id: 'c', nombre: 'Cris', familiaId: 'f2' },
+  ]
+  const pago = (id: string, familiaId: string, importe: number) => ({ id, familiaId, importe, concepto: '' })
+  const con = (pagos: ReturnType<typeof pago>[], extra = {}) =>
+    quedada({ participantes: personas, asistentes: familias, casa, pagos, ...extra })
 
-  it('con pagador, el alquiler cuenta como pagado por él y se reparte por porcentaje de casa', () => {
-    const l = liquidacion(quedada({ participantes: personas, casa: casa('a') }))
+  it('si cada familia paga según sus personas, nadie debe nada', () => {
+    const l = liquidacion(con([pago('1', 'f1', 60000), pago('2', 'f2', 30000)]))
     expect(l.total).toBe(90000)
-    expect(l.pagado.a).toBe(90000)
-    // Ana 2/3 = 60000, Beto 1/3 = 30000, Cris 0
-    expect(l.balances).toEqual({ a: 30000, b: -30000, c: 0 })
-    expect(l.transferencias).toEqual([{ de: 'b', a: 'a', importe: 30000 }])
+    expect(l.balances).toEqual({ a: 0, b: 0, c: 0 })
+    expect(l.transferencias).toEqual([])
   })
 
-  it('sin pagador el precio no entra en las cuentas', () => {
-    const l = liquidacion(quedada({ participantes: personas, casa: casa(null) }))
+  it('si una familia lo paga todo, las demás le deben su parte', () => {
+    const l = liquidacion(con([pago('1', 'f1', 90000)]))
+    expect(l.balances).toEqual({ a: 15000, b: 15000, c: -30000 })
+    expect(l.transferencias.reduce((s, t) => s + t.importe, 0)).toBe(30000)
+  })
+
+  it('el pago de una familia se acredita a sus componentes según su porcentaje de casa', () => {
+    const q = con([pago('1', 'f1', 90000)], {
+      participantes: [{ ...personas[0], porcentajeCasa: 50 }, personas[1], personas[2]],
+    })
+    expect(liquidacion(q).pagado).toMatchObject({ a: 30000, b: 60000 })
+  })
+
+  it('con un pago parcial solo se reparte lo pagado, no el precio', () => {
+    const l = liquidacion(con([pago('1', 'f1', 30000), pago('2', 'f2', 10000)]))
+    expect(l.total).toBe(40000)
+    expect(Object.values(l.balances).reduce((s, v) => s + v, 0)).toBe(0)
+  })
+
+  it('sin pagos el precio no entra en las cuentas', () => {
+    const l = liquidacion(con([]))
     expect(l.total).toBe(0)
     expect(l.transferencias).toEqual([])
+  })
+
+  it('una familia sin componentes figura ella misma como pagadora (y no debe nada)', () => {
+    const l = liquidacion(
+      con([pago('1', 'f3', 5000)], { asistentes: [...familias, { id: 'f3', familia: 'Sola', personas: 1, llegada: null }] }),
+    )
+    expect(l.pagado.f3).toBe(5000)
+    expect(l.balances.f3).toBe(5000)
   })
 })

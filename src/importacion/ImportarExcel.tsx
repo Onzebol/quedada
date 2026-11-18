@@ -63,13 +63,15 @@ export function ImportarExcel({ leer, repositorio, espacio, onImportado }: Props
         const familiasNuevas = quedada.asistentes.filter(
           (f) => !familiasPrevias.some((x) => x.id === f.id) && participantes.some((p) => p.familiaId === f.id),
         )
+        const asistentesFinales = [...familiasPrevias, ...familiasNuevas]
         await repositorio.guardar({
           ...quedada,
           id,
-          casa: participantes.some((p) => p.id === casa.pagadorId) ? casa : { ...casa, pagadorId: null },
+          casa,
           participantes,
-          asistentes: [...familiasPrevias, ...familiasNuevas],
+          asistentes: asistentesFinales,
           basicos: previa?.basicos ?? [],
+          pagos: (previa?.pagos ?? []).filter((p) => asistentesFinales.some((f) => f.id === p.familiaId)),
         })
       }
       if (informe.importadas.length === 0) {

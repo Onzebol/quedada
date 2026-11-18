@@ -71,8 +71,17 @@ export interface Casa {
   longitud: number | null
   /** Precio total del alquiler. `null` si aún no se sabe. */
   precio: Centimos | null
-  /** Quién ha pagado el alquiler. Sin pagador el precio se muestra, pero no entra en las cuentas. */
-  pagadorId: Id | null
+}
+
+/** Un pago de la casa (reserva, resto…) hecho por una familia. Solo lo pagado entra en las cuentas. */
+export interface Pago {
+  id: Id
+  /** Familia (id de un `Asistente`) que paga. */
+  familiaId: Id
+  /** Céntimos enteros, siempre positivo. */
+  importe: Centimos
+  /** Texto libre: «Reserva», «Resto»… */
+  concepto: string
 }
 
 export interface Quedada {
@@ -87,6 +96,8 @@ export interface Quedada {
   productos: Producto[]
   asistentes: Asistente[]
   basicos: Basico[]
+  /** Pagos del alquiler de la casa, por familia. */
+  pagos: Pago[]
 }
 
 /** Dinero en céntimos enteros, para que las sumas no arrastren errores de coma flotante. */

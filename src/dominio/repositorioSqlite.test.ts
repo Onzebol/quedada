@@ -47,7 +47,8 @@ describe('RepositorioSqlite', () => {
   it('guarda la casa y las familias de los participantes', async () => {
     const q = quedada({
       id: 'q1',
-      casa: { titulo: 'Casa Almunia', descripcion: 'Ver https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050, pagadorId: 'u1' },
+      casa: { titulo: 'Casa Almunia', descripcion: 'Ver https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050 },
+      pagos: [{ id: 'g1', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }],
       participantes: [{ id: 'u1', nombre: 'Ana', porcentajeCasa: 50, familiaId: 'f1' }],
       asistentes: [{ id: 'f1', familia: 'Pérez', personas: 1, llegada: null }],
     })
@@ -67,7 +68,7 @@ describe('RepositorioSqlite', () => {
     await persistencia.guardar(vieja.export())
     const repo = await abrir()
     const leida = (await repo.obtener('q1'))!
-    expect(leida.casa).toEqual({ titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: null, pagadorId: null })
+    expect(leida.casa).toEqual({ titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: null })
     await repo.guardar({ ...leida, casa: { ...leida.casa, precio: 100 }, participantes: [{ id: 'u1', nombre: 'Ana', familiaId: 'f1' }] })
     expect((await repo.obtener('q1'))!.participantes[0].familiaId).toBe('f1')
   })

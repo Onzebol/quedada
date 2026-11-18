@@ -119,3 +119,69 @@
 .casa__mapa-acciones .casa__boton {
   margin-left: auto;
 }
+
+.pagos__resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-4);
+  margin: 0;
+}
+
+.pagos__resumen div {
+  display: flex;
+  flex-direction: column;
+}
+
+.pagos__resumen dt {
+  color: var(--mut);
+  font-size: 0.8125rem;
+}
+
+.pagos__resumen dd {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.pagos__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.pagos__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pago {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--esp-2) var(--esp-3);
+  align-items: center;
+  padding: var(--esp-3) 0;
+  border-top: 1px solid var(--linea);
+}
+
+.pago__quien {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--esp-2);
+  align-items: baseline;
+}
+
+.pago__concepto {
+  color: var(--mut);
+}
+
+.pago__importe {
+  font-weight: 600;
+}
+
+.pago__acciones {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+}

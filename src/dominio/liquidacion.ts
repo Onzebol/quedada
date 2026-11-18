@@ -53,18 +53,31 @@ function sumarPorReparto(quedada: Quedada, reparto: 'casa' | 'comida'): Centimos
     .reduce((suma, p) => suma + totalLinea(p), 0)
 }
 
-/** Lo pagado por cada persona: compras y, si lo ha pagado, el alquiler de la casa. */
+/**
+ * Lo pagado por cada persona: compras y pagos de la casa. El pago de una familia se acredita a sus
+ * componentes según su porcentaje de casa (a partes iguales si todos pesan 0); si la familia no
+ * tiene componentes, figura ella misma.
+ */
 function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
   const pagado = totalPorComprador(quedada)
-  const { precio, pagadorId } = quedada.casa
-  if (precio !== null && pagadorId !== null) pagado[pagadorId] = (pagado[pagadorId] ?? 0) + precio
+  for (const pago of quedada.pagos) {
+    const componentes = quedada.participantes.filter((p) => p.familiaId === pago.familiaId)
+    if (componentes.length === 0) {
+      pagado[pago.familiaId] = (pagado[pago.familiaId] ?? 0) + pago.importe
+      continue
+    }
+    const pesos: Record<Id, number> = {}
+    for (const p of componentes) pesos[p.id] = pesoCasa(p)
+    for (const [id, parte] of Object.entries(repartirProporcional(pago.importe, pesos))) {
+      pagado[id] = (pagado[id] ?? 0) + parte
+    }
+  }
   return pagado
 }
 
-/** Gasto de la casa que entra en las cuentas: compras de comidas «casa» y el alquiler si tiene pagador. */
+/** Gasto de la casa que entra en las cuentas: compras de comidas «casa» y lo pagado del alquiler. */
 function totalCasa(quedada: Quedada): Centimos {
-  const { precio, pagadorId } = quedada.casa
-  return sumarPorReparto(quedada, 'casa') + (precio !== null && pagadorId !== null ? precio : 0)
+  return sumarPorReparto(quedada, 'casa') + quedada.pagos.reduce((suma, p) => suma + p.importe, 0)
 }
 
 /** Saldo de cada persona: lo que ha pagado menos lo que le corresponde. */

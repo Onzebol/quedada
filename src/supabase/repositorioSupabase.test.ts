@@ -50,7 +50,8 @@ describe('RepositorioSupabase', () => {
       id: 'q1',
       participantes: [{ id: 'a', nombre: 'Ana', porcentajeCasa: 50, familiaId: 's1' }],
       asistentes: [{ id: 's1', familia: 'Pérez', personas: 1, llegada: null }],
-      casa: { titulo: 'Casa', descripcion: 'https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050, pagadorId: 'a' },
+      casa: { titulo: 'Casa', descripcion: 'https://x.es', direccion: 'Calle 1', latitud: 41.6, longitud: -1.2, precio: 90050 },
+      pagos: [{ id: 'g1', familiaId: 's1', importe: 20000, concepto: 'Reserva' }],
     })
     const r = repo()
     await r.guardar(q)

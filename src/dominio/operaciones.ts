@@ -24,6 +24,7 @@ export function quedadaInicial(crearId: () => Id, nombre = 'Quedada'): Quedada {
     productos: [],
     asistentes: [],
     basicos: [],
+    pagos: [],
   }
 }
 

@@ -213,7 +213,7 @@ describe('La casa: ficha', () => {
     const { usuario } = await preparar(
       quedada({
         id: 'q1',
-        casa: casaCon({ precio: 90000, pagadorId: 'a' }),
+        casa: casaCon({ precio: 90000 }),
         participantes: [{ id: 'a', nombre: 'Ana' }],
       }),
     )
@@ -255,50 +255,100 @@ describe('Resumen: lo que paga cada uno de la casa', () => {
 })
 
 describe('Pagos', () => {
-  const conPrecio = (pagadorId: string | null) =>
+  const conFamilias = (parcial: Partial<ReturnType<typeof quedada>> = {}) =>
     quedada({
       id: 'q1',
-      casa: casaCon({ precio: 90000, pagadorId }),
-      participantes: [
-        { id: 'a', nombre: 'Ana' },
-        { id: 'b', nombre: 'Beto' },
+      casa: casaCon({ precio: 90000 }),
+      asistentes: [
+        { id: 'f2', familia: 'Pérez', personas: 1, llegada: null },
+        { id: 'f1', familia: 'García', personas: 2, llegada: null },
       ],
+      ...parcial,
     })
 
-  async function abrirPagos(inicial = conPrecio(null)) {
+  async function abrirPagos(inicial = conFamilias()) {
     const { usuario, repositorio } = await preparar(inicial)
     await usuario.click(screen.getByRole('tab', { name: 'Pagos' }))
     return { usuario, repositorio, panel: screen.getByRole('region', { name: 'Pago de la casa' }) }
   }
 
-  it('indica quién pagó la casa y lo guarda', async () => {
+  it('muestra el precio, lo pagado y lo que falta', async () => {
+    const { panel } = await abrirPagos(conFamilias({ pagos: [{ id: 'x', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }] }))
+    expect(within(panel).getByText('Precio').nextElementSibling).toHaveTextContent(/900,00\s€/)
+    expect(within(panel).getByText('Pagado').nextElementSibling).toHaveTextContent(/200,00\s€/)
+    expect(within(panel).getByText('Falta').nextElementSibling).toHaveTextContent(/700,00\s€/)
+  })
+
+  it('lista los pagos con familia, concepto e importe', async () => {
+    const { panel } = await abrirPagos(conFamilias({ pagos: [{ id: 'x', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }] }))
+    const lista = within(panel).getByRole('list', { name: 'Pagos de la casa' })
+    const fila = within(lista).getByRole('listitem')
+    expect(fila).toHaveTextContent('Reserva')
+    expect(fila).toHaveTextContent('García')
+    expect(fila).toHaveTextContent(/200,00\s€/)
+  })
+
+  it('añade el pago de una familia', async () => {
     const { usuario, repositorio, panel } = await abrirPagos()
-    expect(within(panel).getByText(/900,00\s€/)).toBeInTheDocument()
-    expect(within(panel).getByText(/no entra en las cuentas/)).toBeInTheDocument()
-    await usuario.selectOptions(within(panel).getByRole('combobox', { name: 'Quién pagó la casa' }), 'Ana')
-    expect((await guardada(repositorio)).casa.pagadorId).toBe('a')
-    expect(within(panel).queryByText(/no entra en las cuentas/)).not.toBeInTheDocument()
+    await usuario.click(within(panel).getByRole('button', { name: 'Añadir pago' }))
+    const ventana = screen.getByRole('dialog', { name: 'Añadir pago' })
+    const familia = within(ventana).getByRole('combobox', { name: 'Familia' })
+    expect(Array.from((familia as HTMLSelectElement).options).map((o) => o.textContent)).toEqual(['García', 'Pérez'])
+    await usuario.selectOptions(familia, 'Pérez')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Importe (€)' }), '250,50')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Concepto' }), 'Reserva')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
+    expect((await guardada(repositorio)).pagos).toEqual([{ id: 'id1', familiaId: 'f2', importe: 25050, concepto: 'Reserva' }])
+    expect(within(panel).getByText('Falta').nextElementSibling).toHaveTextContent(/649,50\s€/)
   })
 
-  it('«Quién pagó la casa» ofrece primero Nadie todavía y luego los nombres por orden alfabético', async () => {
-    const { panel } = await abrirPagos()
-    const selector = within(panel).getByRole('combobox', { name: 'Quién pagó la casa' })
-    const opciones = Array.from((selector as HTMLSelectElement).options).map((o) => o.textContent)
-    expect(opciones[0]).toBe('Nadie todavía')
-    expect(opciones.slice(1)).toEqual([...opciones.slice(1)].sort((a, b) => (a ?? '').localeCompare(b ?? '', 'es', { sensitivity: 'base' })))
+  it('reparte un importe entre las familias según sus personas', async () => {
+    const { usuario, repositorio, panel } = await abrirPagos()
+    await usuario.click(within(panel).getByRole('button', { name: 'Repartir entre familias' }))
+    const ventana = screen.getByRole('dialog', { name: 'Repartir entre familias' })
+    const importe = within(ventana).getByRole('textbox', { name: 'Importe total (€)' })
+    expect(importe).toHaveValue('900,00')
+    await usuario.clear(importe)
+    await usuario.type(importe, '300')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Concepto' }), 'Reserva')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Repartir' }))
+    const pagos = (await guardada(repositorio)).pagos
+    expect(pagos.map((p) => [p.familiaId, p.importe, p.concepto])).toEqual([
+      ['f1', 20000, 'Reserva'],
+      ['f2', 10000, 'Reserva'],
+    ])
   })
 
-  it('muestra quién la pagó y permite quitarlo', async () => {
-    const { usuario, repositorio, panel } = await abrirPagos(conPrecio('b'))
-    expect(within(panel).getByRole('combobox', { name: 'Quién pagó la casa' })).toHaveValue('b')
-    await usuario.selectOptions(within(panel).getByRole('combobox', { name: 'Quién pagó la casa' }), 'Nadie todavía')
-    expect((await guardada(repositorio)).casa.pagadorId).toBeNull()
+  it('edita un pago', async () => {
+    const { usuario, repositorio, panel } = await abrirPagos(conFamilias({ pagos: [{ id: 'x', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }] }))
+    await usuario.click(within(panel).getByRole('button', { name: 'Editar Reserva de García' }))
+    const ventana = screen.getByRole('dialog', { name: 'Editar pago' })
+    const importe = within(ventana).getByRole('textbox', { name: 'Importe (€)' })
+    expect(importe).toHaveValue('200,00')
+    await usuario.clear(importe)
+    await usuario.type(importe, '300')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Guardar' }))
+    expect((await guardada(repositorio)).pagos[0]).toEqual({ id: 'x', familiaId: 'f1', importe: 30000, concepto: 'Reserva' })
   })
 
-  it('sin precio avisa de que hay que ponerlo en La casa', async () => {
-    const { panel } = await abrirPagos(quedada({ id: 'q1' }))
+  it('borra un pago pidiendo confirmación', async () => {
+    const { usuario, repositorio, panel } = await abrirPagos(conFamilias({ pagos: [{ id: 'x', familiaId: 'f1', importe: 20000, concepto: 'Reserva' }] }))
+    await usuario.click(within(panel).getByRole('button', { name: 'Borrar Reserva de García' }))
+    expect((await guardada(repositorio)).pagos).toHaveLength(1)
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
+    await waitFor(async () => expect((await guardada(repositorio)).pagos).toEqual([]))
+  })
+
+  it('sin familias avisa de que hay que añadirlas en La casa y no ofrece pagar', async () => {
+    const { panel } = await abrirPagos(quedada({ id: 'q1', casa: casaCon({ precio: 90000 }) }))
+    expect(within(panel).getByText(/Añade primero las familias/)).toBeInTheDocument()
+    expect(within(panel).queryByRole('button', { name: 'Añadir pago' })).not.toBeInTheDocument()
+  })
+
+  it('sin precio avisa de que se puede poner en La casa, pero deja registrar pagos', async () => {
+    const { panel } = await abrirPagos(conFamilias({ casa: casaCon({ precio: null }) }))
     expect(within(panel).getByText(/Todavía no hay precio de la casa/)).toBeInTheDocument()
-    expect(within(panel).queryByRole('combobox')).not.toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Añadir pago' })).toBeInTheDocument()
   })
 })
 

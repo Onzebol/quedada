@@ -228,6 +228,7 @@ export function importarHoja(nombre: string, filas: Celda[][]): ResultadoHoja | 
       productos,
       asistentes: familias,
       basicos: [],
+      pagos: [],
     },
     avisos,
   }
