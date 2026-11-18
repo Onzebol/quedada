@@ -56,9 +56,15 @@ describe('participantes', () => {
     expect(anadirParticipante(q, { id: 'p2', nombre: '   ' })).toBe(q)
   })
 
-  it('no repite un nombre ya existente (sin distinguir mayúsculas)', () => {
+  it('permite varias personas con el mismo nombre', () => {
     const q = anadirParticipante(quedada(), { id: 'p1', nombre: 'Josu' })
-    expect(anadirParticipante(q, { id: 'p2', nombre: 'josu' })).toBe(q)
+    expect(anadirParticipante(q, { id: 'p2', nombre: 'josu' }).participantes.map((p) => p.id)).toEqual(['p1', 'p2'])
+  })
+
+  it('permite renombrar a una persona con el nombre de otra', () => {
+    let q = anadirParticipante(quedada(), { id: 'p1', nombre: 'Josu' })
+    q = anadirParticipante(q, { id: 'p2', nombre: 'Ana' })
+    expect(editarParticipante(q, 'p2', { nombre: 'josu' }).participantes[1].nombre).toBe('josu')
   })
 })
 

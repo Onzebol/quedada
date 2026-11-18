@@ -46,7 +46,6 @@ function sincronizarPersonas(q: Quedada): Quedada {
 export function anadirComponente(q: Quedada, nuevo: { id: Id; familiaId: Id; nombre: string }): Quedada {
   const nombre = nuevo.nombre.trim()
   if (nombre === '' || !q.asistentes.some((a) => a.id === nuevo.familiaId)) return q
-  if (q.participantes.some((p) => p.nombre.toLowerCase() === nombre.toLowerCase())) return q
   const participante: Participante = { id: nuevo.id, nombre, familiaId: nuevo.familiaId }
   return sincronizarPersonas({ ...q, participantes: [...q.participantes, participante] })
 }
