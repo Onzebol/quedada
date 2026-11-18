@@ -42,7 +42,8 @@ export function Compartir({ quedadaId, invitaciones, urlPagina }: Props) {
 
   useEffect(() => {
     if (!abierto) return
-    // Se carga al abrir; el estado se rellena cuando llega la respuesta.
+    // Se carga al abrir; el estado se rellena cuando llega la respuesta (asíncrona).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void cargar()
   }, [abierto, cargar])
 

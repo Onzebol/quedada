@@ -51,7 +51,7 @@ describe('AutenticacionSupabase', () => {
     const auth = await AutenticacionSupabase.abrir(cliente, 'https://web/quedada/')
     void auth.entrar()
     await vi.waitFor(() =>
-      expect(signInWithOAuth).toHaveBeenCalledWith({ provider: 'google', options: { redirectTo: 'https://web/quedada/' } }),
+      expect(signInWithOAuth).toHaveBeenCalledWith({ provider: 'google', options: { redirectTo: 'https://web/quedada/', queryParams: { prompt: 'select_account' } } }),
     )
   })
 

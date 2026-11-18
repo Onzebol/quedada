@@ -12,7 +12,7 @@ export interface ClienteAuth {
     getSession(): PromiseLike<{ data: { session: { user: UsuarioSupabase } | null } }>
     signInWithOAuth(opciones: {
       provider: 'google'
-      options: { redirectTo: string }
+      options: { redirectTo: string; queryParams?: Record<string, string> }
     }): PromiseLike<{ error: { message: string } | null }>
     signOut(): PromiseLike<{ error: { message: string } | null }>
   }
@@ -57,7 +57,7 @@ export class AutenticacionSupabase implements Autenticacion {
 
   async entrar(): Promise<Usuario> {
     if (!this.cliente) throw new Error('Falta la configuración de Supabase')
-    const { error } = await this.cliente.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: this.volverA } })
+    const { error } = await this.cliente.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: this.volverA, queryParams: { prompt: 'select_account' } } })
     if (error) throw new Error(error.message)
     // El navegador se va a Google: esta promesa no llega a resolverse en la práctica.
     return new Promise<Usuario>(() => {})

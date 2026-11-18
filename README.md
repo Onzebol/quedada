@@ -15,7 +15,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 3 | Lista de la compra (hecho): comidas, productos, comprador, comprado, observaciones y filtros |
 | 4 | Gastos y liquidación (hecho): precio y descuento por producto, reparto (casa a partes iguales, comida por porcentaje) y quién paga a quién |
 | 5 | Despliegue continuo en GitHub Pages |
-| 6 | Importar el Excel (hecho): hojas «Compras 2023 a 2026» a quedadas, con la lista de quedadas |
+| 6 | Importar el Excel (hecho; retirado en #137: ya no se usa) |
 | 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes (los básicos se quitaron en #56: van en la lista de la compra) |
 | 19 | Sesión con Google y enlace de la quedada (`#/<id>`): entrar/salir, nombre y foto, «Este soy yo» |
 | 25 | Supabase: login con Google y quedadas por usuario (primer trozo; compartir, conocidos e invitaciones, después). Configuración: ver abajo |
@@ -23,11 +23,11 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 32 | Tiempo real: los cambios de otra persona aparecen sin recargar (Broadcast desde la base de datos, canal privado por quedada; paso 2 de #29) |
 | 36 | Eliminar quedadas, con confirmación |
 | 55 | Pestañas en la quedada: La casa, Lista de la compra, Pagos (pagos de la casa por familia; tiques, pendiente) y Resumen |
-| 56 | La casa: título, descripción con enlaces, dirección, precio y mapa (marcador ajustable y botón «Centrar» al editar; botón de la app de mapas en el móvil), familias con sus personas (cada comprador del Excel entra como una familia) y lo que paga cada una de casa y de los demás gastos; en «Pagos», quién pagó la casa; en el Resumen, lo que paga cada uno de la casa |
+| 56 | La casa: título, descripción con enlaces, dirección, precio y mapa (marcador ajustable y botón «Centrar» al editar; botón de la app de mapas en el móvil), familias con sus personas y lo que paga cada una de casa y de los demás gastos; en «Pagos», quién pagó la casa; en el Resumen, lo que paga cada uno de la casa |
 | 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
 | 42 | Todos los borrados (quedada, comida, producto, asistente y básico) piden confirmación en una ventana modal con el estilo de la web |
 | 43 | Menú de usuario: arriba a la derecha solo nombre de pila y foto; al pulsar se abre un menú con «Cerrar sesión» |
-| 44 | Página inicial (sin `#/<id>`): añadir (modal), editar (modal), elegir y eliminar quedadas e importar el Excel; el título «Quedada» vuelve a ella (#97) y cada quedada muestra su nombre |
+| 44 | Página inicial (sin `#/<id>`): añadir (modal), editar (modal), elegir y eliminar quedadas; el título «Quedada» vuelve a ella (#97) y cada quedada muestra su nombre |
 | 57 | Iconos (`lucide-react`) en los botones; en móvil (< 40 rem) solo se ve el icono, el texto queda como nombre accesible |
 | 67 | Lista de la compra como «La casa»: secciones plegables y por orden alfabético, añadir y editar en ventanas modales, asignar también a familias sin personas, filtro «Mostrar» y totales; sin «Añadir participante» (se definen en «La casa») |
 | 70 | Con un filtro activo en «Mostrar», la lista de la compra no muestra botones de añadir, renombrar, editar ni borrar |
@@ -85,7 +85,6 @@ En *Project Settings → Realtime* deja activado Realtime y desmarcado «Allow p
 - `src/compra/`: la lista de la compra (React).
 - `src/cuentas/`: Resumen: totales, ficha por familia con su saldo y transferencias (React).
 - `src/inicio/`: página inicial con la lista de quedadas (crear, elegir, eliminar).
-- `src/importacion/`: importación del Excel de compras (`.xlsx`) a quedadas.
 - `src/`: `App` y arranque de la interfaz.
 - `.github/workflows/`: CI y despliegue.
 
