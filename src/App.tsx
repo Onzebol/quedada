@@ -1,5 +1,3 @@
-import { ArrowLeft } from 'lucide-react'
-import { ConIcono } from './ui/ConIcono'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CopiarEnlace } from './autenticacion/CopiarEnlace'
 import { AutenticacionGoogle } from './autenticacion/autenticacionGoogle'
@@ -57,7 +55,11 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
 
   return (
     <main className="pagina">
-      <h1>Quedada</h1>
+      <h1>
+        <button type="button" className="logo" onClick={() => setActiva(null)}>
+          Quedada
+        </button>
+      </h1>
       {activa === null ? (
         <PaginaInicial
           almacen={almacen}
@@ -76,7 +78,6 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
           quedadaId={activa}
           urlPagina={urlPagina}
           geocodificar={geocodificar}
-          irAlInicio={() => setActiva(null)}
         />
       )}
     </main>
@@ -173,25 +174,20 @@ interface PropsVista {
   quedadaId: Id
   urlPagina?: string
   geocodificar?: Geocodificador
-  irAlInicio: () => void
 }
 
-function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodificar, irAlInicio }: PropsVista) {
+function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodificar }: PropsVista) {
   const estado = useQuedada(almacen, crearId, quedadaId)
 
   return (
     <>
       <div className="barra">
-        <nav>
-          <button type="button" className="volver" onClick={irAlInicio}>
-            <ConIcono icono={ArrowLeft}>Todas las quedadas</ConIcono>
-          </button>
-        </nav>
         <Sesion sesion={sesion} quedada={estado.quedada} aplicar={estado.aplicar} />
         {estado.quedada !== null && estado.error !== 'noEncontrada' && (
           <CopiarEnlace quedadaId={estado.quedada.id} urlPagina={urlPagina} />
         )}
       </div>
+      {estado.quedada !== null && estado.error !== 'noEncontrada' && <h2 className="quedada__nombre">{estado.quedada.nombre}</h2>}
       {estado.error === 'noEncontrada' ? (
         <p role="note">
           No se encontró esta quedada: puede que no exista o que no tengas acceso. Los enlaces solo funcionan

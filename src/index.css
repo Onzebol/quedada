@@ -44,6 +44,21 @@ body {
   color: var(--moss);
 }
 
+.pagina > h1 .logo {
+  all: unset;
+  cursor: pointer;
+  border-radius: 0.2em;
+}
+
+.pagina > h1 .logo:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 4px;
+}
+
+.quedada__nombre {
+  margin: 0;
+}
+
 .pagina__columnas {
   display: grid;
   gap: 1.5rem;

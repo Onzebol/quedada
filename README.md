@@ -27,7 +27,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
 | 42 | Todos los borrados (quedada, comida, producto, asistente y básico) piden confirmación en una ventana modal con el estilo de la web |
 | 43 | Menú de usuario: arriba a la derecha solo nombre de pila y foto; al pulsar se abre un menú con «Cerrar sesión» |
-| 44 | Página inicial (sin `#/<id>`): crear, elegir y eliminar quedadas e importar el Excel; «Todas las quedadas» vuelve a ella |
+| 44 | Página inicial (sin `#/<id>`): crear, elegir y eliminar quedadas e importar el Excel; el título «Quedada» vuelve a ella (#97) y cada quedada muestra su nombre |
 | 57 | Iconos (`lucide-react`) en los botones; en móvil (< 40 rem) solo se ve el icono, el texto queda como nombre accesible |
 | 67 | Lista de la compra como «La casa»: secciones plegables y por orden alfabético, añadir y editar en ventanas modales, asignar también a familias sin personas, filtro «Mostrar» y totales; sin «Añadir participante» (se definen en «La casa») |
 | 70 | Con un filtro activo en «Mostrar», la lista de la compra no muestra botones de añadir, renombrar, editar ni borrar |
