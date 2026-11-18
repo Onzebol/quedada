@@ -45,6 +45,11 @@ export function repartirProporcional(total: Centimos, pesos: Record<Id, number>)
   return resultado
 }
 
+/** Pagos de la casa que entran en las cuentas: solo los marcados como pagados (puede haber quien aún no haya pagado la reserva). */
+function pagosCobrados(quedada: Quedada) {
+  return quedada.pagos.filter((p) => p.pagado === true)
+}
+
 /**
  * Lo pagado por cada persona: sus gastos y los pagos de la casa. El pago de una familia se acredita a sus
  * componentes según su porcentaje de casa (a partes iguales si todos pesan 0); si la familia no
@@ -53,7 +58,7 @@ export function repartirProporcional(total: Centimos, pesos: Record<Id, number>)
 export function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
   const pagado: Record<Id, Centimos> = {}
   for (const g of quedada.gastos) pagado[g.pagadorId] = (pagado[g.pagadorId] ?? 0) + g.importe
-  for (const pago of quedada.pagos) {
+  for (const pago of pagosCobrados(quedada)) {
     const componentes = quedada.participantes.filter((p) => p.familiaId === pago.familiaId)
     if (componentes.length === 0) {
       pagado[pago.familiaId] = (pagado[pago.familiaId] ?? 0) + pago.importe
@@ -68,9 +73,9 @@ export function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
   return pagado
 }
 
-/** Alquiler que entra en las cuentas: solo lo pagado. */
+/** Alquiler que entra en las cuentas: solo lo marcado como pagado. */
 export function totalCasa(quedada: Quedada): Centimos {
-  return quedada.pagos.reduce((suma, p) => suma + p.importe, 0)
+  return pagosCobrados(quedada).reduce((suma, p) => suma + p.importe, 0)
 }
 
 /** Lo que le toca a cada participante: su parte del alquiler pagado y de los gastos. */

@@ -556,7 +556,7 @@ function quedadaConGastos() {
     productos: [producto({ id: 'p1', grupoId: 'cena', nombre: 'Pizza', compradorId: 'beto', cantidad: 2, precioUnidad: 500 })],
     gastos: [{ id: 'g1', pagadorId: 'ana', concepto: 'Compra', importe: 1600 }],
     casa: { ...quedada().casa, precio: 10000 },
-    pagos: [{ id: 'pg1', familiaId: 'fa', importe: 10000, concepto: 'Alquiler' }],
+    pagos: [{ id: 'pg1', familiaId: 'fa', importe: 10000, concepto: 'Alquiler', pagado: true }],
   })
 }
 

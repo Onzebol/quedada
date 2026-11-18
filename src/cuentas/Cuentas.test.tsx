@@ -38,6 +38,15 @@ describe('Cuentas', () => {
     expect(within(totales).getByText('Gastos').nextElementSibling).toHaveTextContent(euros('40,00 €'))
   })
 
+  it('indica lo que falta de pagar de la casa, y no lo muestra si no hay precio', () => {
+    const { unmount } = render(<Cuentas quedada={q({ pagos: [{ id: 'p1', familiaId: 'f1', concepto: 'Reserva', importe: 10000, pagado: true }] })} />)
+    const totales = screen.getByRole('list', { name: 'Totales' })
+    expect(within(totales).getByText('Falta de la casa').nextElementSibling).toHaveTextContent(euros('300,00 €'))
+    unmount()
+    render(<Cuentas quedada={q({ casa: { ...quedada().casa, precio: null } })} />)
+    expect(screen.queryByText('Falta de la casa')).not.toBeInTheDocument()
+  })
+
   it('una ficha por familia, por orden alfabético, con lo pagado, lo que le toca y el saldo', () => {
     render(<Cuentas quedada={q()} />)
     const nombres = screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)

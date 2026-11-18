@@ -25,7 +25,7 @@
 
 .cuentas__totales {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
   gap: var(--esp-2);
 }
 
@@ -38,6 +38,11 @@
   background: var(--moss);
   border-radius: 12px;
   color: #fff;
+}
+
+.cuentas__totales .cuentas__falta {
+  background: var(--sun);
+  color: var(--ink);
 }
 
 .cuentas__totales strong {

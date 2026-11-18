@@ -21,7 +21,13 @@ export interface ResumenCuentas {
   grupos: GrupoResumen[]
   /** Quién paga a quién entre grupos (familias o personas sueltas). */
   transferencias: Transferencia[]
-  totales: { pagado: Centimos; casaPagada: Centimos; gastos: Centimos }
+  totales: {
+    pagado: Centimos
+    casaPagada: Centimos
+    /** Lo que falta del precio de la casa (nunca negativo), o `null` sin precio. */
+    casaFalta: Centimos | null
+    gastos: Centimos
+  }
 }
 
 function linea(id: Id, nombre: string, pagado: Centimos, casa: Centimos, gastos: Centimos): LineaResumen {
@@ -57,6 +63,7 @@ export function resumenPorFamilia(q: Quedada): ResumenCuentas {
     totales: {
       pagado: Object.values(pagado).reduce((s, v) => s + v, 0),
       casaPagada: totalCasa(q),
+      casaFalta: q.casa.precio === null ? null : Math.max(0, q.casa.precio - totalCasa(q)),
       gastos: q.gastos.reduce((s, g) => s + g.importe, 0),
     },
   }

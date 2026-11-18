@@ -100,6 +100,12 @@ export function Cuentas({ quedada }: Props) {
           <span>Casa pagada</span>
           <strong>{formatearEuros(totales.casaPagada)}</strong>
         </li>
+        {totales.casaFalta !== null && (
+          <li className={totales.casaFalta > 0 ? 'cuentas__falta' : undefined}>
+            <span>Falta de la casa</span>
+            <strong>{formatearEuros(totales.casaFalta)}</strong>
+          </li>
+        )}
         <li>
           <span>Gastos</span>
           <strong>{formatearEuros(totales.gastos)}</strong>

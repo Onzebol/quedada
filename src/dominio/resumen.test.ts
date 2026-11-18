@@ -72,7 +72,7 @@ describe('resumenPorFamilia', () => {
       pagos: [pago('f1', 20000)],
       gastos: [gasto('ana', 3000)],
     })
-    expect(resumenPorFamilia(q).totales).toEqual({ pagado: 23000, casaPagada: 20000, gastos: 3000 })
+    expect(resumenPorFamilia(q).totales).toEqual({ pagado: 23000, casaPagada: 20000, casaFalta: 30000, gastos: 3000 })
   })
 
   it('las transferencias son entre familias (o personas sueltas), no entre personas de una familia', () => {
@@ -89,5 +89,14 @@ describe('resumenPorFamilia', () => {
       gastos: [gasto('cris', 4000)],
     })
     expect(resumenPorFamilia(q).transferencias).toEqual([{ de: 'f2', a: 'f1', importe: 18000 }])
+  })
+
+  it('lo que falta de la casa no cuenta los pagos sin marcar como pagados, ni baja de 0, ni sale sin precio', () => {
+    const base = quedada({ asistentes: [familia('f1', 'A')], participantes: [persona('ana', { familiaId: 'f1' })] })
+    const conPrecio = (precio: number | null, pagos: Pago[]) => ({ ...base, casa: { ...base.casa, precio }, pagos })
+    const sinMarcar = { ...pago('f1', 30000), id: 'x', pagado: false }
+    expect(resumenPorFamilia(conPrecio(50000, [pago('f1', 20000), sinMarcar])).totales.casaFalta).toBe(30000)
+    expect(resumenPorFamilia(conPrecio(10000, [pago('f1', 20000)])).totales.casaFalta).toBe(0)
+    expect(resumenPorFamilia(conPrecio(null, [pago('f1', 20000)])).totales.casaFalta).toBeNull()
   })
 })
