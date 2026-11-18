@@ -10,6 +10,7 @@ vi.mock('leaflet/dist/leaflet.css', () => ({}))
 beforeEach(() => {
   leaflet.mapa = null
   leaflet.marcador = null
+  leaflet.selector = []
 })
 
 describe('MapaAjustable', () => {
@@ -20,6 +21,18 @@ describe('MapaAjustable', () => {
     expect(leaflet.mapa!.centro).toEqual([41.6, -1.2])
     expect(leaflet.marcador!.opciones.draggable).toBe(true)
     expect(leaflet.marcador!.posicion).toEqual({ lat: 41.6, lng: -1.2 })
+  })
+
+  it('sin el prefijo de Leaflet: solo «© OpenStreetMap»', async () => {
+    render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
+    await waitFor(() => expect(leaflet.mapa).not.toBeNull())
+    expect(leaflet.mapa!.prefijo).toBe(false)
+  })
+
+  it('ofrece también la capa de satélite', async () => {
+    render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
+    await waitFor(() => expect(leaflet.mapa).not.toBeNull())
+    expect(leaflet.selector).toEqual(['Mapa', 'Satélite'])
   })
 
   it('al soltar el marcador avisa de la nueva posición', async () => {

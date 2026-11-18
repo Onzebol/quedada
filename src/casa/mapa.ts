@@ -6,15 +6,6 @@ export interface Coordenadas {
 /** Convierte una dirección en coordenadas, o `null` si no la encuentra. */
 export type Geocodificador = (direccion: string) => Promise<Coordenadas | null>
 
-const redondear = (n: number) => Number(n.toFixed(5))
-
-/** Mapa de OpenStreetMap para un `iframe`: un recuadro de ±0,01° alrededor del marcador. */
-export function urlMapaIncrustado(latitud: number, longitud: number): string {
-  const d = 0.01
-  const bbox = [longitud - d, latitud - d, longitud + d, latitud + d].map(redondear).join(',')
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latitud},${longitud}`
-}
-
 /**
  * Enlace que abre la aplicación de mapas del móvil: `geo:` en Android y Apple Maps en iPhone/iPad.
  * En el ordenador devuelve `null` (no hay aplicación de mapas a la que enviar). Un iPad moderno se

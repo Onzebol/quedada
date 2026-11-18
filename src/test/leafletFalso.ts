@@ -27,9 +27,21 @@ export class MarcadorFalso {
 }
 
 export class MapaFalso {
+  contenedor: HTMLElement | undefined
+  constructor(contenedor?: HTMLElement) {
+    // Como Leaflet de verdad: un contenedor no admite dos mapas a la vez.
+    if (contenedor !== undefined) {
+      if (contenedor.dataset.mapaFalso === 'si') throw new Error('Map container is already initialized.')
+      contenedor.dataset.mapaFalso = 'si'
+    }
+    this.contenedor = contenedor
+  }
   manejadores: Record<string, Manejador> = {}
   quitado = false
   centro: [number, number] | null = null
+  /** Lo que Leaflet pinta antes de la atribución («Leaflet»): `false` lo quita. */
+  prefijo: string | false = 'Leaflet'
+  attributionControl = { setPrefix: (p: string | false) => void (this.prefijo = p) }
   setView(centro: [number, number]) {
     this.centro = centro
     return this
@@ -44,12 +56,17 @@ export class MapaFalso {
   }
   remove() {
     this.quitado = true
+    if (this.contenedor !== undefined) delete this.contenedor.dataset.mapaFalso
   }
 }
 
 export const leaflet = {
   mapa: null as MapaFalso | null,
   marcador: null as MarcadorFalso | null,
+  /** Capas de teselas creadas: url -> atribución. */
+  capas: {} as Record<string, string>,
+  /** Nombres de las capas base que ofrece el selector de capas. */
+  selector: [] as string[],
   /** Simula arrastrar el marcador a otro sitio y soltarlo. */
   arrastrar(lat: number, lng: number) {
     leaflet.marcador!.posicion = { lat, lng }
@@ -62,8 +79,17 @@ export const leaflet = {
 }
 
 const L = {
-  map: () => (leaflet.mapa = new MapaFalso()),
-  tileLayer: () => ({ addTo: () => undefined }),
+  map: (contenedor?: HTMLElement) => (leaflet.mapa = new MapaFalso(contenedor)),
+  tileLayer: (url: string, opciones: { attribution?: string }) => {
+    leaflet.capas[url] = opciones.attribution ?? ''
+    return { addTo: () => undefined, url }
+  },
+  control: {
+    layers: (bases: Record<string, unknown>) => {
+      leaflet.selector = Object.keys(bases)
+      return { addTo: () => undefined }
+    },
+  },
   divIcon: (opciones: Record<string, unknown>) => opciones,
   marker: (posicion: [number, number], opciones: Record<string, unknown>) => (leaflet.marcador = new MarcadorFalso(posicion, opciones)),
 }

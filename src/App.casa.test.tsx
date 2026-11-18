@@ -112,7 +112,7 @@ describe('La casa: ficha', () => {
   it('sitúa la dirección en el mapa; el mapa se ve en la información al guardar', async () => {
     const geocodificar = vi.fn<Geocodificador>().mockResolvedValue({ latitud: 41.6, longitud: -1.2 })
     const { usuario, repositorio } = await preparar(quedada({ id: 'q1', casa: casaCon({ direccion: 'Calle Mayor 1' }) }), geocodificar)
-    expect(within(ficha()).queryByTitle('Mapa de la casa')).not.toBeInTheDocument()
+    expect(within(ficha()).queryByLabelText(/Mapa de la casa/)).not.toBeInTheDocument()
     const form = await editar(usuario)
     await usuario.click(within(form).getByRole('button', { name: 'Situar en el mapa' }))
     expect(geocodificar).toHaveBeenCalledWith('Calle Mayor 1')
@@ -120,13 +120,13 @@ describe('La casa: ficha', () => {
     await waitFor(() => expect(leaflet.marcador?.posicion).toEqual({ lat: 41.6, lng: -1.2 }))
     await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
     expect((await guardada(repositorio)).casa).toMatchObject({ direccion: 'Calle Mayor 1', latitud: 41.6, longitud: -1.2 })
-    expect(within(ficha()).getByTitle('Mapa de la casa')).toBeInTheDocument()
+    expect(await within(ficha()).findByLabelText(/Mapa de la casa/)).toBeInTheDocument()
   })
 
   it('el botón de la app de mapas solo aparece en el móvil, y no el enlace a OpenStreetMap', async () => {
     const q = () => quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) })
     await preparar(q())
-    expect(within(ficha()).getByTitle('Mapa de la casa')).toBeInTheDocument()
+    expect(await within(ficha()).findByLabelText(/Mapa de la casa/)).toBeInTheDocument()
     expect(within(ficha()).queryByRole('link', { name: /Navegar/ })).not.toBeInTheDocument()
     expect(within(ficha()).queryByRole('link', { name: /OpenStreetMap/ })).not.toBeInTheDocument()
   })
@@ -148,11 +148,10 @@ describe('La casa: ficha', () => {
 
   it('la ficha tiene «Centrar», que devuelve el mapa a la casa', async () => {
     await preparar(quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }))
-    const antes = within(ficha()).getByTitle('Mapa de la casa')
+    await waitFor(() => expect(leaflet.mapa).not.toBeNull())
+    act(() => void leaflet.mapa!.panTo({ lat: 0, lng: 0 }))
     await userEvent.click(within(ficha()).getByRole('button', { name: 'Centrar' }))
-    const despues = within(ficha()).getByTitle('Mapa de la casa')
-    expect(despues).not.toBe(antes)
-    expect(despues).toHaveAttribute('src', antes.getAttribute('src'))
+    expect(leaflet.mapa!.centro).toEqual([41.6, -1.2])
   })
 
   it('el marcador se puede mover solo al editar, y la nueva posición se guarda', async () => {
@@ -160,14 +159,16 @@ describe('La casa: ficha', () => {
       quedada({ id: 'q1', casa: casaCon({ titulo: 'Casa', direccion: 'A', latitud: 41.6, longitud: -1.2 }) }),
     )
     // En la ficha el mapa es de solo lectura: no hay marcador que mover.
-    expect(within(ficha()).getByTitle('Mapa de la casa')).toBeInTheDocument()
-    expect(leaflet.marcador).toBeNull()
+    expect(await within(ficha()).findByLabelText(/Mapa de la casa/)).toBeInTheDocument()
+    await waitFor(() => expect(leaflet.marcador).not.toBeNull())
+    expect(leaflet.marcador!.opciones.draggable).toBeFalsy()
     const form = await editar(usuario)
     await waitFor(() => expect(leaflet.marcador).not.toBeNull())
     act(() => leaflet.arrastrar(41.65, -1.25))
     await usuario.click(within(form).getByRole('button', { name: 'Guardar' }))
     expect((await guardada(repositorio)).casa).toMatchObject({ direccion: 'A', latitud: 41.65, longitud: -1.25 })
-    expect(within(ficha()).getByTitle('Mapa de la casa')).toHaveAttribute('src', expect.stringContaining('marker=41.65,-1.25'))
+    expect(await within(ficha()).findByLabelText(/Mapa de la casa/)).toBeInTheDocument()
+    await waitFor(() => expect(leaflet.marcador!.posicion).toEqual({ lat: 41.65, lng: -1.25 }))
   })
 
   it('si se cancela, la posición del marcador no se guarda', async () => {
