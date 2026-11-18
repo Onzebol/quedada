@@ -18,9 +18,6 @@ import { quedadaInicial } from './dominio/operaciones'
 import type { Id, Quedada } from './dominio/tipos'
 import { Pestanas } from './ui/Pestanas'
 import { Inicio } from './inicio/Inicio'
-import { ImportarExcel } from './importacion/ImportarExcel'
-import type { InformeImportacion } from './importacion/importarHoja'
-import { leerExcel as leerExcelReal } from './importacion/leerExcel'
 import './inicio/inicio.css'
 import type { Imagenes } from './tiques/almacenImagenes'
 import './index.css'
@@ -28,7 +25,6 @@ import './index.css'
 interface Props {
   repositorio?: Repositorio
   crearId?: () => Id
-  leerExcel?: (archivo: Blob) => Promise<InformeImportacion>
   autenticacion?: Autenticacion
   /** URL de la página para construir el enlace de la quedada (por defecto, la actual). */
   urlPagina?: string
@@ -40,7 +36,7 @@ interface Props {
   imagenes?: Imagenes
 }
 
-export default function App({ repositorio, crearId = () => crypto.randomUUID(), leerExcel = leerExcelReal, autenticacion, urlPagina, alSalir, geocodificar, imagenes }: Props) {
+export default function App({ repositorio, crearId = () => crypto.randomUUID(), autenticacion, urlPagina, alSalir, geocodificar, imagenes }: Props) {
   const almacen = useMemo(() => repositorio ?? new RepositorioLocalStorage(), [repositorio])
   const [activa, setActiva] = useHashQuedada()
   const auth = useMemo(() => autenticacion ?? new AutenticacionGoogle(), [autenticacion])
@@ -67,9 +63,7 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
         <PaginaInicial
           almacen={almacen}
           crearId={crearId}
-          leerExcel={leerExcel}
           sesion={sesion}
-          espacio={sesion.usuario?.id}
           abrir={setActiva}
         />
       ) : (
@@ -91,14 +85,12 @@ export default function App({ repositorio, crearId = () => crypto.randomUUID(), 
 interface PropsInicial {
   almacen: Repositorio
   crearId: () => Id
-  leerExcel: (archivo: Blob) => Promise<InformeImportacion>
   sesion: ReturnType<typeof useSesion>
-  espacio?: string
   abrir: (id: Id) => void
 }
 
-/** Página inicial: lista de quedadas para elegir, crear o eliminar (y la importación del Excel). */
-function PaginaInicial({ almacen, crearId, leerExcel, sesion, espacio, abrir }: PropsInicial) {
+/** Página inicial: lista de quedadas para elegir, crear o eliminar. */
+function PaginaInicial({ almacen, crearId, sesion, abrir }: PropsInicial) {
   const [quedadas, setQuedadas] = useState<Quedada[] | null>(null)
   const [error, setError] = useState(false)
 
@@ -168,17 +160,7 @@ function PaginaInicial({ almacen, crearId, leerExcel, sesion, espacio, abrir }: 
       {quedadas === null ? (
         !error && <p role="status">Cargando…</p>
       ) : (
-        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(n) => void crear(n)} alEliminar={eliminar} alRenombrar={(id, n) => void renombrar(id, n)} puedeEliminar={almacen.puedeBorrar?.bind(almacen)}>
-          <ImportarExcel
-            leer={leerExcel}
-            repositorio={almacen}
-            espacio={espacio}
-            onImportado={(ids) => {
-              if (ids.length === 1) abrir(ids[0])
-              else void refrescar()
-            }}
-          />
-        </Inicio>
+        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(n) => void crear(n)} alEliminar={eliminar} alRenombrar={(id, n) => void renombrar(id, n)} puedeEliminar={almacen.puedeBorrar?.bind(almacen)} />
       )}
     </>
   )
