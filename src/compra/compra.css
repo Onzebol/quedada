@@ -207,6 +207,10 @@
   content: ' - ';
 }
 
+.fila__observaciones {
+  font-size: 0.75rem;
+}
+
 .fila__total {
   font-variant-numeric: tabular-nums;
 }
