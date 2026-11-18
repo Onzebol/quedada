@@ -97,6 +97,10 @@ export function Cuentas({ quedada }: Props) {
           <strong>{formatearEuros(totales.pagado)}</strong>
         </li>
         <li>
+          <span>Gastos</span>
+          <strong>{formatearEuros(totales.gastos)}</strong>
+        </li>
+        <li>
           <span>Casa pagada</span>
           <strong>{formatearEuros(totales.casaPagada)}</strong>
         </li>
@@ -106,10 +110,6 @@ export function Cuentas({ quedada }: Props) {
             <strong>{formatearEuros(totales.casaFalta)}</strong>
           </li>
         )}
-        <li>
-          <span>Gastos</span>
-          <strong>{formatearEuros(totales.gastos)}</strong>
-        </li>
       </ul>
 
       <h3>Por familia</h3>
