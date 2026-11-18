@@ -18,7 +18,7 @@ export function AvisoActualizacion({ hayNueva, onActualizar, onCerrar }: Props) 
         <button type="button" className="aviso__cerrar" onClick={onCerrar}>
           <ConIcono icono={X}>Más tarde</ConIcono>
         </button>
-        <button type="button" onClick={onActualizar}>
+        <button type="button" className="aviso__actualizar" onClick={onActualizar}>
           <ConIcono icono={RefreshCw}>Actualizar</ConIcono>
         </button>
       </div>

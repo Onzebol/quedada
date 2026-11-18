@@ -34,6 +34,13 @@ afterEach(() => {
 })
 
 describe('ActualizacionPwa', () => {
+  it('en desarrollo, con ?aviso en la URL, muestra el aviso aunque no haya versión nueva', () => {
+    window.history.pushState({}, '', '/?aviso')
+    render(<ActualizacionPwa />)
+    window.history.pushState({}, '', '/')
+    expect(screen.getByRole('status')).toBeInTheDocument()
+  })
+
   it('no avisa si no hay versión nueva', () => {
     render(<ActualizacionPwa />)
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
