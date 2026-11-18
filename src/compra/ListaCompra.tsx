@@ -115,6 +115,7 @@ export function ListaCompra({ estado, crearId }: Props) {
             productos={visibles}
             total={delGrupo.length}
             forzarAbierta={filtrando}
+            filtroId={valorEfectivo}
             conComprador={filtro.tipo !== 'comprador'}
             oculta={filtrando && visibles.length === 0}
             soloLectura={filtrando}

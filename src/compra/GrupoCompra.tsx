@@ -16,8 +16,10 @@ interface Props {
   productos: Producto[]
   /** Cuántos productos tiene el grupo en total, sin filtrar. */
   total: number
-  /** Abierta aunque no se haya desplegado (mientras hay un filtro activo). */
+  /** Hay un filtro activo: los productos son «N de total» y la sección sale desplegada, salvo si está comprada entera. */
   forzarAbierta?: boolean
+  /** Identifica el filtro activo: al cambiarlo se decide de nuevo si la sección sale desplegada. */
+  filtroId?: string
   /** Muestra el desplegable de asignar comprador en cada producto (no con un filtro por persona). */
   conComprador?: boolean
   /** Sin productos que mostrar con el filtro: no se pinta, pero conserva si estaba desplegada. */
@@ -39,6 +41,7 @@ export function GrupoCompra({
   productos,
   total,
   forzarAbierta = false,
+  filtroId = 'todos',
   conComprador = true,
   oculta = false,
   soloLectura = false,
@@ -51,11 +54,23 @@ export function GrupoCompra({
 }: Props) {
   const [anadiendo, setAnadiendo] = useState(false)
   const [renombrando, setRenombrando] = useState(false)
-  const [desplegada, setDesplegada] = useState(false)
-  const idDetalle = useId()
-  const abierta = desplegada || forzarAbierta
   const sinComprador = productos.filter((p) => p.compradorId === null).length
   const porComprar = productos.filter((p) => !p.comprado).length
+  // Con filtro sale desplegada salvo si está comprada entera; se decide al elegir el filtro (no al marcar
+  // productos, para que no se pliegue sola al comprar el último) y luego se pliega y despliega a mano.
+  // «Sin asignar» y «Pendientes» abren todo; con un comprador, solo lo que aún tiene algo por comprar.
+  const abreSola = forzarAbierta && (!filtroId.startsWith('comprador:') || porComprar > 0)
+  const [desplegada, setDesplegada] = useState(false) // sin filtro; se conserva al filtrar y volver
+  const [conFiltro, setConFiltro] = useState({ filtroId, abierta: abreSola })
+  if (forzarAbierta && conFiltro.filtroId !== filtroId) {
+    setConFiltro({ filtroId, abierta: abreSola })
+  } else if (!forzarAbierta && conFiltro.filtroId !== 'todos') {
+    // al volver a «Todos» sale todo contraído y el siguiente filtro se decide de nuevo
+    setConFiltro({ filtroId: 'todos', abierta: false })
+    setDesplegada(false)
+  }
+  const abierta = forzarAbierta ? conFiltro.abierta : desplegada
+  const idDetalle = useId()
 
   if (oculta) return null
 
@@ -69,7 +84,9 @@ export function GrupoCompra({
               className="grupo__alternar"
               aria-expanded={abierta}
               aria-controls={abierta ? idDetalle : undefined}
-              onClick={() => setDesplegada((v) => !v)}
+              onClick={() =>
+                forzarAbierta ? setConFiltro((e) => ({ ...e, abierta: !e.abierta })) : setDesplegada((v) => !v)
+              }
             >
               {grupo.nombre}
               <ChevronDown className="icono grupo__flecha" size={18} aria-hidden="true" />
@@ -80,6 +97,7 @@ export function GrupoCompra({
               {forzarAbierta ? `${productos.length} de ${total}` : total} {total === 1 ? 'producto' : 'productos'}
             </span>
             {porComprar > 0 && <span>{porComprar} por comprar</span>}
+            {productos.length > 0 && porComprar === 0 && <span className="grupo__comprado">Todo comprado</span>}
             {sinComprador > 0 && <span>{sinComprador} sin comprador</span>}
           </p>
         </div>
