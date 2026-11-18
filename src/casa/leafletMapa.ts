@@ -7,8 +7,15 @@ const ZOOM = 16
  * «© OpenStreetMap» (atribución que exige la licencia ODbL), sin el prefijo «Leaflet»; con la capa de
  * satélite, la atribución de Esri.
  */
-export async function crearMapa(contenedor: HTMLElement, latitud: number, longitud: number) {
+export async function crearMapa(
+  contenedor: HTMLElement,
+  latitud: number,
+  longitud: number,
+  /** Se consulta justo tras cargar Leaflet: si el componente ya se desmontó no se crea nada (con StrictMode, dos mapas en un contenedor fallan). */
+  cancelado: () => boolean,
+) {
   const [modulo] = await Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')])
+  if (cancelado()) return null
   const L = modulo.default ?? modulo
   const mapa = L.map(contenedor).setView([latitud, longitud], ZOOM)
   mapa.attributionControl.setPrefix(false)

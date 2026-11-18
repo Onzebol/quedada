@@ -27,6 +27,15 @@ export class MarcadorFalso {
 }
 
 export class MapaFalso {
+  contenedor: HTMLElement | undefined
+  constructor(contenedor?: HTMLElement) {
+    // Como Leaflet de verdad: un contenedor no admite dos mapas a la vez.
+    if (contenedor !== undefined) {
+      if (contenedor.dataset.mapaFalso === 'si') throw new Error('Map container is already initialized.')
+      contenedor.dataset.mapaFalso = 'si'
+    }
+    this.contenedor = contenedor
+  }
   manejadores: Record<string, Manejador> = {}
   quitado = false
   centro: [number, number] | null = null
@@ -47,6 +56,7 @@ export class MapaFalso {
   }
   remove() {
     this.quitado = true
+    if (this.contenedor !== undefined) delete this.contenedor.dataset.mapaFalso
   }
 }
 
@@ -69,7 +79,7 @@ export const leaflet = {
 }
 
 const L = {
-  map: () => (leaflet.mapa = new MapaFalso()),
+  map: (contenedor?: HTMLElement) => (leaflet.mapa = new MapaFalso(contenedor)),
   tileLayer: (url: string, opciones: { attribution?: string }) => {
     leaflet.capas[url] = opciones.attribution ?? ''
     return { addTo: () => undefined, url }

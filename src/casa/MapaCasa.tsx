@@ -19,11 +19,9 @@ export function MapaCasa({ latitud, longitud, enlaceApp = null }: Props) {
 
   useEffect(() => {
     let cancelado = false
-    void crearMapa(contenedor.current!, latitud, longitud).then(({ L, mapa: nuevo }) => {
-      if (cancelado) {
-        nuevo.remove()
-        return
-      }
+    void crearMapa(contenedor.current!, latitud, longitud, () => cancelado).then((creado) => {
+      if (creado === null) return
+      const { L, mapa: nuevo } = creado
       L.marker([latitud, longitud], {
         alt: 'Marcador de la casa',
         keyboard: false,

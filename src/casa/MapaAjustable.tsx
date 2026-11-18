@@ -30,11 +30,9 @@ export function MapaAjustable({ latitud, longitud, onMover }: Props) {
 
   useEffect(() => {
     let cancelado = false
-    void crearMapa(contenedor.current!, latitud, longitud).then(({ L, mapa: nuevo }) => {
-      if (cancelado) {
-        nuevo.remove()
-        return
-      }
+    void crearMapa(contenedor.current!, latitud, longitud, () => cancelado).then((creado) => {
+      if (creado === null) return
+      const { L, mapa: nuevo } = creado
       const pin = L.marker([latitud, longitud], {
         draggable: true,
         alt: 'Marcador de la casa',

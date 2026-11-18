@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { StrictMode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { leaflet } from '../test/leafletFalso'
 import { MapaCasa } from './MapaCasa'
@@ -52,6 +53,22 @@ describe('MapaCasa', () => {
   it('con «Navegar» muestra el enlace a la app de mapas', () => {
     render(<MapaCasa latitud={41.6} longitud={-1.2} enlaceApp="geo:41.6,-1.2" />)
     expect(screen.getByRole('link', { name: 'Navegar' })).toHaveAttribute('href', 'geo:41.6,-1.2')
+  })
+
+  it('en modo estricto (el efecto se monta, desmonta y monta) no intenta crear dos mapas en el mismo contenedor', async () => {
+    const rechazos: unknown[] = []
+    const alRechazar = (e: PromiseRejectionEvent) => rechazos.push(e.reason)
+    window.addEventListener('unhandledrejection', alRechazar)
+    render(
+      <StrictMode>
+        <MapaCasa latitud={41.6} longitud={-1.2} />
+      </StrictMode>,
+    )
+    await waitFor(() => expect(leaflet.marcador).not.toBeNull())
+    await new Promise((r) => setTimeout(r, 20))
+    window.removeEventListener('unhandledrejection', alRechazar)
+    expect(rechazos).toEqual([])
+    expect(leaflet.mapa!.quitado).toBe(false)
   })
 
   it('al desmontar quita el mapa', async () => {
