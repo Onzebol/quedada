@@ -85,7 +85,7 @@ describe('ImportarExcel: id de la quedada importada', () => {
       quedada({
         id: 'ana-import-compras-2026',
         casa: { titulo: 'Casa Almunia', descripcion: '', direccion: 'Calle 1', latitud: 1, longitud: 2, precio: 90000 },
-        participantes: [{ id: 'p1', nombre: 'Ana', familiaId: 'f1', porcentajeCasa: 50 }],
+        participantes: [{ id: 'p1', nombre: 'Ana', familiaId: 'f1', porcentajeCasa: 50, adulto: false }],
         pagos: [{ id: 'g1', familiaId: 'f1', importe: 30000, concepto: 'Reserva' }, { id: 'g2', familiaId: 'borrada', importe: 100, concepto: '' }],
         asistentes: [{ id: 'f1', familia: 'Pérez', personas: 1, llegada: null }],
       }),
@@ -94,7 +94,7 @@ describe('ImportarExcel: id de la quedada importada', () => {
     const q = repo.quedadas[0]
     expect(q.casa).toMatchObject({ titulo: 'Casa Almunia', precio: 90000 })
     expect(q.pagos.map((p) => p.id)).toEqual(['g1'])
-    expect(q.participantes.find((p) => p.id === 'p1')).toMatchObject({ familiaId: 'f1', porcentajeCasa: 50 })
+    expect(q.participantes.find((p) => p.id === 'p1')).toMatchObject({ familiaId: 'f1', porcentajeCasa: 50, adulto: false })
     expect(q.participantes.find((p) => p.id === 'p2')).toEqual({ id: 'p2', nombre: 'Beto', familiaId: 'fb' })
     // Conserva su familia y añade la de quien no la tenía, sin duplicar.
     expect(q.asistentes.map((a) => a.id)).toEqual(['f1', 'fb'])

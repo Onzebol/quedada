@@ -12,6 +12,8 @@ export interface Participante {
   cuentaId?: string
   /** Porcentaje de la casa que le toca (100 por defecto). Si falta, `pagaCasa: false` equivale a 0. */
   porcentajeCasa?: number
+  /** `false` para un niño: no puede comprar ni pagar gastos. Adulto por defecto (si falta). */
+  adulto?: boolean
   /** Familia (unidad familiar) de la que es componente, si la tiene. */
   familiaId?: Id
 }

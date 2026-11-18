@@ -161,7 +161,7 @@ function FichaFamilia({ quedada, asistente: a, aplicar, crearId }: PropsFamilia)
       )}
       {anadiendo && (
         <NuevaPersona
-          alAnadir={(nombre) => aplicar((q) => anadirComponente(q, { id: crearId(), familiaId: a.id, nombre }))}
+          alAnadir={(nombre, adulto) => aplicar((q) => anadirComponente(q, { id: crearId(), familiaId: a.id, nombre, adulto }))}
           onCerrar={() => setAnadiendo(false)}
         />
       )}
@@ -219,13 +219,21 @@ function FormularioFamilia({ titulo, envio, inicial, conPersonas, onGuardar, onC
   )
 }
 
-function NuevaPersona({ alAnadir, onCerrar }: { alAnadir: (nombre: string) => void; onCerrar: () => void }) {
+function NuevaPersona({ alAnadir, onCerrar }: { alAnadir: (nombre: string, adulto: boolean) => void; onCerrar: () => void }) {
   const [nombre, setNombre] = useState('')
+  const [adulto, setAdulto] = useState(true)
   return (
-    <FormularioModal titulo="Nueva persona" envio="Añadir" onEnviar={() => alAnadir(nombre)} onCerrar={onCerrar}>
+    <FormularioModal titulo="Nueva persona" envio="Añadir" onEnviar={() => alAnadir(nombre, adulto)} onCerrar={onCerrar}>
       <label>
         Nombre
         <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+      </label>
+      <label>
+        Tipo
+        <select value={adulto ? 'adulto' : 'menor'} onChange={(e) => setAdulto(e.target.value === 'adulto')}>
+          <option value="adulto">Adulto</option>
+          <option value="menor">Menor</option>
+        </select>
       </label>
     </FormularioModal>
   )

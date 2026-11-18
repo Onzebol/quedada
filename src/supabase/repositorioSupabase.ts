@@ -85,6 +85,7 @@ const TABLAS: Tabla[] = [
       cuenta_id: p.cuentaId ?? null,
       porcentaje_casa: p.porcentajeCasa ?? null,
       familia_id: p.familiaId ?? null,
+      adulto: p.adulto ?? null,
     }),
     (f): Participante => ({
       id: texto(f.id),
@@ -94,6 +95,7 @@ const TABLAS: Tabla[] = [
       ...(hay(f.cuenta_id) && { cuentaId: texto(f.cuenta_id) }),
       ...(hay(f.porcentaje_casa) && { porcentajeCasa: Number(f.porcentaje_casa) }),
       ...(hay(f.familia_id) && { familiaId: texto(f.familia_id) }),
+      ...(hay(f.adulto) && { adulto: f.adulto === true }),
     }),
   ),
   tabla(

@@ -14,7 +14,8 @@ export function Cuentas({ quedada }: Props) {
   const { total, pagado, transferencias } = liquidacion(quedada)
   const casa = partesDeLaCasa(quedada)
   const quienes = compradores(quedada)
-  const nombre = (id: string) => quienes.find((c) => c.id === id)?.nombre ?? id
+  // Un niño no paga nada, pero le puede tocar su parte: su nombre tiene que salir en «Quién paga a quién».
+  const nombre = (id: string) => compradores(quedada, { conNinos: true }).find((c) => c.id === id)?.nombre ?? id
 
   return (
     <section className="cuentas" aria-labelledby="titulo-cuentas">

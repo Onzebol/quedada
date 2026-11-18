@@ -57,6 +57,7 @@ export function ImportarExcel({ leer, repositorio, espacio, onImportado }: Props
             ...p,
             ...(antes?.familiaId !== undefined && { familiaId: antes.familiaId }),
             ...(antes?.porcentajeCasa !== undefined && { porcentajeCasa: antes.porcentajeCasa }),
+            ...(antes?.adulto !== undefined && { adulto: antes.adulto }),
           }
         })
         const familiasPrevias = previa?.asistentes ?? []

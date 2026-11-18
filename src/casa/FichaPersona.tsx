@@ -19,6 +19,7 @@ export function FichaPersona({ participante: p, aplicar }: Props) {
     <li className="persona">
       <span className="persona__nombre">{p.nombre}</span>
       <span className="persona__datos">
+        <span>{p.adulto === false ? 'Menor' : 'Adulto'}</span>
         <span>Casa {pesoCasa(p)} %</span>
         <span>Demás gastos {p.porcentajeComida ?? 100} %</span>
       </span>
@@ -42,10 +43,11 @@ export function FichaPersona({ participante: p, aplicar }: Props) {
 function EditarPersona({ participante: p, aplicar, onCerrar }: Props & { onCerrar: () => void }) {
   const [nombre, setNombre] = useState(p.nombre)
   const [casa, setCasa] = useState(String(pesoCasa(p)))
+  const [adulto, setAdulto] = useState(p.adulto !== false)
   const [gastos, setGastos] = useState(String(p.porcentajeComida ?? 100))
 
   function guardar() {
-    const cambios: Parameters<typeof editarParticipante>[2] = { nombre }
+    const cambios: Parameters<typeof editarParticipante>[2] = { nombre, adulto }
     if (casa.trim() !== '' && !Number.isNaN(Number(casa))) cambios.porcentajeCasa = Number(casa)
     if (gastos.trim() !== '' && !Number.isNaN(Number(gastos))) cambios.porcentajeComida = Number(gastos)
     aplicar((q) => editarParticipante(q, p.id, cambios))
@@ -56,6 +58,13 @@ function EditarPersona({ participante: p, aplicar, onCerrar }: Props & { onCerra
       <label>
         Nombre
         <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+      </label>
+      <label>
+        Tipo
+        <select value={adulto ? 'adulto' : 'menor'} onChange={(e) => setAdulto(e.target.value === 'adulto')}>
+          <option value="adulto">Adulto</option>
+          <option value="menor">Menor</option>
+        </select>
       </label>
       <label>
         % casa

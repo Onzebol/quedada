@@ -43,10 +43,10 @@ function sincronizarPersonas(q: Quedada): Quedada {
 }
 
 /** Añade un participante como componente de una familia existente. */
-export function anadirComponente(q: Quedada, nuevo: { id: Id; familiaId: Id; nombre: string }): Quedada {
+export function anadirComponente(q: Quedada, nuevo: { id: Id; familiaId: Id; nombre: string; adulto?: boolean }): Quedada {
   const nombre = nuevo.nombre.trim()
   if (nombre === '' || !q.asistentes.some((a) => a.id === nuevo.familiaId)) return q
-  const participante: Participante = { id: nuevo.id, nombre, familiaId: nuevo.familiaId }
+  const participante: Participante = { id: nuevo.id, nombre, familiaId: nuevo.familiaId, ...(nuevo.adulto === false && { adulto: false }) }
   return sincronizarPersonas({ ...q, participantes: [...q.participantes, participante] })
 }
 

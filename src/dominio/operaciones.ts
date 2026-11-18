@@ -100,7 +100,7 @@ export function borrarProducto(q: Quedada, id: Id): Quedada {
   return { ...q, productos: q.productos.filter((p) => p.id !== id) }
 }
 
-export type CambiosParticipante = Partial<Pick<Participante, 'nombre' | 'porcentajeComida' | 'pagaCasa' | 'porcentajeCasa'>>
+export type CambiosParticipante = Partial<Pick<Participante, 'nombre' | 'porcentajeComida' | 'pagaCasa' | 'porcentajeCasa' | 'adulto'>>
 
 /** Ajusta cómo reparte un participante: porcentaje de comida (0–100) y si paga la casa. */
 export function editarParticipante(q: Quedada, id: Id, cambios: CambiosParticipante): Quedada {
@@ -112,6 +112,11 @@ export function editarParticipante(q: Quedada, id: Id, cambios: CambiosParticipa
   if (seguros.porcentajeCasa !== undefined) {
     if (Number.isNaN(seguros.porcentajeCasa)) return q
     seguros.porcentajeCasa = Math.min(100, Math.max(0, seguros.porcentajeCasa))
+  }
+  if (seguros.adulto === false) {
+    // Un niño no puede haber puesto dinero: si ya tiene gastos, no se cambia.
+    if (q.gastos.some((g) => g.pagadorId === id)) return q
+    q = { ...q, productos: q.productos.map((p) => (p.compradorId === id ? { ...p, compradorId: null } : p)) }
   }
   if (seguros.nombre !== undefined) {
     const nombre = seguros.nombre.trim()
