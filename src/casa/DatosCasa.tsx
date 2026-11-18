@@ -1,4 +1,4 @@
-import { LocateFixed, MapPin, Navigation, Pencil } from 'lucide-react'
+import { MapPin, Pencil } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { editarCasa } from '../dominio/casa'
 import { formatearEuros, parsearEuros } from '../dominio/numeros'
@@ -6,7 +6,8 @@ import type { Quedada } from '../dominio/tipos'
 import { ConIcono } from '../ui/ConIcono'
 import { partirEnlaces } from './enlaces'
 import { MapaAjustable } from './MapaAjustable'
-import { geocodificarNominatim, urlAppMapas, urlMapaIncrustado, type Geocodificador } from './mapa'
+import { MapaCasa } from './MapaCasa'
+import { geocodificarNominatim, urlAppMapas, type Geocodificador } from './mapa'
 import './casa.css'
 
 interface Props {
@@ -34,26 +35,10 @@ function ConEnlaces({ texto }: { texto: string }) {
   )
 }
 
-/** Mapa incrustado; con `nombre` ofrece, solo en el móvil, abrir la casa en su aplicación de mapas. */
+/** Mapa de la ficha; con `nombre` ofrece, solo en el móvil, abrir la casa en su aplicación de mapas. */
 function Mapa({ latitud, longitud, nombre }: { latitud: number; longitud: number; nombre?: string }) {
   const enlaceApp = nombre === undefined ? null : urlAppMapas(latitud, longitud, nombre)
-  // Volver a montar el mapa lo devuelve a la casa, aunque se haya desplazado o ampliado.
-  const [vez, setVez] = useState(0)
-  return (
-    <div className="casa__mapa">
-      <iframe key={vez} title="Mapa de la casa" src={urlMapaIncrustado(latitud, longitud)} loading="lazy" />
-      <div className="casa__mapa-acciones">
-        <button type="button" onClick={() => setVez((v) => v + 1)}>
-          <ConIcono icono={LocateFixed}>Centrar</ConIcono>
-        </button>
-        {enlaceApp !== null && (
-          <a className="casa__boton" href={enlaceApp}>
-            <ConIcono icono={Navigation}>Navegar</ConIcono>
-          </a>
-        )}
-      </div>
-    </div>
-  )
+  return <MapaCasa latitud={latitud} longitud={longitud} enlaceApp={enlaceApp} />
 }
 
 /** La casa: se ve como una ficha y, con «Editar», cambia al formulario; al guardar vuelve a la ficha. */

@@ -22,6 +22,12 @@ describe('MapaAjustable', () => {
     expect(leaflet.marcador!.posicion).toEqual({ lat: 41.6, lng: -1.2 })
   })
 
+  it('sin el prefijo de Leaflet: solo «© OpenStreetMap»', async () => {
+    render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={() => {}} />)
+    await waitFor(() => expect(leaflet.mapa).not.toBeNull())
+    expect(leaflet.mapa!.prefijo).toBe(false)
+  })
+
   it('al soltar el marcador avisa de la nueva posición', async () => {
     const onMover = vi.fn()
     render(<MapaAjustable latitud={41.6} longitud={-1.2} onMover={onMover} />)

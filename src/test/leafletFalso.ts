@@ -30,6 +30,9 @@ export class MapaFalso {
   manejadores: Record<string, Manejador> = {}
   quitado = false
   centro: [number, number] | null = null
+  /** Lo que Leaflet pinta antes de la atribución («Leaflet»): `false` lo quita. */
+  prefijo: string | false = 'Leaflet'
+  attributionControl = { setPrefix: (p: string | false) => void (this.prefijo = p) }
   setView(centro: [number, number]) {
     this.centro = centro
     return this
@@ -50,6 +53,8 @@ export class MapaFalso {
 export const leaflet = {
   mapa: null as MapaFalso | null,
   marcador: null as MarcadorFalso | null,
+  /** Atribución de la capa de teselas. */
+  atribucion: '',
   /** Simula arrastrar el marcador a otro sitio y soltarlo. */
   arrastrar(lat: number, lng: number) {
     leaflet.marcador!.posicion = { lat, lng }
@@ -63,7 +68,10 @@ export const leaflet = {
 
 const L = {
   map: () => (leaflet.mapa = new MapaFalso()),
-  tileLayer: () => ({ addTo: () => undefined }),
+  tileLayer: (_url: string, opciones: { attribution?: string }) => {
+    leaflet.atribucion = opciones.attribution ?? ''
+    return { addTo: () => undefined }
+  },
   divIcon: (opciones: Record<string, unknown>) => opciones,
   marker: (posicion: [number, number], opciones: Record<string, unknown>) => (leaflet.marcador = new MarcadorFalso(posicion, opciones)),
 }

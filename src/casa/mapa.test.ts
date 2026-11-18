@@ -1,15 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { urlAppMapas, urlMapaIncrustado } from './mapa'
-
-describe('mapa', () => {
-  it('construye la URL incrustada de OpenStreetMap con marcador y recuadro', () => {
-    const url = new URL(urlMapaIncrustado(41.6, -1.2))
-    expect(url.origin + url.pathname).toBe('https://www.openstreetmap.org/export/embed.html')
-    expect(url.searchParams.get('marker')).toBe('41.6,-1.2')
-    expect(url.searchParams.get('bbox')).toBe('-1.21,41.59,-1.19,41.61')
-  })
-
-})
+import { urlAppMapas } from './mapa'
 
 describe('urlAppMapas', () => {
   const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Mobile Safari/537.36'

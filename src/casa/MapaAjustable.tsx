@@ -2,6 +2,7 @@ import { LocateFixed } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { ConIcono } from '../ui/ConIcono'
 import type { Map as MapaLeaflet, Marker } from 'leaflet'
+import { crearMapa } from './leafletMapa'
 import './casa.css'
 
 interface Props {
@@ -29,14 +30,11 @@ export function MapaAjustable({ latitud, longitud, onMover }: Props) {
 
   useEffect(() => {
     let cancelado = false
-    void Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')]).then(([modulo]) => {
-      if (cancelado || contenedor.current === null) return
-      const L = modulo.default ?? modulo
-      const nuevo = L.map(contenedor.current).setView([latitud, longitud], 16)
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(nuevo)
+    void crearMapa(contenedor.current!, latitud, longitud).then(({ L, mapa: nuevo }) => {
+      if (cancelado) {
+        nuevo.remove()
+        return
+      }
       const pin = L.marker([latitud, longitud], {
         draggable: true,
         alt: 'Marcador de la casa',
