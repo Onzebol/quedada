@@ -68,9 +68,15 @@ export function resumenPorFamilia(q: Quedada): ResumenCuentas {
   }
 
   const ordenados = ordenarPorNombre(grupos, (g) => g.nombre)
+  const nombre = (id: Id) => ordenados.find((g) => g.id === id)?.nombre ?? id
+  const porNombre = (a: string, b: string) => a.localeCompare(b, 'es', { sensitivity: 'base' })
+  // Quién paga a quién, por orden alfabético de quien paga y, a igualdad, de quien cobra.
+  const transferencias = liquidar(Object.fromEntries(ordenados.map((g) => [g.id, g.balance]))).sort(
+    (x, y) => porNombre(nombre(x.de), nombre(y.de)) || porNombre(nombre(x.a), nombre(y.a)),
+  )
   return {
     grupos: ordenados,
-    transferencias: liquidar(Object.fromEntries(ordenados.map((g) => [g.id, g.balance]))),
+    transferencias,
     totales: {
       pagado: Object.values(pagado).reduce((s, v) => s + v, 0),
       casaPagada: totalCasa(q),

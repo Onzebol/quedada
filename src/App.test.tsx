@@ -540,6 +540,15 @@ afterEach(() => {
   window.location.hash = ''
 })
 
+/** Texto de la fila de «Quién paga a quién» que coincide (las partes van en elementos distintos). */
+function filaPago(cuentas: HTMLElement, patron: RegExp) {
+  const fila = within(cuentas)
+    .getAllByRole('listitem')
+    .find((li) => li.closest('ul')?.getAttribute('aria-label') === 'Quién paga a quién' && patron.test(li.textContent ?? ''))
+  if (!fila) throw new Error(`No hay fila que coincida con ${patron}`)
+  return fila.textContent
+}
+
 function normalizar(texto: string | null) {
   return (texto ?? '').replace(/\s/g, ' ')
 }
@@ -603,7 +612,7 @@ describe('Gastos y liquidación', () => {
     expect(normalizar(within(within(cuentas).getByRole('list', { name: 'Totales' })).getByText('Total pagado').nextElementSibling?.textContent ?? null)).toBe('116,00 €')
     expect(normalizar(within(cuentas).getByRole('heading', { level: 4, name: 'Ana' }).closest('li')?.textContent ?? null)).toContain('Total pagado116,00 €')
     expect(normalizar(within(cuentas).getByRole('heading', { level: 4, name: 'Beto' }).closest('li')?.textContent ?? null)).toContain('Total pagado0,00 €')
-    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 58,00 € a Ana')
+    expect(normalizar(filaPago(cuentas, /Beto paga/))).toBe('Beto paga 58,00 € a Ana')
   })
 
   it('dice que no hay nada que liquidar cuando las cuentas cuadran', async () => {
@@ -628,7 +637,7 @@ describe('Gastos y liquidación', () => {
     await ajustar(usuario, 'Beto', 'gastos', '0')
     const cuentas = await abrirCuentas()
     // comida 16 € solo para Ana; casa 100 € a medias → Beto debe 50 €
-    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 50,00 € a Ana')
+    expect(normalizar(filaPago(cuentas, /Beto paga/))).toBe('Beto paga 50,00 € a Ana')
   })
 
   it('un participante con 0 % de la casa queda fuera de ese reparto', async () => {
@@ -636,7 +645,7 @@ describe('Gastos y liquidación', () => {
     await ajustar(usuario, 'Beto', 'casa', '0')
     const cuentas = await abrirCuentas()
     // casa 100 € solo para Ana; comida 8 € de Beto
-    expect(normalizar(within(cuentas).getByText(/Beto paga/).textContent)).toBe('Beto paga 8,00 € a Ana')
+    expect(normalizar(filaPago(cuentas, /Beto paga/))).toBe('Beto paga 8,00 € a Ana')
   })
 
   it('el Resumen es de solo lectura: los porcentajes se ajustan en La casa', async () => {
@@ -655,7 +664,7 @@ describe('Gastos y liquidación', () => {
     preparar(new RepositorioMemoria([q]))
     const cuentas = await abrirCuentas()
     expect(normalizar(within(cuentas).getByRole('heading', { level: 4, name: 'Gómez' }).closest('li')?.textContent ?? null)).toContain('Total pagado10,00 €')
-    expect(normalizar(within(cuentas).getByText(/Ana paga/).textContent)).toBe('Ana paga 10,00 € a Gómez')
+    expect(normalizar(filaPago(cuentas, /Ana paga/))).toBe('Ana paga 10,00 € a Gómez')
   })
 
   it('conserva los porcentajes al recargar', async () => {

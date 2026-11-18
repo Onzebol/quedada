@@ -111,4 +111,16 @@ describe('resumenPorFamilia', () => {
     })
     expect(resumenPorFamilia(q).grupos[0]).toMatchObject({ casaPagada: 30000, pagado: 32000 })
   })
+
+  it('«quién paga a quién» va por orden alfabético de quien paga y, luego, de quien cobra', () => {
+    const q = quedada({
+      participantes: [persona('1', { nombre: 'Zoe' }), persona('2', { nombre: 'Ana' }), persona('3', { nombre: 'Marta' }), persona('4', { nombre: 'Bea' })],
+      gastos: [gasto('1', 6000), gasto('4', 2000)],
+    })
+    const { grupos, transferencias } = resumenPorFamilia(q)
+    const nombre = (id: string) => grupos.find((g) => g.id === id)?.nombre
+    const filas = transferencias.map((t) => `${nombre(t.de)}>${nombre(t.a)}`)
+    expect(filas).toEqual([...filas].sort((a, b) => a.localeCompare(b, 'es')))
+    expect(transferencias.length).toBeGreaterThan(1)
+  })
 })

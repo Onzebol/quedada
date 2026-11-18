@@ -154,8 +154,28 @@
 }
 
 .cuentas__transferencias li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-1) var(--esp-2);
   padding: var(--esp-3) var(--esp-4);
   border: 1px solid var(--linea);
+  border-left: 4px solid var(--moss);
   border-radius: 12px;
-  font-weight: 600;
+  background: var(--surf);
+  color: var(--mut);
+}
+
+.cuentas__transferencias strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.cuentas__importe {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--moss);
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
 }

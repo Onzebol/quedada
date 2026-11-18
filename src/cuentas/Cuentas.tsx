@@ -129,7 +129,8 @@ export function Cuentas({ quedada }: Props) {
         <ul className="cuentas__transferencias" aria-label="Quién paga a quién">
           {transferencias.map((t) => (
             <li key={`${t.de}-${t.a}`}>
-              {nombre(t.de)} paga {formatearEuros(t.importe)} a {nombre(t.a)}
+              <strong>{nombre(t.de)}</strong> paga <span className="cuentas__importe">{formatearEuros(t.importe)}</span> a{' '}
+              <strong>{nombre(t.a)}</strong>
             </li>
           ))}
         </ul>
