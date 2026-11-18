@@ -1,5 +1,5 @@
 import type { Repositorio } from '../dominio/repositorio'
-import type { Asistente, Basico, Grupo, Id, Pago, Participante, Producto, Quedada } from '../dominio/tipos'
+import type { Asistente, Basico, Grupo, Gasto, Id, Pago, Participante, Producto, Quedada } from '../dominio/tipos'
 
 interface ErrorSupabase {
   message: string
@@ -16,6 +16,7 @@ export type FilaQuedada = FilaLeida & {
   asistentes?: FilaLeida[]
   basicos?: FilaLeida[]
   pagos?: FilaLeida[]
+  gastos?: FilaLeida[]
 }
 
 interface Lectura<T> extends PromiseLike<{ data: T[] | null; error: ErrorSupabase | null }> {
@@ -47,8 +48,8 @@ export interface ClienteDatos {
   }
 }
 
-type ListaClave = 'participantes' | 'grupos' | 'productos' | 'asistentes' | 'basicos' | 'pagos'
-const LISTAS: ListaClave[] = ['participantes', 'grupos', 'productos', 'asistentes', 'basicos', 'pagos']
+type ListaClave = 'participantes' | 'grupos' | 'productos' | 'asistentes' | 'basicos' | 'pagos' | 'gastos'
+const LISTAS: ListaClave[] = ['participantes', 'grupos', 'productos', 'asistentes', 'basicos', 'pagos', 'gastos']
 
 const hay = (v: unknown): v is NonNullable<unknown> => v !== null && v !== undefined
 const texto = (v: unknown) => String(v ?? '')
@@ -161,6 +162,16 @@ const TABLAS: Tabla[] = [
       concepto: texto(f.concepto),
     }),
   ),
+  tabla(
+    'gastos',
+    (g: Gasto) => ({ id: g.id, pagador_id: g.pagadorId, concepto: g.concepto, importe: g.importe }),
+    (f): Gasto => ({
+      id: texto(f.id),
+      pagadorId: texto(f.pagador_id),
+      concepto: texto(f.concepto),
+      importe: Number(f.importe),
+    }),
+  ),
 ]
 
 const COLUMNAS_QUEDADA = [
@@ -259,6 +270,7 @@ export class RepositorioSupabase implements Repositorio {
       .order('posicion', { referencedTable: 'asistentes' })
       .order('posicion', { referencedTable: 'basicos' })
       .order('posicion', { referencedTable: 'pagos' })
+      .order('posicion', { referencedTable: 'gastos' })
     if (error) throw new Error(error.message)
     return (data ?? []).flatMap((f) => {
       const q = leerQuedada(f)
@@ -279,6 +291,7 @@ export class RepositorioSupabase implements Repositorio {
       .order('posicion', { referencedTable: 'asistentes' })
       .order('posicion', { referencedTable: 'basicos' })
       .order('posicion', { referencedTable: 'pagos' })
+      .order('posicion', { referencedTable: 'gastos' })
       .maybeSingle()
     if (error) throw new Error(error.message)
     const q = data ? leerQuedada(data) : null

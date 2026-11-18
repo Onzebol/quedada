@@ -1,5 +1,4 @@
 import { pesoCasa } from './casa'
-import { totalLinea, totalPorComprador } from './totales'
 import type { Centimos, Id, Quedada } from './tipos'
 
 export interface Transferencia {
@@ -9,7 +8,7 @@ export interface Transferencia {
 }
 
 export interface Liquidacion {
-  /** Total pagado por compradores (los productos sin comprador no cuentan). */
+  /** Total pagado: gastos y pagos de la casa. Los precios de la lista de la compra no cuentan. */
   total: Centimos
   pagado: Record<Id, Centimos>
   /** Pagado menos lo que le toca: positivo = le deben, negativo = debe. Suma cero. */
@@ -46,20 +45,14 @@ export function repartirProporcional(total: Centimos, pesos: Record<Id, number>)
   return resultado
 }
 
-function sumarPorReparto(quedada: Quedada, reparto: 'casa' | 'comida'): Centimos {
-  const casa = new Set(quedada.grupos.filter((g) => g.reparto === 'casa').map((g) => g.id))
-  return quedada.productos
-    .filter((p) => p.compradorId !== null && casa.has(p.grupoId) === (reparto === 'casa'))
-    .reduce((suma, p) => suma + totalLinea(p), 0)
-}
-
 /**
- * Lo pagado por cada persona: compras y pagos de la casa. El pago de una familia se acredita a sus
+ * Lo pagado por cada persona: sus gastos y los pagos de la casa. El pago de una familia se acredita a sus
  * componentes según su porcentaje de casa (a partes iguales si todos pesan 0); si la familia no
  * tiene componentes, figura ella misma.
  */
 function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
-  const pagado = totalPorComprador(quedada)
+  const pagado: Record<Id, Centimos> = {}
+  for (const g of quedada.gastos) pagado[g.pagadorId] = (pagado[g.pagadorId] ?? 0) + g.importe
   for (const pago of quedada.pagos) {
     const componentes = quedada.participantes.filter((p) => p.familiaId === pago.familiaId)
     if (componentes.length === 0) {
@@ -75,9 +68,9 @@ function pagadoPor(quedada: Quedada): Record<Id, Centimos> {
   return pagado
 }
 
-/** Gasto de la casa que entra en las cuentas: compras de comidas «casa» y lo pagado del alquiler. */
+/** Alquiler que entra en las cuentas: solo lo pagado. */
 function totalCasa(quedada: Quedada): Centimos {
-  return sumarPorReparto(quedada, 'casa') + quedada.pagos.reduce((suma, p) => suma + p.importe, 0)
+  return quedada.pagos.reduce((suma, p) => suma + p.importe, 0)
 }
 
 /** Saldo de cada persona: lo que ha pagado menos lo que le corresponde. */
@@ -90,7 +83,7 @@ export function balances(quedada: Quedada): Record<Id, Centimos> {
     pesosComida[p.id] = p.porcentajeComida ?? 100
   }
   const debeCasa = repartirProporcional(totalCasa(quedada), pesosCasa)
-  const debeComida = repartirProporcional(sumarPorReparto(quedada, 'comida'), pesosComida)
+  const debeComida = repartirProporcional(quedada.gastos.reduce((suma, g) => suma + g.importe, 0), pesosComida)
 
   const saldos: Record<Id, Centimos> = {}
   for (const p of quedada.participantes) saldos[p.id] = 0

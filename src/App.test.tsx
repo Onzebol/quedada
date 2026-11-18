@@ -546,18 +546,17 @@ function normalizar(texto: string | null) {
 
 function quedadaConGastos() {
   return quedada({
+    // Los productos son orientativos: las cuentas salen de los gastos y de los pagos de la casa.
     participantes: [
-      { id: 'ana', nombre: 'Ana' },
+      { id: 'ana', nombre: 'Ana', familiaId: 'fa' },
       { id: 'beto', nombre: 'Beto' },
     ],
-    grupos: [
-      { id: 'cena', nombre: 'Cena del viernes', orden: 0 },
-      { id: 'alquiler', nombre: 'Alquiler', orden: 1, reparto: 'casa' },
-    ],
-    productos: [
-      producto({ id: 'p1', grupoId: 'cena', nombre: 'Pizza', compradorId: 'ana', cantidad: 2, precioUnidad: 10, descuento: -4 }),
-      producto({ id: 'p2', grupoId: 'alquiler', nombre: 'Casa', compradorId: 'ana', cantidad: 1, precioUnidad: 100 }),
-    ],
+    asistentes: [{ id: 'fa', familia: 'Ana', personas: 1, llegada: null }],
+    grupos: [{ id: 'cena', nombre: 'Cena del viernes', orden: 0 }],
+    productos: [producto({ id: 'p1', grupoId: 'cena', nombre: 'Pizza', compradorId: 'beto', cantidad: 2, precioUnidad: 500 })],
+    gastos: [{ id: 'g1', pagadorId: 'ana', concepto: 'Compra', importe: 1600 }],
+    casa: { ...quedada().casa, precio: 10000 },
+    pagos: [{ id: 'pg1', familiaId: 'fa', importe: 10000, concepto: 'Alquiler' }],
   })
 }
 
@@ -649,10 +648,9 @@ describe('Gastos y liquidación', () => {
 
   it('el Resumen cuenta lo que ha pagado una familia sin personas', async () => {
     const q = quedada({
-      grupos: [{ id: 'g1', nombre: 'Cena', orden: 0, reparto: 'comida' }],
       asistentes: [{ id: 'f1', familia: 'Gómez', personas: 3, llegada: null }],
       participantes: [{ id: 'ana', nombre: 'Ana' }],
-      productos: [producto({ id: 'p1', grupoId: 'g1', nombre: 'Pizza', compradorId: 'f1', cantidad: 1, precioUnidad: 10 })],
+      gastos: [{ id: 'g1', pagadorId: 'f1', concepto: 'Pizza', importe: 1000 }],
     })
     preparar(new RepositorioMemoria([q]))
     const cuentas = await abrirCuentas()
@@ -821,5 +819,19 @@ describe('Página inicial', () => {
     expect(await screen.findByText(/No se encontró esta quedada/)).toBeInTheDocument()
     expect(screen.queryByText('Leche')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Todas las quedadas' })).not.toBeInTheDocument()
+  })
+})
+
+describe('Las cuentas ignoran los precios de la lista (#95)', () => {
+  it('un producto con precio y comprador no cambia las cuentas', async () => {
+    const q = quedada({
+      participantes: [{ id: 'a', nombre: 'Ana' }, { id: 'b', nombre: 'Beto' }],
+      grupos: [{ id: 'g', nombre: 'Cena', orden: 0 }],
+      productos: [producto({ id: 'p', grupoId: 'g', compradorId: 'a', cantidad: 1, precioUnidad: 80 })],
+    })
+    preparar(new RepositorioMemoria([q]))
+    const cuentas = await abrirCuentas()
+    expect(within(cuentas).getByText('No hay nada que liquidar')).toBeInTheDocument()
+    expect(normalizar(within(cuentas).getByText(/Total de la quedada/).textContent)).toContain('0,00 €')
   })
 })

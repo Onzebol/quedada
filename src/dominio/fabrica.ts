@@ -31,6 +31,7 @@ export function quedada(parcial: Partial<Quedada> = {}): Quedada {
     asistentes: [],
     basicos: [],
     pagos: [],
+    gastos: [],
     ...parcial,
   }
 }

@@ -38,6 +38,10 @@ describe('RepositorioSqlite', () => {
         producto({ id: 'p2', grupoId: 'g2', nombre: 'Pan', cantidad: 2.254, unidad: 'kg', compradorId: 'u1', comprado: true, precioUnidad: 1.5, descuento: -0.3, observaciones: 'integral' }),
         producto({ id: 'p1', grupoId: 'g1', nombre: 'Leche', cantidad: null }),
       ],
+      gastos: [
+        { id: 'x2', pagadorId: 'a1', concepto: 'Hielo', importe: 300 },
+        { id: 'x1', pagadorId: 'a2', concepto: 'Gasolina', importe: 4550 },
+      ],
     })
     const repo = await abrir()
     await repo.guardar(q)

@@ -7,6 +7,7 @@ import type { Asistente, Id, Pago, Quedada } from '../dominio/tipos'
 import { BotonBorrar } from '../ui/BotonBorrar'
 import { ConIcono } from '../ui/ConIcono'
 import { FormularioModal } from '../ui/FormularioModal'
+import { Gastos } from './Gastos'
 import './casa.css'
 
 interface Props {
@@ -100,6 +101,8 @@ export function Pagos({ quedada, aplicar, crearId }: Props) {
           </ul>
         )}
       </section>
+
+      <Gastos quedada={quedada} aplicar={aplicar} crearId={crearId} />
 
       {ventana === 'anadir' && (
         <FormularioPago

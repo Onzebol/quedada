@@ -36,6 +36,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 77 | Botón «Instalar» junto al icono del usuario cuando el navegador permite instalar la aplicación |
 | 79 | Pista para instalar en iOS: el botón «Instalar» abre los pasos «Compartir → Añadir a pantalla de inicio» |
 | 8 y 9 | Memoria entre años y tickets |
+| 95 | Las cuentas salen de lo que ha pagado cada uno (sección «Gastos» de «Pagos», aunque no esté en la lista) y de los pagos de la casa; los precios de la lista de la compra son solo orientativos |
 
 ## Requisitos
 

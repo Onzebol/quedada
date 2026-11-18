@@ -39,6 +39,7 @@ export function borrarAsistente(q: Quedada, id: Id): Quedada {
     productos: q.productos.map((p) => (p.compradorId === id ? { ...p, compradorId: null } : p)),
     asistentes: q.asistentes.filter((a) => a.id !== id),
     pagos: q.pagos.filter((p) => p.familiaId !== id),
+    gastos: q.gastos.filter((g) => g.pagadorId !== id),
   }
 }
 
