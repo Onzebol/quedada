@@ -273,3 +273,16 @@
     transition: color 0.15s;
   }
 }
+
+/* Móvil: «97 productos · 87 por comprar · 81 sin comprador» debe caber en una línea. */
+@media (max-width: 39.99rem) {
+  :is(.compra__datos, .grupo__datos) {
+    flex-wrap: nowrap;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  :is(.compra__datos, .grupo__datos) > span + span::before {
+    margin: 0 0.4em;
+  }
+}
