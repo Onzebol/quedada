@@ -1,5 +1,5 @@
 import { casaVacia } from '../dominio/casa'
-import type { Asistente, Grupo, Participante, Producto, Quedada } from '../dominio/tipos'
+import type { Asistente, Gasto, Grupo, Participante, Producto, Quedada } from '../dominio/tipos'
 
 export type Celda = string | number | boolean | Date | null
 
@@ -108,6 +108,43 @@ function detectarColumnas(cabecera: Celda[]): Columnas | null {
 }
 
 /**
+ * Bloque de tickets del final de la hoja: tras la fila de cabecera («SUMA ARTICULOS | TICKETS») cada fila
+ * trae quien pagó (primera columna), la tienda (primer texto a su derecha) y, en la columna «TICKETS», lo pagado. Las filas
+ * «TOTAL» son subtotales y no se importan.
+ */
+function importarTickets(
+  filas: Celda[][],
+  cabecera: number,
+  columnaImporte: number,
+  compradorId: (valor: string) => string | null,
+  gastos: Gasto[],
+  quedadaId: string,
+  avisos: string[],
+) {
+  if (columnaImporte === -1) {
+    avisos.push(`Bloque de tickets no importado: no se encuentra la columna «TICKETS» (fila ${cabecera + 1})`)
+    return
+  }
+  for (let i = cabecera + 1; i < filas.length; i++) {
+    const pagador = texto(filas[i][0])
+    const concepto = filas[i].slice(1).map(texto).find((t) => t !== '') ?? ''
+    const importe = numero(filas[i][columnaImporte])
+    if (importe === null || importe <= 0 || /^total(es)?$/i.test(concepto)) continue
+    const pagadorId = compradorId(pagador)
+    if (pagadorId === null) {
+      avisos.push(`Ticket de la fila ${i + 1} sin pagador: ignorado`)
+      continue
+    }
+    gastos.push({
+      id: `${quedadaId}-gasto-${i + 1}`,
+      pagadorId,
+      concepto: suave(concepto || 'Ticket'),
+      importe: Math.round(importe * 100),
+    })
+  }
+}
+
+/**
  * Convierte una hoja anual del Excel (filas de celdas con los valores ya calculados) en una quedada.
  * Devuelve null si no reconoce la estructura. Los ids salen del nombre de la hoja y de la fila, así
  * que importar dos veces la misma hoja da el mismo resultado.
@@ -123,6 +160,7 @@ export function importarHoja(nombre: string, filas: Celda[][]): ResultadoHoja | 
   const grupos: Grupo[] = []
   const productos: Producto[] = []
   const participantes: Participante[] = []
+  const gastos: Gasto[] = []
 
   const nuevoGrupo = (titulo: string) => {
     grupos.push({ id: `${quedadaId}-grupo-${grupos.length + 1}`, nombre: suave(titulo), orden: grupos.length })
@@ -142,8 +180,9 @@ export function importarHoja(nombre: string, filas: Celda[][]): ResultadoHoja | 
   for (let i = cabeceraIdx + 1; i < filas.length; i++) {
     const f = filas[i]
     const celda = (c: number) => (c >= 0 ? f[c] : null)
-    if (f.some((c) => /^(suma articulos|tickets)$/i.test(texto(c)))) {
-      avisos.push(`Bloque de tickets no importado (desde la fila ${i + 1})`)
+    const columnaTickets = f.findIndex((c) => /^tickets$/i.test(texto(c)))
+    if (columnaTickets !== -1 || f.some((c) => /^suma articulos$/i.test(texto(c)))) {
+      importarTickets(filas, i, columnaTickets, compradorId, gastos, quedadaId, avisos)
       break
     }
     const nombreProducto = texto(celda(col.producto))
@@ -229,13 +268,13 @@ export function importarHoja(nombre: string, filas: Celda[][]): ResultadoHoja | 
       asistentes: familias,
       basicos: [],
       pagos: [],
-      gastos: [],
+      gastos,
     },
     avisos,
   }
 }
 
-/** Importa las hojas «Compras AAAA» de un libro; el resto (tickets, nombres, previsión…) se ignora. */
+/** Importa las hojas «Compras AAAA» de un libro; el resto (nombres, previsión…) se ignora. */
 export function importarLibro(hojas: HojaLeida[]): InformeImportacion {
   const informe: InformeImportacion = { importadas: [], ignoradas: [] }
   for (const hoja of hojas) {

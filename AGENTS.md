@@ -176,7 +176,9 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   `leerExcel.ts` (lee el `.xlsx` con `read-excel-file`, cargada solo al importar; devuelve los
   valores ya calculados de las fórmulas) y `ImportarExcel.tsx` (botón e informe). Solo se
   importan las hojas «Compras AAAA». El bloque de **tickets** del final de cada hoja (filas con
-  «SUMA ARTICULOS | TICKETS») y la lista de asistentes no se importan. En las hojas de 2023 y
+  «SUMA ARTICULOS | TICKETS», #100) se importa como `Gasto`: pagador (primera columna), concepto (la tienda) e importe (columna «TICKETS»);
+  las filas «TOTAL» y las de sin pagador o sin importe no (las segundas avisan). Ids `<quedada>-gasto-<fila>`: al reimportar se sustituyen
+  los del Excel y se conservan los apuntados a mano. La lista de asistentes no se importa. En las hojas de 2023 y
   2024 la columna del precio es el total de la línea, no el precio por unidad. Ojo: sumar la
   columna «total» de toda la hoja cuenta dos veces lo comprado (líneas más tickets).
 - **Página inicial** (#44, `src/inicio/Inicio.tsx`): `App` enruta por el hash. Sin `#/<id>` muestra `PaginaInicial`

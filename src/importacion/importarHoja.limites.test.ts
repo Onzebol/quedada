@@ -5,7 +5,7 @@ import { importarHoja, type Celda } from './importarHoja'
 const CABECERA: Celda[] = ['COMPRADOR', 'COMPRADO', null, '€/ud', 'dto', 'total', 'CENA VIERNES', null, 'Observaciones']
 
 describe('importarHoja: lo que no es compra', () => {
-  it('se detiene en el bloque de tickets y avisa', () => {
+  it('se detiene en el bloque de tickets y no lo cuenta como productos', () => {
     const r = importarHoja('Compras 2025', [
       CABECERA,
       ['ANA', '☐', 2, 5, null, 10, 'Pan', null, null],
@@ -14,7 +14,36 @@ describe('importarHoja: lo que no es compra', () => {
       ['ANA', null, 'TOTAL', null, null, 76.93, null, null, null],
     ])!
     expect(r.quedada.productos.map((p) => p.nombre)).toEqual(['Pan'])
-    expect(r.avisos).toContain('Bloque de tickets no importado (desde la fila 3)')
+    expect(r.avisos).not.toContain('Bloque de tickets no importado (desde la fila 3)')
+  })
+
+  it('importa los tickets como gastos de quien los pagó, sin las filas TOTAL', () => {
+    const r = importarHoja('Compras 2025', [
+      CABECERA,
+      ['ANA', '☐', 2, 5, null, 10, 'Pan', null, null],
+      [null, null, null, null, 'SUMA ARTICULOS', 'TICKETS', null, null, null],
+      ['ANA', null, 'COSTO', 440107, 76.93, 76.93, null, null, null],
+      ['BETO', null, 'Mercadona', 99, 10, 12.5, null, null, null],
+      ['ANA', null, 'TOTAL', null, null, 76.93, null, null, null],
+    ])!
+    const ana = r.quedada.participantes.find((p) => p.nombre === 'Ana')!
+    const beto = r.quedada.participantes.find((p) => p.nombre === 'Beto')!
+    expect(r.quedada.gastos).toEqual([
+      { id: 'import-compras-2025-gasto-4', pagadorId: ana.id, concepto: 'Costo', importe: 7693 },
+      { id: 'import-compras-2025-gasto-5', pagadorId: beto.id, concepto: 'Mercadona', importe: 1250 },
+    ])
+  })
+
+  it('avisa de los tickets sin pagador o sin importe y no los importa', () => {
+    const r = importarHoja('Compras 2025', [
+      CABECERA,
+      ['ANA', '☐', 2, 5, null, 10, 'Pan', null, null],
+      [null, null, null, null, 'SUMA ARTICULOS', 'TICKETS', null, null, null],
+      [null, null, 'TIENDA', 1, 5, 5, null, null, null],
+      ['ANA', null, 'VACIO', 2, null, null, null, null, null],
+    ])!
+    expect(r.quedada.gastos).toEqual([])
+    expect(r.avisos).toContain('Ticket de la fila 4 sin pagador: ignorado')
   })
 
   it('se detiene en la lista de asistentes y avisa', () => {
