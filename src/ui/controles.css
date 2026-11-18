@@ -75,10 +75,10 @@
 :where(input[type='file']) {
   min-height: var(--alto-control);
   min-width: 0;
-  padding: calc((var(--alto-control) - 2rem) / 2 - 1px) var(--esp-2);
+  padding: calc((var(--alto-control) - 2rem) / 2 - 1px) var(--esp-3);
   background: #fff;
   border: 1px solid var(--linea);
-  border-radius: 40px;
+  border-radius: 12px;
   color: var(--mut);
   font: inherit;
   cursor: pointer;
