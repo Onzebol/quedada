@@ -37,6 +37,11 @@ CREATE TABLE IF NOT EXISTS basicos (
   id TEXT NOT NULL, posicion INTEGER NOT NULL, nombre TEXT NOT NULL, asistente_id TEXT,
   PRIMARY KEY (quedada_id, id)
 );
+CREATE TABLE IF NOT EXISTS pagos (
+  quedada_id TEXT NOT NULL REFERENCES quedadas(id) ON DELETE CASCADE,
+  id TEXT NOT NULL, posicion INTEGER NOT NULL, familia_id TEXT NOT NULL, importe INTEGER NOT NULL, concepto TEXT NOT NULL,
+  PRIMARY KEY (quedada_id, id)
+);
 `
 
 /** Repositorio sobre SQLite (sql.js, WebAssembly). Cada escritura persiste la base entera. */
@@ -86,8 +91,8 @@ export class RepositorioSqlite implements Repositorio {
       this.bd.run('DELETE FROM quedadas WHERE id = ?', [q.id])
       this.bd.run(
         `INSERT INTO quedadas (id, nombre, inicio, fin, casa_titulo, casa_descripcion, casa_direccion,
-          casa_latitud, casa_longitud, casa_precio, casa_pagador_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-        [q.id, q.nombre, q.inicio, q.fin, q.casa.titulo, q.casa.descripcion, q.casa.direccion, q.casa.latitud, q.casa.longitud, q.casa.precio, q.casa.pagadorId],
+          casa_latitud, casa_longitud, casa_precio) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        [q.id, q.nombre, q.inicio, q.fin, q.casa.titulo, q.casa.descripcion, q.casa.direccion, q.casa.latitud, q.casa.longitud, q.casa.precio],
       )
       q.participantes.forEach((p, i) =>
         this.bd.run(
@@ -105,6 +110,9 @@ export class RepositorioSqlite implements Repositorio {
       )
       q.asistentes.forEach((a, i) => this.bd.run('INSERT INTO asistentes VALUES (?,?,?,?,?,?)', [q.id, a.id, i, a.familia, a.personas, a.llegada]))
       q.basicos.forEach((b, i) => this.bd.run('INSERT INTO basicos VALUES (?,?,?,?,?)', [q.id, b.id, i, b.nombre, b.asistenteId]))
+      for (const [i, p] of (q.pagos ?? []).entries()) {
+        this.bd.run('INSERT INTO pagos VALUES (?,?,?,?,?,?)', [q.id, p.id, i, p.familiaId, p.importe, p.concepto])
+      }
       this.bd.run('COMMIT')
     } catch (error) {
       this.bd.run('ROLLBACK')
@@ -128,7 +136,7 @@ export class RepositorioSqlite implements Repositorio {
 
   private leer(id: Id): Quedada {
     const [q] = this.filas(
-      'SELECT nombre, inicio, fin, casa_titulo, casa_descripcion, casa_direccion, casa_latitud, casa_longitud, casa_precio, casa_pagador_id FROM quedadas WHERE id = ?',
+      'SELECT nombre, inicio, fin, casa_titulo, casa_descripcion, casa_direccion, casa_latitud, casa_longitud, casa_precio FROM quedadas WHERE id = ?',
       [id],
     )
     return {
@@ -143,7 +151,6 @@ export class RepositorioSqlite implements Repositorio {
         latitud: q[6] as number | null,
         longitud: q[7] as number | null,
         precio: q[8] as number | null,
-        pagadorId: q[9] as string | null,
       },
       participantes: this.filas('SELECT id, nombre, porcentaje_comida, paga_casa, cuenta_id, porcentaje_casa, familia_id FROM participantes WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
         id: String(f[0]),
@@ -185,6 +192,12 @@ export class RepositorioSqlite implements Repositorio {
         id: String(f[0]),
         nombre: String(f[1]),
         asistenteId: f[2] as string | null,
+      })),
+      pagos: this.filas('SELECT id, familia_id, importe, concepto FROM pagos WHERE quedada_id = ? ORDER BY posicion', [id]).map((f) => ({
+        id: String(f[0]),
+        familiaId: String(f[1]),
+        importe: Number(f[2]),
+        concepto: String(f[3]),
       })),
     }
   }

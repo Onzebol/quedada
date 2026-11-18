@@ -220,7 +220,7 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
                 {
                   id: 'pagos',
                   titulo: 'Pagos',
-                  contenido: <Pagos quedada={estado.quedada} aplicar={estado.aplicar} />,
+                  contenido: <Pagos quedada={estado.quedada} aplicar={estado.aplicar} crearId={crearId} />,
                 },
                 {
                   id: 'resumen',

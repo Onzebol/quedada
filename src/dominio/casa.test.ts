@@ -31,11 +31,6 @@ describe('editarCasa', () => {
     expect(editarCasa(q, { longitud: -200 }).casa.longitud).toBe(-1.2)
   })
 
-  it('el pagador debe ser un participante existente', () => {
-    const q = base()
-    expect(editarCasa(q, { pagadorId: 'a' }).casa.pagadorId).toBe('a')
-    expect(editarCasa(q, { pagadorId: 'zzz' }).casa.pagadorId).toBeNull()
-  })
 
   it('cambiar la dirección borra las coordenadas viejas', () => {
     const q = editarCasa(editarCasa(quedada(), { direccion: 'A' }), { latitud: 1, longitud: 2 })
@@ -64,10 +59,9 @@ describe('componentes de una familia', () => {
     expect(totalAsistentes(quedada({ asistentes: [{ id: 'f', familia: 'X', personas: 4, llegada: null }] }))).toBe(4)
   })
 
-  it('quitar un componente lo suelta de compradores y del pagador, y la familia lo deja de contar', () => {
+  it('quitar un componente lo suelta de compradores y la familia lo deja de contar', () => {
     let q = anadirComponente(base(), { id: 'b', familiaId: 'f1', nombre: 'Beto' })
     q = anadirComponente(q, { id: 'c', familiaId: 'f1', nombre: 'Cris' })
-    q = editarCasa(q, { pagadorId: 'b' })
     q = {
       ...q,
       productos: [
@@ -77,7 +71,6 @@ describe('componentes de una familia', () => {
     q = quitarComponente(q, 'b')
     expect(q.participantes.map((p) => p.id)).toEqual(['a', 'c'])
     expect(q.productos[0].compradorId).toBeNull()
-    expect(q.casa.pagadorId).toBeNull()
     expect(q.asistentes[0].personas).toBe(1)
   })
 
@@ -125,7 +118,6 @@ describe('casaVacia', () => {
       latitud: null,
       longitud: null,
       precio: null,
-      pagadorId: null,
     })
   })
 })

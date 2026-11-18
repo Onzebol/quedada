@@ -1,5 +1,5 @@
 import type { Repositorio } from '../dominio/repositorio'
-import type { Asistente, Basico, Grupo, Id, Participante, Producto, Quedada } from '../dominio/tipos'
+import type { Asistente, Basico, Grupo, Id, Pago, Participante, Producto, Quedada } from '../dominio/tipos'
 
 interface ErrorSupabase {
   message: string
@@ -15,6 +15,7 @@ export type FilaQuedada = FilaLeida & {
   productos?: FilaLeida[]
   asistentes?: FilaLeida[]
   basicos?: FilaLeida[]
+  pagos?: FilaLeida[]
 }
 
 interface Lectura<T> extends PromiseLike<{ data: T[] | null; error: ErrorSupabase | null }> {
@@ -46,8 +47,8 @@ export interface ClienteDatos {
   }
 }
 
-type ListaClave = 'participantes' | 'grupos' | 'productos' | 'asistentes' | 'basicos'
-const LISTAS: ListaClave[] = ['participantes', 'grupos', 'productos', 'asistentes', 'basicos']
+type ListaClave = 'participantes' | 'grupos' | 'productos' | 'asistentes' | 'basicos' | 'pagos'
+const LISTAS: ListaClave[] = ['participantes', 'grupos', 'productos', 'asistentes', 'basicos', 'pagos']
 
 const hay = (v: unknown): v is NonNullable<unknown> => v !== null && v !== undefined
 const texto = (v: unknown) => String(v ?? '')
@@ -150,11 +151,21 @@ const TABLAS: Tabla[] = [
       asistenteId: hay(f.asistente_id) ? texto(f.asistente_id) : null,
     }),
   ),
+  tabla(
+    'pagos',
+    (p: Pago) => ({ id: p.id, familia_id: p.familiaId, importe: p.importe, concepto: p.concepto }),
+    (f): Pago => ({
+      id: texto(f.id),
+      familiaId: texto(f.familia_id),
+      importe: Number(f.importe),
+      concepto: texto(f.concepto),
+    }),
+  ),
 ]
 
 const COLUMNAS_QUEDADA = [
   'nombre', 'inicio', 'fin', 'casa_titulo', 'casa_descripcion', 'casa_direccion',
-  'casa_latitud', 'casa_longitud', 'casa_precio', 'casa_pagador_id',
+  'casa_latitud', 'casa_longitud', 'casa_precio',
 ] as const
 
 const filaQuedada = (q: Quedada): Fila => ({
@@ -167,7 +178,6 @@ const filaQuedada = (q: Quedada): Fila => ({
   casa_latitud: q.casa.latitud,
   casa_longitud: q.casa.longitud,
   casa_precio: q.casa.precio,
-  casa_pagador_id: q.casa.pagadorId,
 })
 
 const CONSULTA = `*, ${LISTAS.map((t) => `${t}(*)`).join(', ')}`
@@ -189,7 +199,6 @@ function leerQuedada(f: FilaQuedada): Quedada | null {
       latitud: numeroONulo(f.casa_latitud),
       longitud: numeroONulo(f.casa_longitud),
       precio: numeroONulo(f.casa_precio),
-      pagadorId: hay(f.casa_pagador_id) ? texto(f.casa_pagador_id) : null,
     },
     ...listas,
   } as unknown as Quedada
@@ -249,6 +258,7 @@ export class RepositorioSupabase implements Repositorio {
       .order('posicion', { referencedTable: 'productos' })
       .order('posicion', { referencedTable: 'asistentes' })
       .order('posicion', { referencedTable: 'basicos' })
+      .order('posicion', { referencedTable: 'pagos' })
     if (error) throw new Error(error.message)
     return (data ?? []).flatMap((f) => {
       const q = leerQuedada(f)
@@ -268,6 +278,7 @@ export class RepositorioSupabase implements Repositorio {
       .order('posicion', { referencedTable: 'productos' })
       .order('posicion', { referencedTable: 'asistentes' })
       .order('posicion', { referencedTable: 'basicos' })
+      .order('posicion', { referencedTable: 'pagos' })
       .maybeSingle()
     if (error) throw new Error(error.message)
     const q = data ? leerQuedada(data) : null

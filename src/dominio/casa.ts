@@ -2,7 +2,7 @@ import { repartirProporcional } from './liquidacion'
 import type { Casa, Centimos, Id, Participante, Quedada } from './tipos'
 
 export function casaVacia(): Casa {
-  return { titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: null, pagadorId: null }
+  return { titulo: '', descripcion: '', direccion: '', latitud: null, longitud: null, precio: null }
 }
 
 export type CambiosCasa = Partial<Casa>
@@ -27,10 +27,6 @@ export function editarCasa(q: Quedada, cambios: CambiosCasa): Quedada {
   }
   if (cambios.longitud !== undefined && (cambios.longitud === null || (cambios.longitud >= -180 && cambios.longitud <= 180))) {
     casa.longitud = cambios.longitud
-  }
-  if (cambios.pagadorId !== undefined) {
-    casa.pagadorId =
-      cambios.pagadorId !== null && q.participantes.some((p) => p.id === cambios.pagadorId) ? cambios.pagadorId : null
   }
   return { ...q, casa }
 }
@@ -61,7 +57,6 @@ export function quitarComponente(q: Quedada, id: Id): Quedada {
     ...q,
     participantes: q.participantes.filter((p) => p.id !== id),
     productos: q.productos.map((p) => (p.compradorId === id ? { ...p, compradorId: null } : p)),
-    casa: q.casa.pagadorId === id ? { ...q.casa, pagadorId: null } : q.casa,
   })
 }
 

@@ -2,7 +2,7 @@ import type { ClienteDatos } from '../supabase/repositorioSupabase'
 
 type Fila = Record<string, unknown>
 
-const HIJAS = ['participantes', 'grupos', 'productos', 'asistentes', 'basicos'] as const
+const HIJAS = ['participantes', 'grupos', 'productos', 'asistentes', 'basicos', 'pagos'] as const
 
 export interface Escritura {
   operacion: 'upsert' | 'update' | 'delete'
@@ -31,7 +31,7 @@ export class BackendSupabaseFalso {
   /** Orden en que se llamó a `setAuth` y a `subscribe`, para comprobar que se autentica antes. */
   bitacora: string[] = []
 
-  tablas: Record<string, Fila[]> = { quedadas: [], participantes: [], grupos: [], productos: [], asistentes: [], basicos: [] }
+  tablas: Record<string, Fila[]> = { quedadas: [], participantes: [], grupos: [], productos: [], asistentes: [], basicos: [], pagos: [] }
   escrituras: Escritura[] = []
   private fallarEn: number | null = null
   private contador = 0

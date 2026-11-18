@@ -236,4 +236,49 @@ describe('migraciones de Supabase', () => {
     await db.query("update public.quedadas set casa_titulo = 'Casa', casa_precio = 90000 where id = 'q1'")
     expect((await db.query("select casa_precio from public.quedadas where id = 'q1'")).rows).toEqual([{ casa_precio: 90000 }])
   })
+
+  describe('0005: pagos de la casa', () => {
+    const preparar = async (pagador: string | null, familia: string | null) => {
+      await db.query('update public.quedadas set casa_precio = 90000, casa_pagador_id = $1 where id = $2', [pagador, 'q1'])
+      await db.query('update public.participantes set familia_id = $1 where quedada_id = $2 and id = $3', [familia, 'q1', 'p1'])
+      await db.exec(sql('0005_pagos.sql'))
+    }
+
+    it('convierte el pagador antiguo en un pago de su familia por el precio completo', async () => {
+      await preparar('p1', 'a1')
+      expect((await db.query('select id, familia_id, importe, concepto from public.pagos where quedada_id = $1', ['q1'])).rows).toEqual([
+        { id: 'migrado-pagador', familia_id: 'a1', importe: 90000, concepto: 'Alquiler' },
+      ])
+      // La columna antigua no se toca.
+      expect((await db.query("select casa_pagador_id from public.quedadas where id = 'q1'")).rows).toEqual([{ casa_pagador_id: 'p1' }])
+    })
+
+    it('un pagador sin familia, o sin pagador, no genera pagos', async () => {
+      await preparar('p1', null)
+      expect((await db.query('select count(*)::int as n from public.pagos')).rows).toEqual([{ n: 0 }])
+    })
+
+    it('no admite importes que no sean positivos', async () => {
+      await preparar(null, null)
+      await expect(db.query("insert into public.pagos (quedada_id, id, posicion, familia_id, importe) values ('q1','x',0,'a1',0)")).rejects.toThrow()
+    })
+
+    it('una cuenta no ve ni toca los pagos de otra, y el propietario sí', async () => {
+      await preparar(null, null)
+      await db.exec("insert into public.pagos (quedada_id, id, posicion, familia_id, importe, concepto) values ('q1','x',0,'a1',5000,'Reserva')")
+      expect((await como(db, ANA, 'select id from public.pagos')).rows).toEqual([{ id: 'x' }])
+      expect((await como(db, LUIS, 'select id from public.pagos')).rows).toEqual([])
+      await expect(
+        como(db, LUIS, "insert into public.pagos (quedada_id, id, posicion, familia_id, importe) values ('q1','y',1,'a1',100)"),
+      ).rejects.toThrow()
+      expect((await como(db, LUIS, "delete from public.pagos where quedada_id = 'q1' returning id")).rows).toEqual([])
+    })
+
+    it('un cambio en los pagos avisa al tema de la quedada', async () => {
+      await preparar(null, null)
+      await db.exec('truncate realtime.messages')
+      await db.exec("insert into public.pagos (quedada_id, id, posicion, familia_id, importe) values ('q1','x',0,'a1',5000)")
+      expect((await avisos(db)).map((a) => [a.topic, a.event, a.tabla])).toEqual([['quedada:q1', 'INSERT', 'pagos']])
+    })
+  })
 })

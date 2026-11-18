@@ -22,7 +22,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 30 | Supabase: una fila por cosa (participantes, comidas, productos…) y guardado por diferencias, para que varias personas editen sin pisarse (paso 1 de #29) |
 | 32 | Tiempo real: los cambios de otra persona aparecen sin recargar (Broadcast desde la base de datos, canal privado por quedada; paso 2 de #29) |
 | 36 | Eliminar quedadas, con confirmación |
-| 55 | Pestañas en la quedada: La casa, Lista de la compra, Pagos (quién pagó la casa; tiques, pendiente) y Resumen |
+| 55 | Pestañas en la quedada: La casa, Lista de la compra, Pagos (pagos de la casa por familia; tiques, pendiente) y Resumen |
 | 56 | La casa: título, descripción con enlaces, dirección, precio y mapa (marcador ajustable y botón «Centrar en la casa» al editar; botón de la app de mapas en el móvil), familias con sus personas (cada comprador del Excel entra como una familia) y lo que paga cada una de casa y de los demás gastos; en «Pagos», quién pagó la casa; en el Resumen, lo que paga cada uno de la casa |
 | 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
 | 42 | Todos los borrados (quedada, comida, producto, asistente y básico) piden confirmación en una ventana modal con el estilo de la web |
