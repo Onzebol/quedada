@@ -12,7 +12,7 @@ export function PantallaEntrada({ autenticacion }: { autenticacion: Autenticacio
     <main className="pagina entrada">
       <h1>Quedada</h1>
       {disponible ? (
-        <button type="button" onClick={() => void entrar()}>
+        <button type="button" className="con-texto" onClick={() => void entrar()}>
           <ConIcono icono={LogIn}>Entrar con Google</ConIcono>
         </button>
       ) : (
