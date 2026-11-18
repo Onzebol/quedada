@@ -1,5 +1,6 @@
 import { LocateFixed, Navigation } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { BotonCapa } from './BotonCapa'
 import { ConIcono } from '../ui/ConIcono'
 import { centrarEn, crearMapa } from './leafletMapa'
 import type { Map as MapaLeaflet } from 'leaflet'
@@ -16,12 +17,14 @@ interface Props {
 export function MapaCasa({ latitud, longitud, enlaceApp = null }: Props) {
   const contenedor = useRef<HTMLDivElement>(null)
   const mapa = useRef<MapaLeaflet | null>(null)
+  const alternarCapa = useRef<(() => boolean) | null>(null)
 
   useEffect(() => {
     let cancelado = false
     void crearMapa(contenedor.current!, latitud, longitud, () => cancelado).then((creado) => {
       if (creado === null) return
-      const { L, mapa: nuevo } = creado
+      const { L, mapa: nuevo, alternarCapa: alternar } = creado
+      alternarCapa.current = alternar
       L.marker([latitud, longitud], {
         alt: 'Marcador de la casa',
         keyboard: false,
@@ -33,12 +36,16 @@ export function MapaCasa({ latitud, longitud, enlaceApp = null }: Props) {
       cancelado = true
       mapa.current?.remove()
       mapa.current = null
+      alternarCapa.current = null
     }
   }, [latitud, longitud])
 
   return (
     <div className="casa__mapa">
-      <div ref={contenedor} className="casa__mapa-ajustable" role="application" aria-label="Mapa de la casa" />
+      <div className="casa__lienzo">
+        <div ref={contenedor} className="casa__mapa-ajustable" role="application" aria-label="Mapa de la casa" />
+        <BotonCapa alternar={() => alternarCapa.current?.()} />
+      </div>
       <div className="casa__mapa-acciones">
         <button type="button" onClick={() => mapa.current !== null && centrarEn(mapa.current, latitud, longitud)}>
           <ConIcono icono={LocateFixed}>Centrar</ConIcono>

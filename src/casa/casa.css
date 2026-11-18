@@ -69,6 +69,18 @@
   z-index: 0;
 }
 
+/* El botón de capa va sobre la esquina superior derecha del mapa, por encima de los paneles de Leaflet (hasta 1000). */
+.casa__lienzo {
+  position: relative;
+}
+
+.casa__capa {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1000;
+}
+
 /* Marcador del mapa ajustable: una gota hecha con CSS, sin imágenes. */
 .casa__pin {
   background: var(--moss);

@@ -12,7 +12,6 @@ beforeEach(() => {
   leaflet.mapa = null
   leaflet.marcador = null
   leaflet.capas = {}
-  leaflet.selector = []
 })
 
 describe('MapaCasa', () => {
@@ -34,12 +33,17 @@ describe('MapaCasa', () => {
     expect(calles).not.toMatch(/donat|problem/i)
   })
 
-  it('ofrece la capa de satélite con la atribución de Esri', async () => {
+  it('un solo botón alterna entre el mapa y el satélite, con la atribución de Esri', async () => {
     render(<MapaCasa latitud={41.6} longitud={-1.2} />)
     await waitFor(() => expect(leaflet.mapa).not.toBeNull())
-    expect(leaflet.selector).toEqual(['Mapa', 'Satélite'])
-    const satelite = Object.entries(leaflet.capas).find(([url]) => url.includes('World_Imagery'))
-    expect(satelite?.[1]).toMatch(/Esri/)
+    expect(leaflet.mapa!.capaActiva).toContain('tile.openstreetmap.org')
+    await userEvent.click(screen.getByRole('button', { name: 'Satélite' }))
+    expect(leaflet.mapa!.capaActiva).toContain('World_Imagery')
+    expect(leaflet.capas[leaflet.mapa!.capaActiva!]).toMatch(/Esri/)
+    expect(screen.queryByRole('button', { name: 'Satélite' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Mapa' }))
+    expect(leaflet.mapa!.capaActiva).toContain('tile.openstreetmap.org')
+    expect(screen.getByRole('button', { name: 'Satélite' })).toBeInTheDocument()
   })
 
   it('«Centrar» devuelve el mapa a la casa', async () => {

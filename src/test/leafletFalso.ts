@@ -28,6 +28,16 @@ export class MarcadorFalso {
 
 export class MapaFalso {
   contenedor: HTMLElement | undefined
+  /** Url de la capa de teselas que se está viendo. */
+  capaActiva: string | null = null
+  addLayer(capa: { url: string }) {
+    this.capaActiva = capa.url
+    return this
+  }
+  removeLayer(capa: { url: string }) {
+    if (this.capaActiva === capa.url) this.capaActiva = null
+    return this
+  }
   constructor(contenedor?: HTMLElement) {
     // Como Leaflet de verdad: un contenedor no admite dos mapas a la vez.
     if (contenedor !== undefined) {
@@ -65,8 +75,6 @@ export const leaflet = {
   marcador: null as MarcadorFalso | null,
   /** Capas de teselas creadas: url -> atribución. */
   capas: {} as Record<string, string>,
-  /** Nombres de las capas base que ofrece el selector de capas. */
-  selector: [] as string[],
   /** Simula arrastrar el marcador a otro sitio y soltarlo. */
   arrastrar(lat: number, lng: number) {
     leaflet.marcador!.posicion = { lat, lng }
@@ -82,14 +90,16 @@ const L = {
   map: (contenedor?: HTMLElement) => (leaflet.mapa = new MapaFalso(contenedor)),
   tileLayer: (url: string, opciones: { attribution?: string }) => {
     leaflet.capas[url] = opciones.attribution ?? ''
-    return { addTo: () => undefined, url }
+    const capa = {
+      url,
+      addTo: (mapa: MapaFalso) => {
+        mapa.addLayer(capa)
+        return capa
+      },
+    }
+    return capa
   },
-  control: {
-    layers: (bases: Record<string, unknown>) => {
-      leaflet.selector = Object.keys(bases)
-      return { addTo: () => undefined }
-    },
-  },
+
   divIcon: (opciones: Record<string, unknown>) => opciones,
   marker: (posicion: [number, number], opciones: Record<string, unknown>) => (leaflet.marcador = new MarcadorFalso(posicion, opciones)),
 }
