@@ -8,9 +8,9 @@
 }
 
 /* Móvil: solo el icono; el texto queda para lectores de pantalla (nombre accesible).
-   Salvo en las líneas de botones de productos y personas (.fila__acciones, .persona__acciones): ahí caben con texto. */
+   Salvo en las líneas de botones de productos y personas (.fila__acciones, .persona__acciones) y «Añadir persona»: ahí caben con texto. */
 @media (max-width: 39.99rem) {
-  .icono-texto:not(:is(.fila__acciones, .persona__acciones) *) {
+  .icono-texto:not(:is(.fila__acciones, .persona__acciones, .familia__anadir) *) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -19,11 +19,11 @@
     white-space: nowrap;
   }
 
-  .icono + .icono-texto:not(:is(.fila__acciones, .persona__acciones) *) {
+  .icono + .icono-texto:not(:is(.fila__acciones, .persona__acciones, .familia__anadir) *) {
     margin-left: 0;
   }
 
-  button:has(> .icono-texto):not(:is(.fila__acciones, .persona__acciones) *) {
+  button:has(> .icono-texto):not(.familia__anadir, :is(.fila__acciones, .persona__acciones) *) {
     width: var(--alto-control);
     height: var(--alto-control);
     min-width: 0;
