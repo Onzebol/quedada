@@ -184,7 +184,7 @@ _Pendiente: almacenamiento compartido entre varias personas (hoy SQLite en el na
   2024 la columna del precio es el total de la línea, no el precio por unidad. Ojo: sumar la
   columna «total» de toda la hoja cuenta dos veces lo comprado (líneas más tickets).
 - **Página inicial** (#44, `src/inicio/Inicio.tsx`): `App` enruta por el hash. Sin `#/<id>` muestra `PaginaInicial`
-  (lista de quedadas con crear, elegir y eliminar, más `ImportarExcel`); con él, `VistaQuedada`;
+  (lista de quedadas con elegir, eliminar y, en ventanas modales (`FormularioModal`, #103), «Añadir quedada» (arriba) y «Editar» (renombrar) en cada una, más `ImportarExcel`); con él, `VistaQuedada`;
   el título «Quedada» (un botón, #97) pone el hash a vacío y vuelve a ella; `VistaQuedada` muestra el nombre de la quedada como `h2`. Elegir una quedada pone `#/<id>`; crear usa
   `quedadaInicial(crearId, nombre)`, la guarda y la abre; importar un Excel con una sola quedada la abre y con
   varias deja la lista. **La app ya no crea una quedada sola al abrirse vacía** (solo `useQuedada` sin id, que

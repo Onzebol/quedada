@@ -144,6 +144,19 @@ function PaginaInicial({ almacen, crearId, leerExcel, sesion, espacio, abrir }: 
     [almacen, refrescar],
   )
 
+  const renombrar = useCallback(
+    async (id: Id, nombre: string) => {
+      try {
+        const q = await almacen.obtener(id)
+        if (q) await almacen.guardar({ ...q, nombre })
+        await refrescar()
+      } catch {
+        setError(true)
+      }
+    },
+    [almacen, refrescar],
+  )
+
   return (
     <>
       <Sesion sesion={sesion} quedada={null} aplicar={() => {}} />
@@ -151,7 +164,7 @@ function PaginaInicial({ almacen, crearId, leerExcel, sesion, espacio, abrir }: 
       {quedadas === null ? (
         !error && <p role="status">Cargando…</p>
       ) : (
-        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(n) => void crear(n)} alEliminar={eliminar}>
+        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(n) => void crear(n)} alEliminar={eliminar} alRenombrar={(id, n) => void renombrar(id, n)}>
           <ImportarExcel
             leer={leerExcel}
             repositorio={almacen}

@@ -10,8 +10,11 @@ function preparar(quedadas = lista()) {
   const alElegir = vi.fn()
   const alCrear = vi.fn()
   const alEliminar = vi.fn().mockResolvedValue(undefined)
-  render(<Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} />)
-  return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar }
+  const alRenombrar = vi.fn()
+  render(
+    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alRenombrar={alRenombrar} />,
+  )
+  return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar, alRenombrar }
 }
 
 describe('Inicio', () => {
@@ -34,19 +37,35 @@ describe('Inicio', () => {
     expect(alElegir).toHaveBeenCalledWith('b')
   })
 
-  it('crea una quedada con el nombre escrito y vacía el campo', async () => {
+  it('«Añadir quedada» abre una ventana modal y crea con el nombre escrito', async () => {
     const { usuario, alCrear } = preparar()
-    const campo = screen.getByRole('textbox', { name: 'Nombre de la nueva quedada' })
-    await usuario.type(campo, '  Navidad  ')
-    await usuario.click(screen.getByRole('button', { name: 'Crear quedada' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Añadir quedada' }))
+    const ventana = screen.getByRole('dialog')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Nombre' }), '  Navidad  ')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
     expect(alCrear).toHaveBeenCalledWith('Navidad')
-    expect(campo).toHaveValue('')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('no crea una quedada sin nombre', async () => {
     const { usuario, alCrear } = preparar()
-    await usuario.click(screen.getByRole('button', { name: 'Crear quedada' }))
+    await usuario.click(screen.getByRole('button', { name: 'Añadir quedada' }))
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Añadir' }))
     expect(alCrear).not.toHaveBeenCalled()
+  })
+
+  it('«Editar» abre una ventana modal con el nombre y renombra solo esa quedada', async () => {
+    const { usuario, alRenombrar } = preparar()
+    await usuario.click(screen.getByRole('button', { name: 'Editar Almunia 2025' }))
+    const ventana = screen.getByRole('dialog')
+    const campo = within(ventana).getByRole('textbox', { name: 'Nombre' })
+    expect(campo).toHaveValue('Almunia 2025')
+    await usuario.clear(campo)
+    await usuario.type(campo, 'Almunia 2027')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Guardar' }))
+    expect(alRenombrar).toHaveBeenCalledWith('b', 'Almunia 2027')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('elimina con confirmación y solo la quedada elegida', async () => {

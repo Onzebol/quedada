@@ -1,5 +1,6 @@
-import { Plus } from 'lucide-react'
+import { Pencil, Plus } from 'lucide-react'
 import { ConIcono } from '../ui/ConIcono'
+import { FormularioModal } from '../ui/FormularioModal'
 import { useState, type ReactNode } from 'react'
 import { EliminarQuedada } from '../compra/EliminarQuedada'
 import type { Id, Quedada } from '../dominio/tipos'
@@ -11,24 +12,51 @@ interface Props {
   alCrear: (nombre: string) => void
   /** Borra la quedada; debe rechazar si no se pudo. */
   alEliminar: (id: Id) => Promise<void>
+  /** Cambia el nombre de la quedada. */
+  alRenombrar: (id: Id, nombre: string) => void
   children?: ReactNode
 }
 
-/** Página inicial: elegir, crear o eliminar quedadas. */
-export function Inicio({ quedadas, alElegir, alCrear, alEliminar, children }: Props) {
-  const [nombre, setNombre] = useState('')
+/** Ventana modal con el nombre de una quedada: sirve para añadir una (vacía) y para editar una. */
+function NombreQuedada({ titulo, envio, inicial, onGuardar, onCerrar }: {
+  titulo: string
+  envio: string
+  inicial: string
+  onGuardar: (nombre: string) => void
+  onCerrar: () => void
+}) {
+  const [nombre, setNombre] = useState(inicial)
+  return (
+    <FormularioModal
+      titulo={titulo}
+      envio={envio}
+      onEnviar={() => {
+        const limpio = nombre.trim()
+        if (limpio !== '') onGuardar(limpio)
+      }}
+      onCerrar={onCerrar}
+    >
+      <label>
+        Nombre
+        <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} data-autofocus />
+      </label>
+    </FormularioModal>
+  )
+}
 
-  function crear(e: React.FormEvent) {
-    e.preventDefault()
-    const limpio = nombre.trim()
-    if (limpio === '') return
-    alCrear(limpio)
-    setNombre('')
-  }
+/** Página inicial: elegir, añadir, editar o eliminar quedadas (añadir y editar, en ventanas modales). */
+export function Inicio({ quedadas, alElegir, alCrear, alEliminar, alRenombrar, children }: Props) {
+  const [anadiendo, setAnadiendo] = useState(false)
+  const [editando, setEditando] = useState<Quedada | null>(null)
 
   return (
     <section className="inicio" aria-label="Tus quedadas">
-      <h2>Tus quedadas</h2>
+      <div className="inicio__cabecera">
+        <h2>Tus quedadas</h2>
+        <button type="button" onClick={() => setAnadiendo(true)}>
+          <ConIcono icono={Plus}>Añadir quedada</ConIcono>
+        </button>
+      </div>
       {quedadas.length === 0 ? (
         <p>Todavía no tienes ninguna quedada.</p>
       ) : (
@@ -38,19 +66,27 @@ export function Inicio({ quedadas, alElegir, alCrear, alEliminar, children }: Pr
               <button type="button" className="inicio__abrir" onClick={() => alElegir(q.id)}>
                 {q.nombre}
               </button>
+              <button type="button" aria-label={`Editar ${q.nombre}`} onClick={() => setEditando(q)}>
+                <ConIcono icono={Pencil}>Editar</ConIcono>
+              </button>
               <EliminarQuedada nombre={q.nombre} onEliminar={() => alEliminar(q.id)} />
             </li>
           ))}
         </ul>
       )}
-      <form className="inicio__nueva" onSubmit={crear}>
-        <label>
-          Nombre de la nueva quedada
-          <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-        </label>
-        <button type="submit"><ConIcono icono={Plus}>Crear quedada</ConIcono></button>
-      </form>
       {children}
+      {anadiendo && (
+        <NombreQuedada titulo="Nueva quedada" envio="Añadir" inicial="" onGuardar={alCrear} onCerrar={() => setAnadiendo(false)} />
+      )}
+      {editando && (
+        <NombreQuedada
+          titulo="Editar quedada"
+          envio="Guardar"
+          inicial={editando.nombre}
+          onGuardar={(n) => alRenombrar(editando.id, n)}
+          onCerrar={() => setEditando(null)}
+        />
+      )}
     </section>
   )
 }

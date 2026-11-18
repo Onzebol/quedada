@@ -740,11 +740,24 @@ describe('Página inicial', () => {
     expect(window.location.hash).toBe('#/q2')
   })
 
+  it('editar una quedada desde la home la renombra y la guarda', async () => {
+    const repositorio = new RepositorioMemoria([conLeche()])
+    const usuario = abrirInicio(repositorio)
+    await usuario.click(await screen.findByRole('button', { name: 'Editar Almunia 2026' }))
+    const campo = screen.getByRole('textbox', { name: 'Nombre' })
+    await usuario.clear(campo)
+    await usuario.type(campo, 'Almunia 2027')
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Guardar' }))
+    expect(await screen.findByRole('button', { name: 'Almunia 2027' })).toBeInTheDocument()
+    expect(repositorio.quedadas[0].nombre).toBe('Almunia 2027')
+  })
+
   it('crear una quedada la guarda con las comidas habituales y la abre', async () => {
     const repositorio = new RepositorioMemoria()
     const usuario = abrirInicio(repositorio)
-    await usuario.type(await screen.findByRole('textbox', { name: 'Nombre de la nueva quedada' }), 'Navidad')
-    await usuario.click(screen.getByRole('button', { name: 'Crear quedada' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Añadir quedada' }))
+    await usuario.type(screen.getByRole('textbox', { name: 'Nombre' }), 'Navidad')
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Añadir' }))
     await esperarCarga()
     expect(repositorio.quedadas).toHaveLength(1)
     expect(repositorio.quedadas[0].nombre).toBe('Navidad')
