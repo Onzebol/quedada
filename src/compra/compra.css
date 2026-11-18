@@ -46,7 +46,9 @@
 
 .grupo__cabecera {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0 var(--esp-3);
+  align-items: center;
 }
 
 /* El contenedor del título no pinta nada: su h3 y sus datos son celdas de la rejilla de la cabecera. */
