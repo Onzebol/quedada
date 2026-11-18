@@ -48,10 +48,10 @@ describe('componentes de una familia', () => {
     expect(totalAsistentes(q)).toBe(2)
   })
 
-  it('ignora nombres vacíos, repetidos o familias que no existen', () => {
+  it('ignora nombres vacíos o familias que no existen, pero admite nombres repetidos', () => {
     const q = base()
     expect(anadirComponente(q, { id: 'b', familiaId: 'f1', nombre: ' ' })).toBe(q)
-    expect(anadirComponente(q, { id: 'b', familiaId: 'f1', nombre: 'ana' })).toBe(q)
+    expect(anadirComponente(q, { id: 'b', familiaId: 'f1', nombre: 'ana' }).participantes.map((p) => p.id)).toContain('b')
     expect(anadirComponente(q, { id: 'b', familiaId: 'nope', nombre: 'Beto' })).toBe(q)
   })
 
@@ -84,7 +84,7 @@ describe('componentes de una familia', () => {
     q = editarParticipante(q, 'b', { nombre: 'Humberto', porcentajeCasa: 150, porcentajeComida: 50 })
     expect(q.participantes.find((p) => p.id === 'b')).toMatchObject({ nombre: 'Humberto', porcentajeCasa: 100, porcentajeComida: 50 })
     expect(editarParticipante(q, 'b', { nombre: ' ' }).participantes[1].nombre).toBe('Humberto')
-    expect(editarParticipante(q, 'b', { nombre: 'Ana' }).participantes[1].nombre).toBe('Humberto')
+    expect(editarParticipante(q, 'b', { nombre: 'Ana' }).participantes[1].nombre).toBe('Ana')
     expect(editarParticipante(q, 'b', { porcentajeCasa: Number.NaN })).toBe(q)
   })
 })

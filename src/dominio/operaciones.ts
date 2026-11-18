@@ -32,8 +32,6 @@ export function quedadaInicial(crearId: () => Id, nombre = 'Quedada'): Quedada {
 export function anadirParticipante(q: Quedada, participante: Participante): Quedada {
   const nombre = participante.nombre.trim()
   if (nombre === '') return q
-  const existe = q.participantes.some((p) => p.nombre.toLowerCase() === nombre.toLowerCase())
-  if (existe) return q
   return { ...q, participantes: [...q.participantes, { id: participante.id, nombre }] }
 }
 
@@ -117,8 +115,7 @@ export function editarParticipante(q: Quedada, id: Id, cambios: CambiosParticipa
   }
   if (seguros.nombre !== undefined) {
     const nombre = seguros.nombre.trim()
-    const repetido = q.participantes.some((p) => p.id !== id && p.nombre.toLowerCase() === nombre.toLowerCase())
-    if (nombre === '' || repetido) delete seguros.nombre
+    if (nombre === '') delete seguros.nombre
     else seguros.nombre = nombre
   }
   return { ...q, participantes: q.participantes.map((p) => (p.id === id ? { ...p, ...seguros } : p)) }
