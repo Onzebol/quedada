@@ -77,6 +77,11 @@
   color: var(--mut);
 }
 
+.grupo__comprado {
+  color: var(--moss);
+  font-weight: 600;
+}
+
 .grupo__acciones {
   display: flex;
   grid-column: 2;

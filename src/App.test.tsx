@@ -28,7 +28,9 @@ function preparar(repositorio = new RepositorioMemoria(), participantes: string[
   return { usuario, repositorio, vista, crearId }
 }
 
+// La quedada se abre en «La casa»: pasa a la lista de la compra.
 async function esperarCarga() {
+  await userEvent.click(await screen.findByRole('tab', { name: 'Lista de la compra' }))
   await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
 }
 
@@ -180,6 +182,7 @@ describe('Lista de la compra', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(1)
     // si Zoe se queda sin nada, el filtro vuelve a «Todos» en vez de dejar un valor que ya no existe
     await usuario.selectOptions(filtro, 'Todos')
+    await abrirSeccion('Bebida')
     await usuario.click(screen.getByRole('button', { name: 'Borrar Sidra' }))
     await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }))
     expect(filtro).toHaveValue('todos')
@@ -196,6 +199,7 @@ describe('Lista de la compra', () => {
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Sin asignar')
     expect(botones()).toEqual([])
     await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Todos')
+    await abrirSeccion('Bebida')
     expect(botones()).toContain('Editar Sidra')
   })
   it('filtrando, los totales cuentan solo lo filtrado y no dicen «sin comprador»', async () => {
@@ -402,18 +406,78 @@ describe('Lista de la compra', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(2)
 
     await usuario.selectOptions(filtro, 'Compra Josu')
-    expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     // filtrando por una persona, el desplegable de asignar sobra: todos son suyos
     expect(screen.queryByRole('combobox', { name: 'Comprador de Sidra' })).not.toBeInTheDocument()
     // arriba, el total de la lista; en la sección, los suyos
     expect(screen.getByText('1 de 3 productos')).toBeInTheDocument()
     expect(screen.getByText('1 de 2 productos')).toBeInTheDocument()
+    // Bebida está comprada entera (solo Sidra, ya comprada): sale contraída
+    await abrirSeccion('Bebida')
     expect(screen.getByRole('checkbox', { name: 'Sidra' })).toBeInTheDocument()
 
     await usuario.selectOptions(filtro, 'Todos')
+    await abrirSeccion('Bebida')
+    await abrirSeccion('Desayunos')
     expect(screen.getAllByRole('checkbox')).toHaveLength(3)
     expect(screen.getByRole('combobox', { name: 'Comprador de Sidra' })).toBeInTheDocument()
     expect(screen.queryByText(/ de \d+ productos/)).not.toBeInTheDocument()
+  })
+
+  it('con filtro las secciones salen desplegadas salvo las compradas enteras, y se pueden plegar y desplegar', async () => {
+    const { usuario } = preparar(undefined, ['Josu'])
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await anadirProducto(usuario, 'Desayunos', 'Café')
+    await anadirProducto(usuario, 'Desayunos', 'Pan')
+    for (const n of ['Sidra', 'Café', 'Pan']) {
+      await usuario.selectOptions(screen.getByRole('combobox', { name: `Comprador de ${n}` }), 'Josu')
+    }
+    await usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+    await usuario.click(screen.getByRole('checkbox', { name: 'Café' }))
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Compra Josu')
+    const bebida = screen.getByRole('button', { name: 'Bebida' })
+    const desayunos = screen.getByRole('button', { name: 'Desayunos' })
+    expect(bebida).toHaveAttribute('aria-expanded', 'false')
+    expect(desayunos).toHaveAttribute('aria-expanded', 'true')
+    // al comprar lo último la sección no se pliega sola
+    await usuario.click(screen.getByRole('checkbox', { name: 'Pan' }))
+    expect(desayunos).toHaveAttribute('aria-expanded', 'true')
+    await usuario.click(desayunos)
+    expect(desayunos).toHaveAttribute('aria-expanded', 'false')
+    await usuario.click(bebida)
+    expect(bebida).toHaveAttribute('aria-expanded', 'true')
+    // cada vez que se filtra se decide de nuevo, aunque sea el mismo filtro
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Todos')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), 'Compra Josu')
+    expect(screen.getByRole('button', { name: 'Bebida' })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: 'Desayunos' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('«Sin asignar» y «Pendientes» abren todas las secciones; volver a «Todos» las contrae', async () => {
+    const { usuario } = preparar(undefined, ['Josu'])
+    await esperarCarga()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    await usuario.selectOptions(screen.getByRole('combobox', { name: 'Comprador de Sidra' }), 'Josu')
+    await anadirProducto(usuario, 'Desayunos', 'Café')
+    await usuario.click(screen.getByRole('checkbox', { name: 'Café' }))
+    const filtro = screen.getByRole('combobox', { name: 'Mostrar' })
+    await usuario.selectOptions(filtro, 'Sin asignar')
+    expect(screen.getByRole('button', { name: 'Desayunos' })).toHaveAttribute('aria-expanded', 'true')
+    await usuario.selectOptions(filtro, 'Todos')
+    expect(screen.getByRole('button', { name: 'Desayunos' })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: 'Bebida' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('las secciones compradas enteras lo indican con «Todo comprado»', async () => {
+    const { usuario } = preparar()
+    await esperarCarga()
+    const seccion = () => screen.getByRole('region', { name: 'Bebida' })
+    expect(within(seccion()).queryByText('Todo comprado')).not.toBeInTheDocument()
+    await anadirProducto(usuario, 'Bebida', 'Sidra')
+    expect(within(seccion()).queryByText('Todo comprado')).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('checkbox', { name: 'Sidra' }))
+    expect(within(seccion()).getByText('Todo comprado')).toBeInTheDocument()
   })
 
   it('oculta las comidas vacías cuando hay un filtro activo', async () => {
@@ -498,12 +562,12 @@ function quedadaConGastos() {
 }
 
 describe('Pestañas', () => {
-  it('divide la quedada en La casa, Lista de la compra, Pagos y Resumen, y abre la lista de la compra', async () => {
+  it('divide la quedada en La casa, Lista de la compra, Pagos y Resumen, y abre La casa', async () => {
     preparar()
-    await esperarCarga()
+    await screen.findByRole('tab', { name: 'La casa' })
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['La casa', 'Lista de la compra', 'Pagos', 'Resumen'])
-    expect(screen.getByRole('tab', { name: 'Lista de la compra' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.queryByRole('region', { name: 'Asistentes' })).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'La casa' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('region', { name: 'Asistentes' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Cuentas' })).not.toBeInTheDocument()
   })
 
@@ -669,6 +733,7 @@ describe('Página inicial', () => {
   it('elegir una quedada lleva a su URL y la muestra', async () => {
     const usuario = abrirInicio(new RepositorioMemoria([conLeche(), conPan()]))
     await usuario.click(await screen.findByRole('button', { name: 'Almunia 2025' }))
+    await usuario.click(await screen.findByRole('tab', { name: 'Lista de la compra' }))
     await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
     await abrirSeccion('Cena del viernes')
     expect(await screen.findByText('Pan')).toBeInTheDocument()
@@ -722,6 +787,7 @@ describe('Página inicial', () => {
     window.location.hash = '#/q1'
     const usuario = userEvent.setup()
     render(<App repositorio={new RepositorioMemoria([conLeche(), conPan()])} crearId={contador()} />)
+    await usuario.click(await screen.findByRole('tab', { name: 'Lista de la compra' }))
     await screen.findByRole('heading', { level: 3, name: 'Cena del viernes' })
     await abrirSeccion('Cena del viernes')
     expect(screen.getByText('Leche')).toBeInTheDocument()

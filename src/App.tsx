@@ -204,7 +204,7 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
           ) : (
             <Pestanas
               etiqueta="Secciones de la quedada"
-              inicial="compra"
+              inicial="casa"
               pestanas={[
                 {
                   id: 'casa',
