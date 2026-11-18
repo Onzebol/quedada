@@ -150,7 +150,9 @@
 
 .cuentas__transferencias {
   display: grid;
-  gap: var(--esp-2);
+  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
+  align-items: start;
+  gap: var(--esp-3);
 }
 
 .cuentas__transferencias li {
@@ -158,11 +160,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--esp-1) var(--esp-2);
-  padding: var(--esp-3) var(--esp-4);
+  padding: var(--esp-4);
   border: 1px solid var(--linea);
-  border-left: 4px solid var(--moss);
-  border-radius: 12px;
-  background: var(--surf);
+  border-radius: 16px;
   color: var(--mut);
 }
 
