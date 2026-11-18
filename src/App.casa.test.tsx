@@ -478,6 +478,18 @@ describe('La casa: familias y componentes', () => {
     expect(screen.getByText(/^\d+ asistentes?$/)).toHaveTextContent('2 asistentes')
   })
 
+  it('una persona es adulta por defecto y se puede marcar como niño', async () => {
+    const { usuario, repositorio } = await preparar(conFamilia())
+    await expandir(usuario, 'Pérez')
+    await usuario.click(screen.getByRole('button', { name: 'Editar persona Ana' }))
+    const d = within(screen.getByRole('dialog', { name: 'Editar persona' }))
+    expect(d.getByRole('combobox', { name: 'Tipo' })).toHaveValue('adulto')
+    await usuario.selectOptions(d.getByRole('combobox', { name: 'Tipo' }), 'Niño')
+    await usuario.click(d.getByRole('button', { name: 'Guardar' }))
+    expect((await guardada(repositorio)).participantes[0].adulto).toBe(false)
+    expect(screen.getByText('Niño')).toBeInTheDocument()
+  })
+
   it('edita el nombre y lo que paga cada componente de casa y de los demás gastos', async () => {
     const { usuario, repositorio } = await preparar(conFamilia())
     await expandir(usuario, 'Pérez')
