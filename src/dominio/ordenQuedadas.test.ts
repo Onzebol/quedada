@@ -5,9 +5,9 @@ import { fechasValidas, ordenarQuedadas } from './ordenQuedadas'
 const q = (id: string, nombre: string, inicio: string | null) => quedada({ id, nombre, inicio })
 
 describe('ordenarQuedadas', () => {
-  it('ordena por fecha de inicio, primero las más próximas', () => {
+  it('ordena por fecha de inicio descendente, la más nueva primero', () => {
     const orden = ordenarQuedadas([q('a', 'A', '2026-12-04'), q('b', 'B', '2025-12-05'), q('c', 'C', '2026-03-01')])
-    expect(orden.map((x) => x.id)).toEqual(['b', 'c', 'a'])
+    expect(orden.map((x) => x.id)).toEqual(['a', 'c', 'b'])
   })
 
   it('a igualdad de fecha, por nombre', () => {

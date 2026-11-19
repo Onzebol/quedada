@@ -26,9 +26,9 @@ describe('Inicio', () => {
       quedada({ id: 'd', nombre: 'Aniversario', inicio: '2026-12-04' }),
     ])
     expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      expect.stringContaining('Navidad'),
       expect.stringContaining('Almunia 2026'),
       expect.stringContaining('Aniversario'),
-      expect.stringContaining('Navidad'),
       expect.stringContaining('Sin fecha'),
     ])
   })
