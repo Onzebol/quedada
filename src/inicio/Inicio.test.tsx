@@ -21,9 +21,18 @@ describe('Inicio', () => {
   it('lista las quedadas y avisa si no hay ninguna', () => {
     preparar()
     expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-      expect.stringContaining('Almunia 2026'),
       expect.stringContaining('Almunia 2025'),
+      expect.stringContaining('Almunia 2026'),
     ])
+  })
+
+  it('las muestra por orden alfabético del nombre, sin importar cómo lleguen (#151)', () => {
+    preparar([
+      quedada({ id: 'c', nombre: 'Navidad' }),
+      quedada({ id: 'a', nombre: 'álamo' }),
+      quedada({ id: 'b', nombre: 'Almunia' }),
+    ])
+    expect(screen.getAllByRole('button', { name: /^(Navidad|álamo|Almunia)$/ }).map((b) => b.textContent)).toEqual(['álamo', 'Almunia', 'Navidad'])
   })
 
   it('sin quedadas muestra un aviso', () => {
@@ -70,7 +79,7 @@ describe('Inicio', () => {
 
   it('elimina con confirmación y solo la quedada elegida', async () => {
     const { usuario, alEliminar } = preparar()
-    await usuario.click(screen.getAllByRole('button', { name: /^Borrar quedada/ })[1])
+    await usuario.click(screen.getByRole('button', { name: /^Borrar quedada Almunia 2025/ }))
     const aviso = screen.getByRole('dialog')
     expect(aviso).toHaveTextContent('«Almunia 2025»')
     expect(alEliminar).not.toHaveBeenCalled()
