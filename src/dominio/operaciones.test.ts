@@ -7,6 +7,7 @@ import {
   borrarGrupo,
   borrarProducto,
   cambiarReparto,
+  duplicarQuedada,
   editarParticipante,
   editarProducto,
   quedadaInicial,
@@ -193,5 +194,66 @@ describe('cambiarReparto', () => {
     const casa = cambiarReparto(q, 'g1', 'casa')
     expect(casa.grupos[0].reparto).toBe('casa')
     expect(cambiarReparto(casa, 'g1', 'comida').grupos[0].reparto).toBe('comida')
+  })
+})
+
+describe('duplicarQuedada', () => {
+  const original = quedada({
+    id: 'q1',
+    nombre: 'Almunia 2025',
+    inicio: '2025-05-01',
+    fin: '2025-05-03',
+    casa: { titulo: 'La casa', descripcion: 'd', direccion: 'Calle 1', latitud: 1, longitud: 2, precio: 90000 },
+    participantes: [
+      { id: 'p1', nombre: 'Ana', familiaId: 'f1', cuentaId: 'c1' },
+      { id: 'p2', nombre: 'Luis' },
+    ],
+    grupos: [{ id: 'g1', nombre: 'Cena', orden: 0 }],
+    productos: [
+      producto({ id: 'x1', grupoId: 'g1', nombre: 'Carne', compradorId: 'p1', comprado: true, precioUnidad: 8 }),
+      producto({ id: 'x2', grupoId: 'g1', nombre: 'Pan', compradorId: 'f1' }),
+    ],
+    asistentes: [{ id: 'f1', familia: 'Pérez', personas: 1, llegada: '18:30' }],
+    basicos: [{ id: 'b1', nombre: 'Leche', asistenteId: 'f1' }],
+    pagos: [{ id: 'pa1', familiaId: 'f1', importe: 1000, concepto: 'Reserva', pagado: true }],
+    gastos: [{ id: 'ga1', pagadorId: 'p1', concepto: 'Gasolina', importe: 500 }],
+  })
+
+  it('copia la casa, las personas, las secciones y los productos con ids nuevos y nombre «(copia)»', () => {
+    const copia = duplicarQuedada(original, contador())
+    expect(copia.nombre).toBe('Almunia 2025 (copia)')
+    expect(copia.casa).toEqual(original.casa)
+    expect(copia.participantes.map((p) => p.nombre)).toEqual(['Ana', 'Luis'])
+    expect(copia.grupos.map((g) => g.nombre)).toEqual(['Cena'])
+    expect(copia.productos.map((p) => [p.nombre, p.precioUnidad])).toEqual([['Carne', 8], ['Pan', null]])
+    const ids = [copia.id, ...copia.participantes.map((p) => p.id), ...copia.grupos.map((g) => g.id), ...copia.productos.map((p) => p.id), ...copia.asistentes.map((a) => a.id)]
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(ids).not.toContain('q1')
+    expect(ids).not.toContain('p1')
+    expect(ids).not.toContain('x1')
+  })
+
+  it('deja los productos sin asignar ni comprar', () => {
+    const copia = duplicarQuedada(original, contador())
+    expect(copia.productos.every((p) => p.compradorId === null && !p.comprado)).toBe(true)
+  })
+
+  it('mantiene los productos en su sección y a cada persona en su familia nueva', () => {
+    const copia = duplicarQuedada(original, contador())
+    expect(copia.productos.every((p) => p.grupoId === copia.grupos[0].id)).toBe(true)
+    expect(copia.participantes[0].familiaId).toBe(copia.asistentes[0].id)
+    expect(copia.participantes[1].familiaId).toBeUndefined()
+    expect(copia.basicos[0].asistenteId).toBe(copia.asistentes[0].id)
+  })
+
+  it('vacía la llegada de los asistentes', () => {
+    const copia = duplicarQuedada(original, contador())
+    expect(copia.asistentes).toEqual([expect.objectContaining({ familia: 'Pérez', personas: 1, llegada: null })])
+  })
+
+  it('no copia los pagos ni los gastos', () => {
+    const copia = duplicarQuedada(original, contador())
+    expect(copia.pagos).toEqual([])
+    expect(copia.gastos).toEqual([])
   })
 })
