@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { restaurarEnlacePendiente } from './autenticacion/enlacePendiente'
+import { proveedorGoogleId } from './autenticacion/googleId'
 import { PantallaEntrada } from './autenticacion/PantallaEntrada'
 import { ActualizacionPwa } from './pwa/ActualizacionPwa'
 import { AutenticacionSupabase } from './supabase/autenticacionSupabase'
@@ -16,7 +17,9 @@ const raiz = createRoot(document.getElementById('root')!)
 
 async function iniciar() {
   const cliente = crearCliente()
-  const autenticacion = await AutenticacionSupabase.abrir(cliente, location.origin + location.pathname)
+  // Con Client ID de Google se usa su botón (sin pasar por la URL de Supabase, #148); sin él, la redirección.
+  const idGoogle = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  const autenticacion = await AutenticacionSupabase.abrir(cliente, location.origin + location.pathname, idGoogle ? proveedorGoogleId(idGoogle) : undefined)
   // Sin sesión solo se ve la pantalla de entrada; con ella, las quedadas son las de la cuenta.
   if (!cliente || !autenticacion.actual()) return <PantallaEntrada autenticacion={autenticacion} />
   // Si se llegó con un enlace (invitación o quedada) y se pasó por Google, se recupera antes de pintar.

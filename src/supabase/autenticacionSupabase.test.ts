@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { ProveedorIdGoogle } from './autenticacionSupabase'
 import { AutenticacionSupabase, usuarioDeSupabase, type ClienteAuth } from './autenticacionSupabase'
 
 const supabaseUser = {
@@ -73,5 +74,49 @@ describe('AutenticacionSupabase', () => {
     expect(auth.disponible()).toBe(false)
     expect(auth.actual()).toBeNull()
     await expect(auth.entrar()).rejects.toThrow()
+  })
+})
+
+describe('AutenticacionSupabase con el botón de Google (#148)', () => {
+  function conBoton(sesion: { user: typeof supabaseUser } | null = null, error: { message: string } | null = null) {
+    const signInWithIdToken = vi.fn(async () => ({ error, data: { session: { user: supabaseUser } } }))
+    const cliente = {
+      auth: { getSession: async () => ({ data: { session: sesion } }), signInWithOAuth: vi.fn(), signOut: vi.fn(), signInWithIdToken },
+    } as unknown as ClienteAuth
+    let alToken: (t: string) => void = () => {}
+    let nonceHash = ''
+    const proveedor: ProveedorIdGoogle = (_c, hash, cb) => {
+      nonceHash = hash
+      alToken = cb
+    }
+    return { cliente, signInWithIdToken, proveedor, token: (t: string) => alToken(t), hash: () => nonceHash }
+  }
+
+  it('sin proveedor no ofrece el botón y se mantiene la redirección', async () => {
+    const auth = await AutenticacionSupabase.abrir(clienteFalso(null).cliente, 'https://web/')
+    expect(auth.montarBoton).toBeUndefined()
+  })
+
+  it('con el token de Google abre sesión en Supabase con el nonce sin hashear y avisa', async () => {
+    const t = conBoton()
+    const auth = await AutenticacionSupabase.abrir(t.cliente, 'https://web/', t.proveedor)
+    const alEntrar = vi.fn()
+    await auth.montarBoton!(document.createElement('div'), alEntrar, vi.fn())
+    expect(t.hash()).toMatch(/^[0-9a-f]{64}$/)
+    t.token('id-token')
+    await vi.waitFor(() => expect(alEntrar).toHaveBeenCalledOnce())
+    const llamada = (t.signInWithIdToken.mock.calls[0] as unknown[])[0] as { provider: string; token: string; nonce: string }
+    expect(llamada).toMatchObject({ provider: 'google', token: 'id-token' })
+    expect(llamada.nonce).not.toBe(t.hash())
+    expect(auth.actual()).toMatchObject({ id: 'u1' })
+  })
+
+  it('si Supabase rechaza el token, avisa del fallo', async () => {
+    const t = conBoton(null, { message: 'mal' })
+    const auth = await AutenticacionSupabase.abrir(t.cliente, 'https://web/', t.proveedor)
+    const alFallar = vi.fn()
+    await auth.montarBoton!(document.createElement('div'), vi.fn(), alFallar)
+    t.token('id-token')
+    await vi.waitFor(() => expect(alFallar).toHaveBeenCalledOnce())
   })
 })

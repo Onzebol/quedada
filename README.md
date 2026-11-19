@@ -42,6 +42,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 132 | Miembros y permisos: tabla `quedada_miembros`; todos los miembros ven y editan la quedada, solo el propietario la borra (paso 3 de #29; la invitación por enlace viene después) |
 | 136 | Invitar por enlace: el propietario genera un enlace (caduca a los 30 días) y quien lo abre con Google entra como miembro; lista de miembros y «Retirar» (paso 4 de #29) |
 | 140 | El enlace de invitación (o de una quedada) sobrevive al login con Google: se recuerda antes de redirigir y se restaura al volver |
+| 148 | Entrar con el botón de Google (Identity Services + `signInWithIdToken`): Google ya no muestra la URL de Supabase. Requiere el Client ID en el proveedor Google de Supabase |
 | 120 | Casilla «Pagado» en cada pago de la casa, para saber si quien debía pagarlo ya lo ha hecho |
 | 128 | Resumen rediseñado: totales, ficha por familia (casa pagada, total pagado, le toca y saldo, con desglose por persona) y quién paga a quién |
 

@@ -19,4 +19,9 @@ export interface Autenticacion {
   salir(): Promise<void>
   /** Si no hay configuración (p. ej. falta el Client ID), la app no ofrece entrar. */
   disponible(): boolean
+  /**
+   * Opcional (#148): monta en `contenedor` el botón de Google (sin redirección, así Google no
+   * muestra la URL de Supabase). Llama a `alEntrar` con la sesión ya abierta o a `alFallar`.
+   */
+  montarBoton?(contenedor: HTMLElement, alEntrar: () => void, alFallar: () => void): void | Promise<void>
 }
