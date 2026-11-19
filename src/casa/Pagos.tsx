@@ -1,5 +1,6 @@
 import { Pencil, Plus, Users } from 'lucide-react'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
+import { MisCosas, marcaMio } from '../ui/MisCosas'
 import { ordenarPorNombre } from '../dominio/asistentes'
 import { filtrarImporte, formatearEuros, parsearEuros } from '../dominio/numeros'
 import { anadirPago, borrarPago, editarPago, marcarPagado, pendienteDeLaCasa, repartirEntreFamilias, totalPagado } from '../dominio/pagos'
@@ -34,6 +35,7 @@ export function Pagos({ quedada, aplicar, crearId, imagenes }: Props) {
   const nombre = (id: Id) => quedada.asistentes.find((a) => a.id === id)?.familia ?? id
   const [ventana, setVentana] = useState<'anadir' | 'repartir' | null>(null)
   const [editando, setEditando] = useState<Pago | null>(null)
+  const mios = useContext(MisCosas)
 
   return (
     <>
@@ -79,7 +81,7 @@ export function Pagos({ quedada, aplicar, crearId, imagenes }: Props) {
             {quedada.pagos.map((p) => {
               const descripcion = `${p.concepto === '' ? 'Pago' : p.concepto} de ${nombre(p.familiaId)}`
               return (
-                <li key={p.id} className="pago pago--con-pagado">
+                <li key={p.id} className="pago pago--con-pagado" {...marcaMio(mios, p.familiaId)}>
                   <span className="pago__quien">
                     <strong>{nombre(p.familiaId)}</strong>
                     {p.concepto !== '' && <span className="pago__concepto">{p.concepto}</span>}

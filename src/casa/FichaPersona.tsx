@@ -4,6 +4,7 @@ import { pesoCasa, quitarComponente } from '../dominio/casa'
 import { editarParticipante } from '../dominio/operaciones'
 import type { Participante, Quedada } from '../dominio/tipos'
 import { BotonBorrar } from '../ui/BotonBorrar'
+import { useMio } from '../ui/MisCosas'
 import { ConIcono } from '../ui/ConIcono'
 import { FormularioModal } from '../ui/FormularioModal'
 
@@ -16,7 +17,7 @@ interface Props {
 export function FichaPersona({ participante: p, aplicar }: Props) {
   const [editando, setEditando] = useState(false)
   return (
-    <li className="persona">
+    <li className="persona" {...useMio(p.familiaId === undefined ? p.id : null)}>
       <span className="persona__nombre">{p.nombre}</span>
       <span className="persona__datos">
         <span>{p.adulto === false ? 'Menor' : 'Adulto'}</span>

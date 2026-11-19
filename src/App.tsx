@@ -16,7 +16,9 @@ import type { Repositorio } from './dominio/repositorio'
 import { RepositorioLocalStorage } from './dominio/repositorioLocalStorage'
 import { duplicarQuedada, quedadaInicial } from './dominio/operaciones'
 import type { Id, Quedada } from './dominio/tipos'
+import { MisCosas } from './ui/MisCosas'
 import { Pestanas } from './ui/Pestanas'
+import { idsMios } from './dominio/vinculos'
 import { Inicio, type DatosQuedada } from './inicio/Inicio'
 import './inicio/inicio.css'
 import { Compartir } from './invitaciones/Compartir'
@@ -209,9 +211,13 @@ interface PropsVista {
 
 function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodificar, imagenes, invitaciones }: PropsVista) {
   const estado = useQuedada(almacen, crearId, quedadaId)
+  const mios = useMemo(
+    () => (estado.quedada === null ? new Set<Id>() : idsMios(estado.quedada, sesion.usuario?.id ?? null)),
+    [estado.quedada, sesion.usuario],
+  )
 
   return (
-    <>
+    <MisCosas.Provider value={mios}>
       <div className="barra">
         <Sesion sesion={sesion} quedada={estado.quedada} aplicar={estado.aplicar} />
         {estado.quedada !== null && estado.error !== 'noEncontrada' && invitaciones !== undefined && (almacen.puedeBorrar?.(quedadaId) ?? true) && (
@@ -259,6 +265,6 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
           )}
         </>
       )}
-    </>
+    </MisCosas.Provider>
   )
 }
