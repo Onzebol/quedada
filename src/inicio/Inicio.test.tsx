@@ -11,10 +11,11 @@ function preparar(quedadas = lista(), puedeEliminar?: (id: string) => boolean) {
   const alCrear = vi.fn()
   const alEliminar = vi.fn().mockResolvedValue(undefined)
   const alRenombrar = vi.fn()
+  const alDuplicar = vi.fn()
   render(
-    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alRenombrar={alRenombrar} puedeEliminar={puedeEliminar} />,
+    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alRenombrar={alRenombrar} alDuplicar={alDuplicar} puedeEliminar={puedeEliminar} />,
   )
-  return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar, alRenombrar }
+  return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar, alRenombrar, alDuplicar }
 }
 
 describe('Inicio', () => {
@@ -62,6 +63,12 @@ describe('Inicio', () => {
     await usuario.click(screen.getByRole('button', { name: 'Añadir quedada' }))
     await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Añadir' }))
     expect(alCrear).not.toHaveBeenCalled()
+  })
+
+  it('«Duplicar» duplica solo esa quedada', async () => {
+    const { usuario, alDuplicar } = preparar()
+    await usuario.click(screen.getByRole('button', { name: 'Duplicar Almunia 2025' }))
+    expect(alDuplicar).toHaveBeenCalledWith('b')
   })
 
   it('«Editar» abre una ventana modal con el nombre y renombra solo esa quedada', async () => {

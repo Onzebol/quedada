@@ -1,4 +1,4 @@
-import { Pencil, Plus } from 'lucide-react'
+import { Copy, Pencil, Plus } from 'lucide-react'
 import { ConIcono } from '../ui/ConIcono'
 import { FormularioModal } from '../ui/FormularioModal'
 import { useState, type ReactNode } from 'react'
@@ -15,6 +15,8 @@ interface Props {
   alEliminar: (id: Id) => Promise<void>
   /** Cambia el nombre de la quedada. */
   alRenombrar: (id: Id, nombre: string) => void
+  /** Crea una copia de la quedada (sin pagos ni asignaciones). */
+  alDuplicar: (id: Id) => void
   /** Si la cuenta puede borrar esa quedada (las compartidas por otra persona no). Por defecto, todas. */
   puedeEliminar?: (id: Id) => boolean
   children?: ReactNode
@@ -48,7 +50,7 @@ function NombreQuedada({ titulo, envio, inicial, onGuardar, onCerrar }: {
 }
 
 /** Página inicial: elegir, añadir, editar o eliminar quedadas (añadir y editar, en ventanas modales). */
-export function Inicio({ quedadas, alElegir, alCrear, alEliminar, alRenombrar, puedeEliminar, children }: Props) {
+export function Inicio({ quedadas, alElegir, alCrear, alEliminar, alRenombrar, alDuplicar, puedeEliminar, children }: Props) {
   const [anadiendo, setAnadiendo] = useState(false)
   const [editando, setEditando] = useState<Quedada | null>(null)
 
@@ -71,6 +73,9 @@ export function Inicio({ quedadas, alElegir, alCrear, alEliminar, alRenombrar, p
               </button>
               <button type="button" aria-label={`Editar ${q.nombre}`} onClick={() => setEditando(q)}>
                 <ConIcono icono={Pencil}>Editar</ConIcono>
+              </button>
+              <button type="button" aria-label={`Duplicar ${q.nombre}`} onClick={() => alDuplicar(q.id)}>
+                <ConIcono icono={Copy}>Duplicar</ConIcono>
               </button>
               {(puedeEliminar?.(q.id) ?? true) && <EliminarQuedada nombre={q.nombre} onEliminar={() => alEliminar(q.id)} />}
             </li>

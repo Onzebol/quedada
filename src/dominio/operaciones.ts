@@ -29,6 +29,46 @@ export function quedadaInicial(crearId: () => Id, nombre = 'Quedada'): Quedada {
   }
 }
 
+/**
+ * Copia de una quedada para repetirla otro año: conserva la casa, las personas, las secciones y los
+ * productos (sin comprador y sin comprar) y los asistentes (sin hora de llegada). No copia los pagos
+ * ni los gastos. Todos los ids son nuevos.
+ */
+export function duplicarQuedada(q: Quedada, crearId: () => Id): Quedada {
+  const id = crearId()
+  const ids = new Map<Id, Id>()
+  const nuevo = (viejo: Id): Id => {
+    const n = crearId()
+    ids.set(viejo, n)
+    return n
+  }
+  const asistentes = q.asistentes.map((a) => ({ ...a, id: nuevo(a.id), llegada: null }))
+  const grupos = q.grupos.map((g) => ({ ...g, id: nuevo(g.id) }))
+  return {
+    ...q,
+    id,
+    nombre: `${q.nombre} (copia)`,
+    casa: { ...q.casa },
+    participantes: q.participantes.map(({ familiaId, ...p }) => ({
+      ...p,
+      id: crearId(),
+      ...(familiaId !== undefined && ids.has(familiaId) ? { familiaId: ids.get(familiaId) } : {}),
+    })),
+    grupos,
+    productos: q.productos.map((p) => ({
+      ...p,
+      id: crearId(),
+      grupoId: ids.get(p.grupoId) ?? p.grupoId,
+      compradorId: null,
+      comprado: false,
+    })),
+    asistentes,
+    basicos: q.basicos.map((b) => ({ ...b, id: crearId(), asistenteId: b.asistenteId === null ? null : (ids.get(b.asistenteId) ?? null) })),
+    pagos: [],
+    gastos: [],
+  }
+}
+
 export function anadirParticipante(q: Quedada, participante: Participante): Quedada {
   const nombre = participante.nombre.trim()
   if (nombre === '') return q

@@ -46,6 +46,7 @@ El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github
 | 120 | Casilla «Pagado» en cada pago de la casa, para saber si quien debía pagarlo ya lo ha hecho |
 | 128 | Resumen rediseñado: totales, ficha por familia (casa pagada, total pagado, le toca y saldo, con desglose por persona) y quién paga a quién |
 | 151 | Las quedadas de la página inicial se muestran por orden alfabético y la lista es algo más ancha |
+| 146 | Duplicar una quedada desde la página inicial: copia la casa, las personas, la lista de la compra (sin asignar ni comprar) y los asistentes (sin llegada); no copia pagos ni gastos |
 
 ## Requisitos
 
