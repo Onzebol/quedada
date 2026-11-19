@@ -65,6 +65,18 @@ body {
   margin: 0;
 }
 
+.quedada__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.quedada__fechas {
+  color: var(--mut);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .pagina__columnas {
   display: grid;
   gap: 1.5rem;

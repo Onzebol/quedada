@@ -3,7 +3,7 @@ import { ConIcono } from '../ui/ConIcono'
 import { FormularioModal } from '../ui/FormularioModal'
 import { useState, type ReactNode } from 'react'
 import { EliminarQuedada } from '../compra/EliminarQuedada'
-import { fechasValidas, ordenarQuedadas } from '../dominio/ordenQuedadas'
+import { fechasValidas, ordenarQuedadas, textoFechas } from '../dominio/ordenQuedadas'
 import type { Id, Quedada } from '../dominio/tipos'
 import './inicio.css'
 
@@ -27,21 +27,6 @@ interface Props {
   /** Si la cuenta puede borrar esa quedada (las compartidas por otra persona no). Por defecto, todas. */
   puedeEliminar?: (id: Id) => boolean
   children?: ReactNode
-}
-
-const formatoFecha = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-
-function fechaLegible(iso: string): string {
-  const [a, m, d] = iso.split('-').map(Number)
-  return formatoFecha.format(new Date(a, m - 1, d)).replace(/\./g, '')
-}
-
-/** «4 dic 2026 – 6 dic 2026», o solo la que haya; vacío si no hay ninguna. */
-function textoFechas({ inicio, fin }: Pick<Quedada, 'inicio' | 'fin'>): string {
-  if (inicio && fin) return `${fechaLegible(inicio)} – ${fechaLegible(fin)}`
-  if (inicio) return `Desde el ${fechaLegible(inicio)}`
-  if (fin) return `Hasta el ${fechaLegible(fin)}`
-  return ''
 }
 
 /** Ventana modal con los datos de una quedada (nombre y fechas): sirve para añadir una (vacía) y para editar una. */

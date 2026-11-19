@@ -19,6 +19,7 @@ import type { Id, Quedada } from './dominio/tipos'
 import { MisCosas } from './ui/MisCosas'
 import { Pestanas } from './ui/Pestanas'
 import { idsMios } from './dominio/vinculos'
+import { textoFechas } from './dominio/ordenQuedadas'
 import { Inicio, type DatosQuedada } from './inicio/Inicio'
 import './inicio/inicio.css'
 import { Compartir } from './invitaciones/Compartir'
@@ -224,7 +225,12 @@ function VistaQuedada({ almacen, crearId, sesion, quedadaId, urlPagina, geocodif
           <Compartir quedadaId={estado.quedada.id} invitaciones={invitaciones} urlPagina={urlPagina} />
         )}
       </div>
-      {estado.quedada !== null && estado.error !== 'noEncontrada' && <h2 className="quedada__nombre">{estado.quedada.nombre}</h2>}
+      {estado.quedada !== null && estado.error !== 'noEncontrada' && (
+        <div className="quedada__cabecera">
+          <h2 className="quedada__nombre">{estado.quedada.nombre}</h2>
+          {textoFechas(estado.quedada) !== '' && <small className="quedada__fechas">{textoFechas(estado.quedada)}</small>}
+        </div>
+      )}
       {estado.error === 'noEncontrada' ? (
         <p role="note">
           No se encontró esta quedada: puede que no exista o que no tengas acceso. Los enlaces solo funcionan
