@@ -751,6 +751,17 @@ describe('Página inicial', () => {
     expect(repositorio.quedadas[0].nombre).toBe('Almunia 2027')
   })
 
+  it('editar una quedada guarda sus fechas y la lista se reordena por inicio', async () => {
+    const repositorio = new RepositorioMemoria([conLeche(), conPan()])
+    const usuario = abrirInicio(repositorio)
+    await usuario.click(await screen.findByRole('button', { name: 'Editar Almunia 2026' }))
+    await usuario.type(screen.getByLabelText('Inicio'), '2026-12-04')
+    await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Guardar' }))
+    await waitFor(() => expect(repositorio.quedadas.find((q) => q.id === 'q1')?.inicio).toBe('2026-12-04'))
+    const nombres = () => screen.getAllByRole('listitem').map((li) => li.querySelector('.inicio__abrir')?.firstChild?.textContent)
+    await waitFor(() => expect(nombres()).toEqual(['Almunia 2026', 'Almunia 2025']))
+  })
+
   it('crear una quedada la guarda con las comidas habituales y la abre', async () => {
     const repositorio = new RepositorioMemoria()
     const usuario = abrirInicio(repositorio)
