@@ -3,6 +3,7 @@ import { ConIcono } from '../ui/ConIcono'
 import { FormularioModal } from '../ui/FormularioModal'
 import { useState, type ReactNode } from 'react'
 import { EliminarQuedada } from '../compra/EliminarQuedada'
+import { ordenarPorNombre } from '../dominio/asistentes'
 import type { Id, Quedada } from '../dominio/tipos'
 import './inicio.css'
 
@@ -63,7 +64,7 @@ export function Inicio({ quedadas, alElegir, alCrear, alEliminar, alRenombrar, p
         <p>Todavía no tienes ninguna quedada.</p>
       ) : (
         <ul className="inicio__lista" aria-label="Quedadas">
-          {quedadas.map((q) => (
+          {ordenarPorNombre(quedadas, (q) => q.nombre).map((q) => (
             <li key={q.id}>
               <button type="button" className="inicio__abrir" onClick={() => alElegir(q.id)}>
                 {q.nombre}
