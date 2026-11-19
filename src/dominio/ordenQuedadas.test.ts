@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { quedada } from './fabrica'
-import { fechasValidas, ordenarQuedadas } from './ordenQuedadas'
+import { fechasValidas, ordenarQuedadas, textoFechas } from './ordenQuedadas'
 
 const q = (id: string, nombre: string, inicio: string | null) => quedada({ id, nombre, inicio })
 
@@ -38,5 +38,14 @@ describe('fechasValidas', () => {
 
   it('rechaza un fin anterior al inicio', () => {
     expect(fechasValidas('2026-12-06', '2026-12-04')).toBe(false)
+  })
+})
+
+describe('textoFechas', () => {
+  it('muestra inicio y fin, solo una de ellas o nada', () => {
+    expect(textoFechas({ inicio: '2026-12-04', fin: '2026-12-06' })).toBe('4 dic 2026 – 6 dic 2026')
+    expect(textoFechas({ inicio: '2026-12-04', fin: null })).toBe('Desde el 4 dic 2026')
+    expect(textoFechas({ inicio: null, fin: '2026-12-06' })).toBe('Hasta el 6 dic 2026')
+    expect(textoFechas({ inicio: null, fin: null })).toBe('')
   })
 })

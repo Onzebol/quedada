@@ -823,6 +823,12 @@ describe('Página inicial', () => {
     expect(await screen.findByRole('heading', { level: 2, name: 'Almunia 2026' })).toBeInTheDocument()
   })
 
+  it('muestra las fechas de la quedada dentro de ella', async () => {
+    window.location.hash = '#/q1'
+    render(<App repositorio={new RepositorioMemoria([{ ...conLeche(), inicio: '2026-12-04', fin: '2026-12-06' }])} crearId={contador()} />)
+    expect(await screen.findByText('4 dic 2026 – 6 dic 2026')).toBeInTheDocument()
+  })
+
   it('al pulsar el título «Quedada» se vuelve a la página inicial', async () => {
     window.location.hash = '#/q1'
     const usuario = userEvent.setup()
