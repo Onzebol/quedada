@@ -10,11 +10,12 @@ function preparar(quedadas = lista(), puedeEliminar?: (id: string) => boolean) {
   const alElegir = vi.fn()
   const alCrear = vi.fn()
   const alEliminar = vi.fn().mockResolvedValue(undefined)
+  const alDuplicar = vi.fn()
   const alEditar = vi.fn()
   render(
-    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alEditar={alEditar} puedeEliminar={puedeEliminar} />,
+    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alEditar={alEditar} alDuplicar={alDuplicar} puedeEliminar={puedeEliminar} />,
   )
-  return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar, alEditar }
+  return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar, alEditar, alDuplicar }
 }
 
 describe('Inicio', () => {
@@ -38,6 +39,15 @@ describe('Inicio', () => {
     const [con, sin] = screen.getAllByRole('listitem')
     expect(con).toHaveTextContent(/4 dic 2026\s*–\s*6 dic 2026/)
     expect(sin).not.toHaveTextContent('–')
+  })
+
+  it('las muestra por orden alfabético del nombre, sin importar cómo lleguen (#151)', () => {
+    preparar([
+      quedada({ id: 'c', nombre: 'Navidad' }),
+      quedada({ id: 'a', nombre: 'álamo' }),
+      quedada({ id: 'b', nombre: 'Almunia' }),
+    ])
+    expect(screen.getAllByRole('button', { name: /^(Navidad|álamo|Almunia)$/ }).map((b) => b.textContent)).toEqual(['álamo', 'Almunia', 'Navidad'])
   })
 
   it('sin quedadas muestra un aviso', () => {
@@ -101,6 +111,12 @@ describe('Inicio', () => {
     await usuario.click(screen.getByRole('button', { name: 'Añadir quedada' }))
     await usuario.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Añadir' }))
     expect(alCrear).not.toHaveBeenCalled()
+  })
+
+  it('«Duplicar» duplica solo esa quedada', async () => {
+    const { usuario, alDuplicar } = preparar()
+    await usuario.click(screen.getByRole('button', { name: 'Duplicar Almunia 2025' }))
+    expect(alDuplicar).toHaveBeenCalledWith('b')
   })
 
   it('«Editar» abre una ventana modal con el nombre y renombra solo esa quedada', async () => {

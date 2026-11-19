@@ -14,7 +14,7 @@ import { Pagos } from './casa/Pagos'
 import { Cuentas } from './cuentas/Cuentas'
 import type { Repositorio } from './dominio/repositorio'
 import { RepositorioLocalStorage } from './dominio/repositorioLocalStorage'
-import { quedadaInicial } from './dominio/operaciones'
+import { duplicarQuedada, quedadaInicial } from './dominio/operaciones'
 import type { Id, Quedada } from './dominio/tipos'
 import { Pestanas } from './ui/Pestanas'
 import { Inicio, type DatosQuedada } from './inicio/Inicio'
@@ -147,6 +147,21 @@ function PaginaInicial({ almacen, crearId, sesion, abrir }: PropsInicial) {
     [almacen, crearId, abrir],
   )
 
+  const duplicar = useCallback(
+    async (id: Id) => {
+      try {
+        const q = await almacen.obtener(id)
+        if (!q) return
+        const copia = duplicarQuedada(q, crearId)
+        await almacen.guardar(copia)
+        abrir(copia.id)
+      } catch {
+        setError(true)
+      }
+    },
+    [almacen, crearId, abrir],
+  )
+
   const eliminar = useCallback(
     async (id: Id) => {
       await almacen.borrar(id)
@@ -175,7 +190,7 @@ function PaginaInicial({ almacen, crearId, sesion, abrir }: PropsInicial) {
       {quedadas === null ? (
         !error && <p role="status">Cargando…</p>
       ) : (
-        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(d) => void crear(d)} alEliminar={eliminar} alEditar={(id, d) => void editar(id, d)} puedeEliminar={almacen.puedeBorrar?.bind(almacen)} />
+        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(d) => void crear(d)} alEliminar={eliminar} alEditar={(id, d) => void editar(id, d)} alDuplicar={(id) => void duplicar(id)} puedeEliminar={almacen.puedeBorrar?.bind(almacen)} />
       )}
     </>
   )

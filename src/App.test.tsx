@@ -762,6 +762,17 @@ describe('Página inicial', () => {
     await waitFor(() => expect(nombres()).toEqual(['Almunia 2026', 'Almunia 2025']))
   })
 
+  it('duplicar una quedada guarda la copia, la abre y deja la original como estaba', async () => {
+    const repositorio = new RepositorioMemoria([conLeche()])
+    const usuario = abrirInicio(repositorio)
+    await usuario.click(await screen.findByRole('button', { name: 'Duplicar Almunia 2026' }))
+    await esperarCarga()
+    expect(repositorio.quedadas).toHaveLength(2)
+    const copia = repositorio.quedadas.find((q) => q.id !== 'q1')!
+    expect(copia.nombre).toBe('Almunia 2026 (copia)')
+    expect(window.location.hash).toBe(`#/${copia.id}`)
+  })
+
   it('crear una quedada la guarda con las comidas habituales y la abre', async () => {
     const repositorio = new RepositorioMemoria()
     const usuario = abrirInicio(repositorio)

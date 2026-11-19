@@ -360,7 +360,21 @@ describe('migraciones de Supabase', () => {
   describe('0011: miembros', () => {
     beforeEach(async () => {
       await db.exec(sql('0011_miembros.sql'))
+      await db.exec(sql('0013_quedadas_upsert.sql'))
       await db.query("insert into public.quedada_miembros (quedada_id, usuario_id) values ('q1', $1)", [LUIS])
+    })
+
+    it('una quedada nueva se puede guardar con upsert y se puede volver a guardar (#150)', async () => {
+      const upsert = "insert into public.quedadas (id, nombre) values ('q8', 'Nueva') on conflict (id) do update set nombre = excluded.nombre returning id"
+      expect((await como(db, ANA, upsert)).rows).toEqual([{ id: 'q8' }])
+      expect((await como(db, ANA, upsert.replace("'Nueva'", "'Otra'"))).rows).toEqual([{ id: 'q8' }])
+      expect((await db.query("select nombre, propietario_id from public.quedadas where id = 'q8'")).rows).toEqual([{ nombre: 'Otra', propietario_id: ANA }])
+    })
+
+    it('un upsert no sirve para cambiar ni apropiarse de la quedada de otra cuenta (#150)', async () => {
+      const antes = (await db.query("select nombre, propietario_id from public.quedadas where id = 'q2'")).rows
+      await como(db, ANA, "insert into public.quedadas (id, nombre) values ('q2', 'Mia') on conflict (id) do update set nombre = excluded.nombre").catch(() => undefined)
+      expect((await db.query("select nombre, propietario_id from public.quedadas where id = 'q2'")).rows).toEqual(antes)
     })
 
     it('un miembro ve la quedada compartida y sus filas, además de las suyas', async () => {
