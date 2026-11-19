@@ -2,6 +2,7 @@ import type { Autenticacion, Usuario } from '../autenticacion/tipos'
 
 /** Autenticación falsa para tests: `entrar` devuelve `cuenta` (o falla si es `null`). */
 export class AutenticacionMemoria implements Autenticacion {
+  montarBoton?: Autenticacion['montarBoton']
   private sesion: Usuario | null
   private readonly cuenta: Usuario | null
   readonly disponibleSiempre: boolean

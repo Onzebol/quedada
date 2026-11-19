@@ -66,4 +66,26 @@ describe('PantallaEntrada', () => {
       expect(recuperarEnlacePendiente('')).toBeNull()
     })
   })
+
+  it('con el botón de Google (#148) lo monta en lugar del botón propio y recarga al entrar', async () => {
+    const auth = new AutenticacionMemoria(ana)
+    let alEntrar: () => void = () => {}
+    auth.montarBoton = (contenedor, entrado) => {
+      contenedor.textContent = 'boton-google'
+      alEntrar = entrado
+    }
+    const recargar = vi.fn()
+    render(<PantallaEntrada autenticacion={auth} alEntrar={recargar} />)
+    expect(screen.getByText('boton-google')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Entrar con Google' })).not.toBeInTheDocument()
+    alEntrar()
+    expect(recargar).toHaveBeenCalledOnce()
+  })
+
+  it('con el botón de Google avisa si falla', async () => {
+    const auth = new AutenticacionMemoria(ana)
+    auth.montarBoton = (_c, _e, fallar) => fallar()
+    render(<PantallaEntrada autenticacion={auth} />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo iniciar sesión')
+  })
 })

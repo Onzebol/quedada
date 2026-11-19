@@ -14,8 +14,24 @@ export interface ClienteAuth {
       provider: 'google'
       options: { redirectTo: string; queryParams?: Record<string, string> }
     }): PromiseLike<{ error: { message: string } | null }>
+    signInWithIdToken?(credenciales: {
+      provider: 'google'
+      token: string
+      nonce: string
+    }): PromiseLike<{ error: { message: string } | null; data: { session: { user: UsuarioSupabase } | null } }>
     signOut(): PromiseLike<{ error: { message: string } | null }>
   }
+}
+
+/**
+ * Pinta el botón de Google en `contenedor` y llama a `alToken` con el ID token. `nonceHash` es el
+ * SHA-256 (hex) del nonce que Supabase comprobará (ver `autenticacion/googleId.ts`).
+ */
+export type ProveedorIdGoogle = (contenedor: HTMLElement, nonceHash: string, alToken: (token: string) => void) => void | Promise<void>
+
+async function sha256Hex(texto: string): Promise<string> {
+  const huella = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto))
+  return Array.from(new Uint8Array(huella), (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
 /** Lo mínimo de la cuenta: id, nombre visible, foto y correo (este solo se muestra). */
@@ -35,16 +51,37 @@ export class AutenticacionSupabase implements Autenticacion {
   private readonly cliente: ClienteAuth | null
   private readonly volverA: string
   private sesion: Usuario | null
+  /** Solo existe con un proveedor del botón de Google (#148); si no, se entra por redirección. */
+  readonly montarBoton?: (contenedor: HTMLElement, alEntrar: () => void, alFallar: () => void) => Promise<void>
 
-  private constructor(cliente: ClienteAuth | null, volverA: string, sesion: Usuario | null) {
+  private constructor(cliente: ClienteAuth | null, volverA: string, sesion: Usuario | null, proveedor?: ProveedorIdGoogle) {
     this.cliente = cliente
     this.volverA = volverA
     this.sesion = sesion
+    const signInWithIdToken = cliente?.auth.signInWithIdToken?.bind(cliente.auth)
+    if (proveedor && signInWithIdToken) {
+      this.montarBoton = async (contenedor, alEntrar, alFallar) => {
+        const nonce = crypto.randomUUID()
+        const hash = await sha256Hex(nonce)
+        await proveedor(contenedor, hash, (token) => {
+          void (async () => {
+            try {
+              const { error, data } = await signInWithIdToken({ provider: 'google', token, nonce })
+              if (error || !data.session) return alFallar()
+              this.sesion = usuarioDeSupabase(data.session.user)
+              alEntrar()
+            } catch {
+              alFallar()
+            }
+          })()
+        })
+      }
+    }
   }
 
-  static async abrir(cliente: ClienteAuth | null, volverA: string): Promise<AutenticacionSupabase> {
+  static async abrir(cliente: ClienteAuth | null, volverA: string, proveedor?: ProveedorIdGoogle): Promise<AutenticacionSupabase> {
     const user = cliente ? (await cliente.auth.getSession()).data.session?.user : undefined
-    return new AutenticacionSupabase(cliente, volverA, user ? usuarioDeSupabase(user) : null)
+    return new AutenticacionSupabase(cliente, volverA, user ? usuarioDeSupabase(user) : null, proveedor)
   }
 
   disponible() {
