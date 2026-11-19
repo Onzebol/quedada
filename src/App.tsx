@@ -17,7 +17,7 @@ import { RepositorioLocalStorage } from './dominio/repositorioLocalStorage'
 import { duplicarQuedada, quedadaInicial } from './dominio/operaciones'
 import type { Id, Quedada } from './dominio/tipos'
 import { Pestanas } from './ui/Pestanas'
-import { Inicio } from './inicio/Inicio'
+import { Inicio, type DatosQuedada } from './inicio/Inicio'
 import './inicio/inicio.css'
 import { Compartir } from './invitaciones/Compartir'
 import type { Invitaciones } from './invitaciones/tipos'
@@ -134,8 +134,8 @@ function PaginaInicial({ almacen, crearId, sesion, abrir }: PropsInicial) {
   }, [almacen])
 
   const crear = useCallback(
-    async (nombre: string) => {
-      const nueva = quedadaInicial(crearId, nombre)
+    async ({ nombre, inicio, fin }: DatosQuedada) => {
+      const nueva = { ...quedadaInicial(crearId, nombre), inicio, fin }
       try {
         await almacen.guardar(nueva)
       } catch {
@@ -170,11 +170,11 @@ function PaginaInicial({ almacen, crearId, sesion, abrir }: PropsInicial) {
     [almacen, refrescar],
   )
 
-  const renombrar = useCallback(
-    async (id: Id, nombre: string) => {
+  const editar = useCallback(
+    async (id: Id, datos: DatosQuedada) => {
       try {
         const q = await almacen.obtener(id)
-        if (q) await almacen.guardar({ ...q, nombre })
+        if (q) await almacen.guardar({ ...q, ...datos })
         await refrescar()
       } catch {
         setError(true)
@@ -190,7 +190,7 @@ function PaginaInicial({ almacen, crearId, sesion, abrir }: PropsInicial) {
       {quedadas === null ? (
         !error && <p role="status">Cargando…</p>
       ) : (
-        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(n) => void crear(n)} alEliminar={eliminar} alRenombrar={(id, n) => void renombrar(id, n)} alDuplicar={(id) => void duplicar(id)} puedeEliminar={almacen.puedeBorrar?.bind(almacen)} />
+        <Inicio quedadas={quedadas} alElegir={abrir} alCrear={(d) => void crear(d)} alEliminar={eliminar} alEditar={(id, d) => void editar(id, d)} alDuplicar={(id) => void duplicar(id)} puedeEliminar={almacen.puedeBorrar?.bind(almacen)} />
       )}
     </>
   )

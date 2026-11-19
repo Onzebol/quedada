@@ -10,21 +10,35 @@ function preparar(quedadas = lista(), puedeEliminar?: (id: string) => boolean) {
   const alElegir = vi.fn()
   const alCrear = vi.fn()
   const alEliminar = vi.fn().mockResolvedValue(undefined)
-  const alRenombrar = vi.fn()
   const alDuplicar = vi.fn()
+  const alEditar = vi.fn()
   render(
-    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alRenombrar={alRenombrar} alDuplicar={alDuplicar} puedeEliminar={puedeEliminar} />,
+    <Inicio quedadas={quedadas} alElegir={alElegir} alCrear={alCrear} alEliminar={alEliminar} alEditar={alEditar} alDuplicar={alDuplicar} puedeEliminar={puedeEliminar} />,
   )
-  return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar, alRenombrar, alDuplicar }
+  return { usuario: userEvent.setup(), alElegir, alCrear, alEliminar, alEditar, alDuplicar }
 }
 
 describe('Inicio', () => {
-  it('lista las quedadas y avisa si no hay ninguna', () => {
-    preparar()
-    expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-      expect.stringContaining('Almunia 2025'),
-      expect.stringContaining('Almunia 2026'),
+  it('lista las quedadas por fecha de inicio y nombre, y avisa si no hay ninguna', () => {
+    preparar([
+      quedada({ id: 'a', nombre: 'Sin fecha' }),
+      quedada({ id: 'b', nombre: 'Navidad', inicio: '2026-12-24' }),
+      quedada({ id: 'c', nombre: 'Almunia 2026', inicio: '2026-12-04' }),
+      quedada({ id: 'd', nombre: 'Aniversario', inicio: '2026-12-04' }),
     ])
+    expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      expect.stringContaining('Navidad'),
+      expect.stringContaining('Almunia 2026'),
+      expect.stringContaining('Aniversario'),
+      expect.stringContaining('Sin fecha'),
+    ])
+  })
+
+  it('muestra las fechas de cada quedada', () => {
+    preparar([quedada({ id: 'a', nombre: 'Almunia', inicio: '2026-12-04', fin: '2026-12-06' }), quedada({ id: 'b', nombre: 'Otra' })])
+    const [con, sin] = screen.getAllByRole('listitem')
+    expect(con).toHaveTextContent(/4 dic 2026\s*–\s*6 dic 2026/)
+    expect(sin).not.toHaveTextContent('–')
   })
 
   it('las muestra por orden alfabético del nombre, sin importar cómo lleguen (#151)', () => {
@@ -54,8 +68,42 @@ describe('Inicio', () => {
     const ventana = screen.getByRole('dialog')
     await usuario.type(within(ventana).getByRole('textbox', { name: 'Nombre' }), '  Navidad  ')
     await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
-    expect(alCrear).toHaveBeenCalledWith('Navidad')
+    expect(alCrear).toHaveBeenCalledWith({ nombre: 'Navidad', inicio: null, fin: null })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('crea con fecha de inicio y de fin', async () => {
+    const { usuario, alCrear } = preparar()
+    await usuario.click(screen.getByRole('button', { name: 'Añadir quedada' }))
+    const ventana = screen.getByRole('dialog')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Nombre' }), 'Navidad')
+    await usuario.type(within(ventana).getByLabelText('Inicio'), '2026-12-24')
+    await usuario.type(within(ventana).getByLabelText('Fin'), '2026-12-26')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
+    expect(alCrear).toHaveBeenCalledWith({ nombre: 'Navidad', inicio: '2026-12-24', fin: '2026-12-26' })
+  })
+
+  it('la fecha de fin no puede ser anterior a la de inicio', async () => {
+    const { usuario, alCrear } = preparar()
+    await usuario.click(screen.getByRole('button', { name: 'Añadir quedada' }))
+    const ventana = screen.getByRole('dialog')
+    await usuario.type(within(ventana).getByRole('textbox', { name: 'Nombre' }), 'Navidad')
+    await usuario.type(within(ventana).getByLabelText('Fin'), '2026-12-26')
+    await usuario.type(within(ventana).getByLabelText('Inicio'), '2026-12-30')
+    expect(within(ventana).getByLabelText('Fin')).toHaveValue('2026-12-30')
+    await usuario.click(within(ventana).getByRole('button', { name: 'Añadir' }))
+    expect(alCrear).toHaveBeenCalledWith({ nombre: 'Navidad', inicio: '2026-12-30', fin: '2026-12-30' })
+  })
+
+  it('«Editar» muestra las fechas actuales y permite cambiarlas', async () => {
+    const { usuario, alEditar } = preparar([quedada({ id: 'a', nombre: 'Almunia', inicio: '2026-12-04', fin: '2026-12-06' })])
+    await usuario.click(screen.getByRole('button', { name: 'Editar Almunia' }))
+    const ventana = screen.getByRole('dialog')
+    expect(within(ventana).getByLabelText('Inicio')).toHaveValue('2026-12-04')
+    expect(within(ventana).getByLabelText('Fin')).toHaveValue('2026-12-06')
+    await usuario.clear(within(ventana).getByLabelText('Fin'))
+    await usuario.click(within(ventana).getByRole('button', { name: 'Guardar' }))
+    expect(alEditar).toHaveBeenCalledWith('a', { nombre: 'Almunia', inicio: '2026-12-04', fin: null })
   })
 
   it('no crea una quedada sin nombre', async () => {
@@ -72,7 +120,7 @@ describe('Inicio', () => {
   })
 
   it('«Editar» abre una ventana modal con el nombre y renombra solo esa quedada', async () => {
-    const { usuario, alRenombrar } = preparar()
+    const { usuario, alEditar } = preparar()
     await usuario.click(screen.getByRole('button', { name: 'Editar Almunia 2025' }))
     const ventana = screen.getByRole('dialog')
     const campo = within(ventana).getByRole('textbox', { name: 'Nombre' })
@@ -80,7 +128,7 @@ describe('Inicio', () => {
     await usuario.clear(campo)
     await usuario.type(campo, 'Almunia 2027')
     await usuario.click(within(ventana).getByRole('button', { name: 'Guardar' }))
-    expect(alRenombrar).toHaveBeenCalledWith('b', 'Almunia 2027')
+    expect(alEditar).toHaveBeenCalledWith('b', { nombre: 'Almunia 2027', inicio: null, fin: null })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
