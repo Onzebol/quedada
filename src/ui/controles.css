@@ -236,3 +236,25 @@
   border-width: 0 3px 3px 0;
   transform: rotate(45deg);
 }
+
+/* Lo que es mío o de mi familia («Este soy yo», #156): fondo suave. */
+:where([data-mio]) {
+  background: color-mix(in srgb, var(--moss) 10%, transparent);
+}
+
+/* Con especificidad normal: las filas traen su propio `padding` y el texto y los botones quedarían pegados al borde del fondo. */
+li[data-mio] {
+  padding-inline: var(--esp-3);
+}
+
+/* Las fichas (familias, resumen y transferencias) llevan ya su caja: se tiñe el fondo y el borde. */
+:is(.familia, .cuentas__ficha, .cuentas__transferencias li)[data-mio] {
+  background: color-mix(in srgb, var(--moss) 10%, #fff);
+  border-color: var(--moss);
+  padding-inline: var(--esp-4);
+}
+
+/* Dentro de lo resaltado, los botones con borde llevan fondo opaco, como los desplegables (el de despliegue de las fichas no tiene caja). */
+[data-mio] button:not([type='submit'], .familia__alternar, .cuentas__ficha h4 button, .cuentas__importe) {
+  background: #fff;
+}

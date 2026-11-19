@@ -7,6 +7,7 @@ import { totalLinea } from '../dominio/totales'
 import type { Comprador } from '../dominio/compradores'
 import type { Id, Producto } from '../dominio/tipos'
 import { BotonBorrar } from '../ui/BotonBorrar'
+import { useMio } from '../ui/MisCosas'
 import { FormularioProducto } from './FormularioProducto'
 
 interface Props {
@@ -27,7 +28,7 @@ export function FilaProducto({ producto, compradores, conComprador = true, soloL
   const cantidad = formatearCantidad(producto.cantidad, producto.unidad)
   const hayDatos = producto.precioUnidad !== null || producto.observaciones !== ''
   return (
-    <li className={producto.comprado ? 'fila fila--comprada' : 'fila'}>
+    <li className={producto.comprado ? 'fila fila--comprada' : 'fila'} {...useMio(producto.compradorId)}>
       <label className="fila__nombre">
         <input
           type="checkbox"

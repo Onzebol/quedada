@@ -23,3 +23,15 @@ export function vincularCuenta(q: Quedada, participanteId: Id | null, cuentaId: 
 export function participanteDe(q: Quedada, cuentaId: string): Participante | null {
   return q.participantes.find((p) => p.cuentaId === cuentaId) ?? null
 }
+
+/** Ids de lo que es mío: mi participante, mi familia y los componentes de mi familia. Vacío sin vínculo. */
+export function idsMios(q: Quedada, cuentaId: string | null): Set<Id> {
+  const yo = cuentaId === null ? null : participanteDe(q, cuentaId)
+  if (yo === null) return new Set()
+  const ids = new Set<Id>([yo.id])
+  if (yo.familiaId !== undefined) {
+    ids.add(yo.familiaId)
+    for (const p of q.participantes) if (p.familiaId === yo.familiaId) ids.add(p.id)
+  }
+  return ids
+}

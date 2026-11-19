@@ -1,5 +1,6 @@
 import { Pencil, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
+import { MisCosas, marcaMio } from '../ui/MisCosas'
 import { compradores } from '../dominio/compradores'
 import { anadirGasto, borrarGasto, editarGasto } from '../dominio/gastos'
 import { filtrarImporte, formatearEuros, parsearEuros } from '../dominio/numeros'
@@ -23,6 +24,7 @@ const aTexto = (centimos: number) => String(centimos / 100).replace('.', ',')
 
 /** Lo que ha puesto cada uno de su bolsillo, esté o no en la lista de la compra: de aquí salen las cuentas (con el alquiler). */
 export function Gastos({ quedada, aplicar, crearId, imagenes }: Props) {
+  const mios = useContext(MisCosas)
   const quienes = compradores(quedada)
   const nombre = (id: Id) => quienes.find((c) => c.id === id)?.nombre ?? id
   const [ventana, setVentana] = useState<'nuevo' | Gasto | null>(null)
@@ -83,7 +85,7 @@ export function Gastos({ quedada, aplicar, crearId, imagenes }: Props) {
           <>
             <ul className="pagos__lista" aria-label="Gastos">
               {quedada.gastos.map((g) => (
-                <li key={g.id} className={imagenes && g.imagen ? 'pago pago--con-tique' : 'pago'}>
+                <li key={g.id} className={imagenes && g.imagen ? 'pago pago--con-tique' : 'pago'} {...marcaMio(mios, g.pagadorId)}>
                   {imagenes && g.imagen && (
                     <MiniaturaTique key={`${g.imagen}:${version}`} almacen={imagenes.almacen} ruta={g.imagen} concepto={g.concepto} />
                   )}

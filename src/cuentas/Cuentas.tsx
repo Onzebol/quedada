@@ -2,7 +2,9 @@ import { Check, ChevronDown, Copy } from 'lucide-react'
 import { useId, useState } from 'react'
 import { formatearEuros } from '../dominio/numeros'
 import { resumenPorFamilia, type GrupoResumen, type PersonaResumen } from '../dominio/resumen'
+import type { Transferencia } from '../dominio/liquidacion'
 import type { Quedada } from '../dominio/tipos'
+import { useMio } from '../ui/MisCosas'
 import './cuentas.css'
 
 interface Props {
@@ -25,7 +27,7 @@ function FichaGrupo({ grupo }: { grupo: GrupoResumen }) {
   const idDetalle = useId()
   const desplegable = grupo.personas.length > 0
   return (
-    <li className="cuentas__ficha">
+    <li className="cuentas__ficha" {...useMio(grupo.id)}>
       <h4>
         {desplegable ? (
           <button type="button" aria-expanded={abierta} aria-controls={abierta ? idDetalle : undefined} onClick={() => setAbierta((v) => !v)}>
@@ -107,6 +109,14 @@ function ImporteCopiable({ importe }: { importe: number }) {
   )
 }
 
+function FilaTransferencia({ t, nombre }: { t: Transferencia; nombre: (id: string) => string }) {
+  return (
+    <li {...useMio(t.de, t.a)}>
+      <strong>{nombre(t.de)}</strong> paga <ImporteCopiable importe={t.importe} /> a <strong>{nombre(t.a)}</strong>
+    </li>
+  )
+}
+
 /** Resumen de las cuentas, de solo lectura: lo que paga cada uno de casa y gastos se ajusta en «La casa». */
 export function Cuentas({ quedada }: Props) {
   const { grupos, totales, transferencias } = resumenPorFamilia(quedada)
@@ -151,10 +161,7 @@ export function Cuentas({ quedada }: Props) {
       ) : (
         <ul className="cuentas__transferencias" aria-label="Quién paga a quién">
           {transferencias.map((t) => (
-            <li key={`${t.de}-${t.a}`}>
-              <strong>{nombre(t.de)}</strong> paga <ImporteCopiable importe={t.importe} /> a{' '}
-              <strong>{nombre(t.a)}</strong>
-            </li>
+            <FilaTransferencia key={`${t.de}-${t.a}`} t={t} nombre={nombre} />
           ))}
         </ul>
       )}

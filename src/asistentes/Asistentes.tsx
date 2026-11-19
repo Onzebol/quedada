@@ -11,6 +11,7 @@ import {
   totalAsistentes,
 } from '../dominio/asistentes'
 import type { Asistente, Id, Quedada } from '../dominio/tipos'
+import { useMio } from '../ui/MisCosas'
 import { BotonBorrar } from '../ui/BotonBorrar'
 import { ConIcono } from '../ui/ConIcono'
 import { FormularioModal } from '../ui/FormularioModal'
@@ -89,7 +90,7 @@ function FichaFamilia({ quedada, asistente: a, aplicar, crearId }: PropsFamilia)
   const personas = personasDe(quedada, a)
 
   return (
-    <li className="familia">
+    <li className="familia" {...useMio(a.id)}>
       <div className="familia__cabecera">
         <div className="familia__titulo">
           <h3>

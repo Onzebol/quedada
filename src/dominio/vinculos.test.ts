@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { quedada } from './fabrica'
-import { participanteDe, vincularCuenta } from './vinculos'
+import { idsMios, participanteDe, vincularCuenta } from './vinculos'
 
 const base = () =>
   quedada({
@@ -39,5 +39,34 @@ describe('vincular cuenta con participante', () => {
   it('ignora un participante que no existe', () => {
     const q = base()
     expect(vincularCuenta(q, 'nadie', 'cuenta-1')).toBe(q)
+  })
+})
+
+describe('ids míos (yo y mi familia)', () => {
+  const q = () =>
+    quedada({
+      asistentes: [
+        { id: 'f1', familia: 'Pérez', personas: 2, llegada: null },
+        { id: 'f2', familia: 'Gil', personas: 1, llegada: null },
+      ],
+      participantes: [
+        { id: 'u1', nombre: 'Ana', familiaId: 'f1', cuentaId: 'c1' },
+        { id: 'u2', nombre: 'Luis', familiaId: 'f1' },
+        { id: 'u3', nombre: 'Eva', familiaId: 'f2' },
+        { id: 'u4', nombre: 'Suelto', cuentaId: 'c4' },
+      ],
+    })
+
+  it('incluye mi persona, mi familia y sus componentes', () => {
+    expect([...idsMios(q(), 'c1')].sort()).toEqual(['f1', 'u1', 'u2'])
+  })
+
+  it('una persona sin familia solo se incluye a sí misma', () => {
+    expect([...idsMios(q(), 'c4')]).toEqual(['u4'])
+  })
+
+  it('sin vínculo (o sin cuenta) no hay nada mío', () => {
+    expect(idsMios(q(), 'otra').size).toBe(0)
+    expect(idsMios(q(), null).size).toBe(0)
   })
 })
