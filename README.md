@@ -1,96 +1,111 @@
 # Quedada
 
-Aplicación web para organizar las quedadas anuales en una casa rural: la lista de la compra y los gastos, que hasta ahora vivían en un Excel.
+Aplicación web para organizar quedadas de casa rural entre amigos: quién viene, la lista de la compra, lo que ha pagado cada uno y quién debe a quién. Sustituye al Excel que se usaba hasta ahora.
 
-**Web publicada:** https://onzebol.github.io/quedada/
+- **Web:** https://onzebol.github.io/quedada/
+- **Código:** https://github.com/Onzebol/quedada
 
-## Estado
+Se entra con una cuenta de Google. Cada quedada es de quien la crea y se comparte con un enlace de invitación; los cambios de los demás aparecen sin recargar. Se puede instalar como aplicación (PWA) en el móvil y el ordenador. Todos los nombres, cantidades e importes de las capturas son inventados.
 
-El proyecto está en sus primeros hitos. Cada hito es una [issue](https://github.com/Onzebol/quedada/issues) con su contexto y criterios de aceptación.
+## Qué hace
 
-| Hito | Resultado |
-|---|---|
-| 1 | Andamiaje con Vite, React, TypeScript, Vitest y CI (hecho) |
-| 2 | Modelo de datos y almacenamiento (hecho): tipos, totales en céntimos y repositorio SQLite en el navegador (`sql.js` + IndexedDB; migra los datos antiguos de `localStorage`) |
-| 3 | Lista de la compra (hecho): comidas, productos, comprador, comprado, observaciones y filtros |
-| 4 | Gastos y liquidación (hecho): precio y descuento por producto, reparto (casa a partes iguales, comida por porcentaje) y quién paga a quién |
-| 5 | Despliegue continuo en GitHub Pages |
-| 6 | Importar el Excel (hecho; retirado en #137: ya no se usa) |
-| 7 | Asistentes y llegadas (hecho): familias con personas y hora de llegada, total de asistentes (los básicos se quitaron en #56: van en la lista de la compra) |
-| 19 | Sesión con Google y enlace de la quedada (`#/<id>`): entrar/salir, nombre y foto, «Este soy yo» |
-| 25 | Supabase: login con Google y quedadas por usuario (primer trozo; compartir, conocidos e invitaciones, después). Configuración: ver abajo |
-| 30 | Supabase: una fila por cosa (participantes, comidas, productos…) y guardado por diferencias, para que varias personas editen sin pisarse (paso 1 de #29) |
-| 32 | Tiempo real: los cambios de otra persona aparecen sin recargar (Broadcast desde la base de datos, canal privado por quedada; paso 2 de #29) |
-| 36 | Eliminar quedadas, con confirmación |
-| 55 | Pestañas en la quedada: La casa, Lista de la compra, Pagos (pagos de la casa por familia; tiques, pendiente) y Resumen |
-| 56 | La casa: título, descripción con enlaces, dirección, precio y mapa (marcador ajustable y botón «Centrar» al editar; botón de la app de mapas en el móvil), familias con sus personas y lo que paga cada una de casa y de los demás gastos; en «Pagos», quién pagó la casa; en el Resumen, lo que paga cada uno de la casa |
-| 40 | Enlace de la quedada más corto: `#/<id>` (los antiguos `#/quedada/<id>` siguen funcionando) |
-| 42 | Todos los borrados (quedada, comida, producto, asistente y básico) piden confirmación en una ventana modal con el estilo de la web |
-| 43 | Menú de usuario: arriba a la derecha solo nombre de pila y foto; al pulsar se abre un menú con «Cerrar sesión» |
-| 44 | Página inicial (sin `#/<id>`): añadir (modal), editar (modal), elegir y eliminar quedadas; el título «Quedada» vuelve a ella (#97) y cada quedada muestra su nombre |
-| 57 | Iconos (`lucide-react`) en los botones; en móvil (< 40 rem) solo se ve el icono, el texto queda como nombre accesible |
-| 67 | Lista de la compra como «La casa»: secciones plegables y por orden alfabético, añadir y editar en ventanas modales, asignar también a familias sin personas, filtro «Mostrar» y totales; sin «Añadir participante» (se definen en «La casa») |
-| 70 | Con un filtro activo en «Mostrar», la lista de la compra no muestra botones de añadir, renombrar, editar ni borrar |
-| 72 | Botón de usuario: en pantallas estrechas se oculta el nombre y queda la foto |
-| 113 | Botón de usuario solo con la foto (o la inicial); el nombre y el correo salen dentro del menú |
-| 69 | App instalable (PWA): icono y favicon propios, manifiesto, funciona sin conexión (la interfaz) y avisa cuando hay una versión nueva con «Actualizar» |
-| 77 | Botón «Instalar» junto al icono del usuario cuando el navegador permite instalar la aplicación |
-| 79 | Pista para instalar en iOS: el botón «Instalar» abre los pasos «Compartir → Añadir a pantalla de inicio» |
-| 8 y 9 | Memoria entre años y tickets |
-| 95 | Las cuentas salen de lo que ha pagado cada uno (sección «Gastos» de «Pagos», aunque no esté en la lista) y de los pagos de la casa; los precios de la lista de la compra son solo orientativos |
-| 118 | Tiques por foto: un gasto puede llevar la foto del tique (cámara o galería, reducida y guardada en Supabase Storage), con el total y el pagador escritos a mano |
-| 132 | Miembros y permisos: tabla `quedada_miembros`; todos los miembros ven y editan la quedada, solo el propietario la borra (paso 3 de #29; la invitación por enlace viene después) |
-| 136 | Invitar por enlace: el propietario genera un enlace (caduca a los 30 días) y quien lo abre con Google entra como miembro; lista de miembros y «Retirar» (paso 4 de #29) |
-| 140 | El enlace de invitación (o de una quedada) sobrevive al login con Google: se recuerda antes de redirigir y se restaura al volver |
-| 148 | Entrar con el botón de Google (Identity Services + `signInWithIdToken`): Google ya no muestra la URL de Supabase. Requiere el Client ID en el proveedor Google de Supabase |
-| 120 | Casilla «Pagado» en cada pago de la casa, para saber si quien debía pagarlo ya lo ha hecho |
-| 128 | Resumen rediseñado: totales, ficha por familia (casa pagada, total pagado, le toca y saldo, con desglose por persona) y quién paga a quién |
-| 151 | Las quedadas de la página inicial se muestran por orden alfabético y la lista es algo más ancha |
-| 146 | Duplicar una quedada desde la página inicial: copia la casa, las personas, la lista de la compra (sin asignar ni comprar) y los asistentes (sin llegada); no copia pagos ni gastos |
-| 153 | Fecha de inicio y de fin en las quedadas; la lista se ordena por inicio (la más nueva arriba) y nombre |
+### Tus quedadas
 
-## Requisitos
+Lista de quedadas por fecha, con crear, editar, duplicar (copia la casa, las personas y la lista de la compra, sin pagos ni gastos) y borrar.
 
-- Node.js 22 o superior
-- npm
+![Página inicial con la lista de quedadas](docs/capturas/inicio.png)
 
-## Empezar
+### La casa
+
+Ficha de la casa (descripción con enlaces, dirección, precio y mapa con «Mapa/Satélite» y botón «Navegar» en el móvil) y los asistentes agrupados por familias, con la hora de llegada, si son adultos o menores y el porcentaje que paga cada uno de la casa y de los demás gastos. «Este soy yo» resalta lo tuyo y de tu familia.
+
+![La casa y los asistentes](docs/capturas/casa.png)
+
+### Lista de la compra
+
+Secciones plegables (cena del viernes, desayunos…) con productos, cantidad, precio orientativo, quién los compra, observaciones y casilla de comprado. El filtro «Mostrar» enseña lo de cada persona, lo pendiente o lo que no tiene comprador.
+
+![Lista de la compra](docs/capturas/compra.png)
+
+### Pagos
+
+Pagos del alquiler por familia (reserva, resto…, con casilla «Pagado» y «Repartir entre familias») y gastos reales de cada uno, con foto opcional del tique.
+
+![Pagos de la casa y gastos](docs/capturas/pagos.png)
+
+### Resumen
+
+Totales, ficha por familia (lo pagado, lo que le toca y su saldo, con desglose por persona) y «Quién paga a quién» con el mínimo de transferencias; el importe se copia con un toque.
+
+![Resumen de cuentas](docs/capturas/resumen.png)
+
+## Instalación
+
+Requisitos: Node.js 22 o superior, npm y un proyecto gratuito de [Supabase](https://supabase.com) (guarda los datos y valida las cuentas) con un cliente OAuth de Google. **Sin esa configuración la app solo muestra la pantalla de entrada.**
 
 ```bash
+git clone https://github.com/Onzebol/quedada.git
+cd quedada
 npm install
-npm run dev
+cp .env.example .env.local   # y rellena las variables (ver abajo)
+npm run dev                  # http://localhost:39726/quedada/
 ```
+
+El servidor de desarrollo usa siempre el puerto **39726** (`strictPort`): es la dirección que se autoriza en Supabase y Google. Si está ocupado, falla en vez de cambiar de puerto.
+
+### Variables de entorno
+
+Se leen en la compilación (Vite), así que son **públicas**: acaban en el JavaScript que recibe el navegador. Nunca pongas aquí la clave `service_role` de Supabase.
+
+| Variable | Obligatoria | Qué es | Dónde se saca |
+|---|---|---|---|
+| `VITE_SUPABASE_URL` | Sí | URL del proyecto, `https://xxxx.supabase.co` | Supabase → Project Settings → API |
+| `VITE_SUPABASE_CLAVE_PUBLICA` | Sí | Clave `anon`/publishable | Supabase → Project Settings → API |
+| `VITE_GOOGLE_CLIENT_ID` | Recomendada | Client ID de OAuth de Google. Con ella se usa el botón oficial de Google, que no muestra la URL de Supabase; sin ella, «Entrar con Google» redirige a Supabase | Google Cloud Console → Credenciales |
+
+En local van en `.env.local` (ignorado por git; plantilla en `.env.example`). En el despliegue son **variables de repositorio** de GitHub (no secretos) con otro nombre: `SUPABASE_URL`, `SUPABASE_CLAVE_PUBLICA` y `GOOGLE_CLIENT_ID` (Settings → Secrets and variables → Actions → Variables); `deploy.yml` las pasa a la compilación.
+
+### 1. Base de datos (Supabase)
+
+1. Crea el proyecto y, en el editor SQL, ejecuta **por orden** todos los ficheros de `supabase/migrations/` (`0001` … `0013`). Crean las tablas, la seguridad por fila (cada persona solo ve sus quedadas y las que le han compartido), las invitaciones, el aviso en tiempo real y el bucket privado `tiques` para las fotos.
+2. En *Project Settings → Realtime* deja activado Realtime y **desmarcado** «Allow public access» (los canales son privados).
+3. Al añadir una migración nueva en el futuro, ejecútala en el editor SQL antes de fusionar la PR que la necesita.
+
+### 2. Inicio de sesión con Google
+
+1. En Google Cloud Console crea un cliente OAuth de tipo «Aplicación web».
+2. Orígenes JavaScript autorizados: `https://onzebol.github.io` (o tu dominio) y `http://localhost:39726`.
+3. URI de redirección autorizada: la que muestra Supabase en *Authentication → Providers → Google*.
+4. En esa misma pantalla de Supabase activa Google y pega el Client ID y el secret. Si usas `VITE_GOOGLE_CLIENT_ID`, el Client ID debe figurar también en «Client IDs».
+5. En *Authentication → URL Configuration* añade `https://onzebol.github.io/quedada/` y `http://localhost:39726/quedada/` como URL permitidas.
+
+### 3. Publicar en GitHub Pages
+
+1. En el repositorio: *Settings → Pages → Source: GitHub Actions*.
+2. Define las tres variables de repositorio de la tabla anterior.
+3. Cada fusión en `main` pasa los tests y publica sola (`.github/workflows/deploy.yml`). La app vive en `/quedada/` (`base` en `vite.config.ts`); si cambias el nombre del repositorio, cámbialo allí y en el manifiesto de la PWA.
 
 ## Comandos
 
 | Comando | Qué hace |
 |---|---|
-| `npm run dev` | Servidor de desarrollo |
+| `npm run dev` | Servidor de desarrollo (puerto 39726) |
 | `npm test` | Tests (una pasada) |
 | `npm run test:watch` | Tests en modo vigilancia |
 | `npm run coverage` | Tests con cobertura |
 | `npm run lint` | Lint con oxlint |
 | `npm run typecheck` | Comprobación de tipos |
-| `npm run build` | Build de producción |
-
-## Cuentas y datos en Supabase
-
-Con Supabase configurado, la gente entra con su cuenta de Google y sus quedadas se guardan en la nube, cada una visible solo para su propietaria y sus miembros (seguridad por fila; hoy los miembros se añaden a mano en la base, la invitación por enlace llega en la siguiente issue). **Hay que entrar con Google para usar la app**: sin sesión solo se ve la pantalla de entrada (y, sin configuración de Supabase, un aviso).
-
-1. Crea un proyecto en supabase.com y ejecuta en el editor SQL, por orden, `supabase/migrations/0001_quedadas.sql`, `0002_tablas.sql` y `0003_tiempo_real.sql` (la segunda pasa las quedadas existentes a tablas; si ya tenías datos, después de fusionar la PR del cambio vuelve a ejecutar una vez `select public.convertir_quedadas_desde_datos();`).
-2. En Google Cloud Console crea un cliente OAuth «Aplicación web» con la URI de redirección que muestra Supabase (*Authentication → Providers → Google*) y pega su Client ID y secret en Supabase.
-3. En *Authentication → URL Configuration* añade `https://onzebol.github.io/quedada/` y la URL de desarrollo.
-4. Local: copia `.env.example` a `.env.local` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_CLAVE_PUBLICA`. Despliegue: variables de repositorio `SUPABASE_URL` y `SUPABASE_CLAVE_PUBLICA` (Settings → Secrets and variables → Actions → Variables).
-
-En *Project Settings → Realtime* deja activado Realtime y desmarcado «Allow public access» (los canales son privados). La URL y la clave publishable son públicas; nunca pongas la `service_role` en la app ni en el repo. Los datos locales anteriores (SQLite del navegador) ya no se muestran y no se suben solos; la migración queda pendiente.
+| `npm run build` | Compilación de producción en `dist/` |
+| `npx vite preview --port 39726 --strictPort` | Sirve la compilación (el service worker y «Instalar» solo existen aquí, no en `dev`) |
 
 ## Estructura
 
-- `src/dominio/`: modelo y lógica sin React (tipos, totales, liquidación, repositorio). Dinero en céntimos.
-- `src/compra/`: la lista de la compra (React).
-- `src/cuentas/`: Resumen: totales, ficha por familia con su saldo y transferencias (React).
-- `src/inicio/`: página inicial con la lista de quedadas (crear, elegir, eliminar).
-- `src/`: `App` y arranque de la interfaz.
+- `src/dominio/`: modelo y lógica sin React (tipos, reparto y liquidación, operaciones). El dinero va en céntimos.
+- `src/supabase/`, `src/invitaciones/`, `src/autenticacion/`, `src/tiques/`: acceso a Supabase, invitaciones, sesión y fotos de tiques.
+- `src/inicio/`, `src/casa/`, `src/asistentes/`, `src/compra/`, `src/cuentas/`: pantallas.
+- `src/ui/`, `src/pwa/`: componentes compartidos y app instalable.
+- `supabase/migrations/`: esquema y seguridad de la base de datos.
+- `docs/capturas/`: capturas de este README (datos inventados).
 - `.github/workflows/`: CI y despliegue.
 
 ## Cómo se trabaja
@@ -98,10 +113,9 @@ En *Project Settings → Realtime* deja activado Realtime y desmarcado «Allow p
 - Cada cambio parte de una issue y se hace en su propio git worktree, en `.worktrees/`.
 - Los tests se escriben antes que el código (TDD).
 - Todo entra por pull request, que cierra su issue con `Closes #<n>` y debe pasar la CI.
-- Al fusionar en `main` se despliega en GitHub Pages.
 
-Las normas detalladas, también para agentes de IA, están en [`AGENTS.md`](AGENTS.md).
+Las normas detalladas, también para agentes de IA, y el detalle de cada decisión están en [`AGENTS.md`](AGENTS.md).
 
 ## Stack
 
-Vite, React, TypeScript, Vitest, React Testing Library, oxlint y GitHub Actions.
+Vite, React, TypeScript, Supabase (Postgres, Auth, Realtime y Storage), Leaflet, Vitest, React Testing Library, oxlint y GitHub Actions.
